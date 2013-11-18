@@ -14,8 +14,8 @@ import com.nearfuturelaboratory.util.Constants;
 public class MigrateTokensToMongo {
 	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.util.MigrateTokensToMongo.class);
 
-	private static final String USERS_DB_PATH = Constants.getString("SERVICE_DATA_ROOT", ".")+"/instagram/users/%s-%s/";
-	private static final String USERS_SER_TOKEN = USERS_DB_PATH+"instagram-token-for-%s-%s.ser";
+	private static final String USERS_DB_PATH = Constants.getString("SERVICE_DATA_ROOT", ".")+"/%s/users/%s-%s/";
+	private static final String USERS_SER_TOKEN = USERS_DB_PATH+"%s-token-for-%s-%s.ser";
 
 	public static void main(String[] args) throws IOException {
 		try {
@@ -29,7 +29,7 @@ public class MigrateTokensToMongo {
 		String user_id = args[0];
 		String username = args[1];
 		String service_name = args[2];
-		Token token = deserializeToken(user_id, username);
+		Token token = deserializeToken(service_name, user_id, username);
 		logger.debug(token);
 		byte[] bytes = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -60,8 +60,8 @@ public class MigrateTokensToMongo {
 		service_token.setToken(token);
 		service_token.setUser_id(user_id);
 		service_token.setUsername(username);
-		
-		Key k = dao.save(service_token);
+		service_token.setServicename(service_name);
+		Key<ServiceToken> k = dao.save(service_token);
 		logger.debug(k);
 		
 	}
@@ -95,10 +95,10 @@ public class MigrateTokensToMongo {
 		return result;
 	}
 	
-	protected static Token deserializeToken(String aUserID, String aUsername) {
+	protected static Token deserializeToken(String aServicename, String aUserID, String aUsername) {
 	Token result = null;
 	try {
-		String path = String.format(USERS_SER_TOKEN, aUserID, aUsername, aUserID, aUsername);
+		String path = String.format(USERS_SER_TOKEN, aServicename, aUserID, aUsername, aServicename, aUserID, aUsername);
 
 		InputStream file = new FileInputStream( path );
 		InputStream buffer = new BufferedInputStream( file );
