@@ -16,7 +16,7 @@ import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 
 @Entity("status")
 public class FlickrStatus extends ServiceStatus {
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.entities.FlickrStatus.class");
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrStatus.class);
 	@Version
 	@Property ("version")
 	private Long version;
