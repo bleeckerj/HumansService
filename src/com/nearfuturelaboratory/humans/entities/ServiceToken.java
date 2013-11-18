@@ -26,7 +26,7 @@ import org.mongodb.morphia.utils.IndexDirection;
 
 import com.nearfuturelaboratory.humans.util.PersistableToken;
 
-@Entity("service_token")
+@Entity(value="service_token",noClassnameStored = true)
 public class ServiceToken extends BaseEntity {
 	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.entities.ServiceToken.class);
 	private final static String key = "1234567890123456";

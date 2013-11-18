@@ -2,21 +2,28 @@ package com.nearfuturelaboratory.humans.service.status;
 
 import java.util.Date;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public interface ServiceStatus extends Comparable<ServiceStatus> {
+public abstract class ServiceStatus implements Comparable<ServiceStatus> {
 	
-	public  JsonObject getStatusJSON();
+	public abstract JsonObject getStatusJSON();
 	
-	public  long getCreated();
+	public abstract long getCreated();
 	
-	public  Date getCreatedDate();
+	public Date getCreatedDate() {
+		return new Date(getCreated());
+	}
+
 	//public int compareTo(ServiceStatus o);
+
+	//public void setStatusJSON(JsonObject obj);
 	
-	public  void setStatusJSON(JsonObject obj);
-	
-	public int compareTo(ServiceStatus aO);
+	public int compareTo(ServiceStatus aO) {
+		Date otherDate = aO.getCreatedDate();
+		//otherDate.setTime(aO.getCreated()*1000l);
+		return otherDate.compareTo(this.getCreatedDate());
+
+	}
 
 
 }

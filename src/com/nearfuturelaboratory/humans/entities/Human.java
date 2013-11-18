@@ -19,7 +19,7 @@ import org.mongodb.morphia.utils.IndexDirection;
 import com.nearfuturelaboratory.humans.entities.ServiceUser;
 
 
-@Entity("humans")
+@Entity(value="humans",noClassnameStored = true)
 // compound index
 //@Indexes(@Index(name = "nameAndID", value = "name, id", unique = true))
 public class Human  /*extends BaseEntity*/ {

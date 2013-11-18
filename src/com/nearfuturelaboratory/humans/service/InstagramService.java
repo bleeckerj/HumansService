@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -27,10 +26,11 @@ import com.nearfuturelaboratory.humans.dao.InstagramFollowsDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramStatusDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
-import com.nearfuturelaboratory.humans.entities.InstagramFollows;
-import com.nearfuturelaboratory.humans.entities.InstagramStatus;
-import com.nearfuturelaboratory.humans.entities.InstagramUser;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramFollows;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramUserBriefly;
 //import com.nearfuturelaboratory.humans.service.status.InstagramStatus;
 import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
@@ -86,28 +86,10 @@ public class InstagramService {
 
 	}
 
-	public static InstagramService createInstagramServiceOnBehalfOfUsername(String aUsername)
-	{
-		InstagramUser local_user = InstagramService.getLocalUserBasicForUsername(aUsername);
-
-		//InstagramUser local_user = InstagramService.getLocalUserBasicForUsername(aUsername);
-		Token token = InstagramService.deserializeToken(local_user);
-		InstagramService result = new InstagramService(token);
-		result.user = local_user;
-		return result;
-	}
-
-	protected static InstagramUser staticGetLocalUserBasicForUserID(String aUserID) {
-		InstagramUserDAO dao = new InstagramUserDAO();
-		dao.ensureIndexes();	
-		InstagramUser result =  dao.findByExactUserID(aUserID);
-		return result;
-	}
 
 	//TODO Change this super ridiculous constructor. Should all be factory methods like above.
 	public InstagramService(Token aAccessToken) {
 		this();
-		System.out.println(Constants.getString("INSTAGRAM_API_KEY"));
 		accessToken = aAccessToken;
 		service = new ServiceBuilder()
 		.provider(InstagramApi.class)
@@ -118,6 +100,38 @@ public class InstagramService {
 		.build();
 	}
 
+	
+
+	public static InstagramService createInstagramServiceOnBehalfOfUsername(String aUsername)
+	{
+		InstagramService result;
+		Token token;
+		InstagramUser user = InstagramService.getLocalUserBasicForUsername(aUsername);
+		if(user == null) {
+			logger.warn("null token. trying to find one by username");
+			token = InstagramService.deserializeToken(aUsername);
+			result = new InstagramService(token);
+			user = result.serviceRequestUserBasic();
+
+		} else {
+			token = InstagramService.deserializeToken(user);
+			result = new InstagramService(token);
+		}
+		if(token == null) {
+			logger.error("null token for "+aUsername);
+			return null;
+		}
+
+		result.user = user;
+		return result;
+	}
+
+	protected static InstagramUser staticGetLocalUserBasicForUserID(String aUserID) {
+		InstagramUserDAO dao = new InstagramUserDAO();
+		dao.ensureIndexes();	
+		InstagramUser result =  dao.findByExactUserID(aUserID);
+		return result;
+	}
 	/**
 	 * This will go to the service and get "self" for whoever's accessToken we have
 	 */
@@ -152,8 +166,8 @@ public class InstagramService {
 		aUser = (JSONObject) ((JSONObject)obj).get("data");
 
 		this.saveUserBasicJson(aUser);
-		com.nearfuturelaboratory.humans.entities.InstagramUser iuser = gson.fromJson(aUser.toString(), 
-				com.nearfuturelaboratory.humans.entities.InstagramUser.class);
+		com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUser.toString(), 
+				com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
 		return iuser;
 	}
 
@@ -164,28 +178,44 @@ public class InstagramService {
 		return result;
 	}
 
-	protected com.nearfuturelaboratory.humans.entities.InstagramStatus getMostRecentStatusForUserID(String aUserID) {
+	protected com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus getMostRecentStatusForUserID(String aUserID) {
 		return statusDAO.findMostRecentStatusByExactUserID(aUserID);
 	}
 
 
-	@SuppressWarnings("unchecked")
 	protected Key<InstagramUser> saveUserBasicJson(JSONObject aUserJson) {
-		com.nearfuturelaboratory.humans.entities.InstagramUser iuser = gson.fromJson(aUserJson.toString(), 
-				com.nearfuturelaboratory.humans.entities.InstagramUser.class);
+		com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUserJson.toString(), 
+				com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
 		return userDAO.save(iuser);
 
 	}
 	
 	protected String getMostRecentStatusID(String aUserID) {
 		String result = null;
-		com.nearfuturelaboratory.humans.entities.InstagramStatus most_recent = getMostRecentStatusForUserID(aUserID);
+		com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = getMostRecentStatusForUserID(aUserID);
 		if(most_recent != null) {
 			result = most_recent.getStatusId();
 		}
 		return result;
 	}
-
+	
+	/**
+	 * Weird method to see if I can easily change the type of the created_time field to Long
+	 */
+	public void freshenStatus() {
+		List<InstagramStatus> status = getStatusForUserID(this.getThisUser().getId());
+		for(InstagramStatus item : status) {
+			statusDAO.save(item);
+		}
+	}
+	
+	public List<InstagramStatus> getStatus() {
+		return getStatusForUserID(this.getThisUser().getId());
+	}
+	
+	public List<InstagramStatus> getStatusForUserID(String aUserID) {
+		return statusDAO.findByExactUserID(aUserID);
+	}
 
 	/**
 	 * Given a minimum (most recent) status ID, get all the ones after it.
@@ -210,7 +240,7 @@ public class InstagramService {
 		JSONObject status = (JSONObject)jsonResponse;
 		JSONArray full_data = (JSONArray)status.get("data");
 		// Save to Mongo
-		return this.saveStatusJson(full_data, aUserID);
+		return this.saveStatusJson(full_data);
 
 	}
 
@@ -245,10 +275,14 @@ public class InstagramService {
 		Calendar oldest_cal = Calendar.getInstance();
 		oldest_cal.setTimeInMillis(oldest_time * 1000l);
 
-		saveStatusJson(full_data, aUserID);
+		saveStatusJson(full_data);
 
 	}
 
+	public List<InstagramStatus> serviceRequestStatusForUserID() {
+		return serviceRequestStatusForUserID(this.getThisUser().getId());
+	}
+	
 	public List<InstagramStatus> serviceRequestStatusForUserID(String aUserID) {
 		if(aUserID.equalsIgnoreCase("self")) {
 			aUserID = this.getThisUser().getId();
@@ -312,54 +346,46 @@ public class InstagramService {
 			next_url = JsonPath.read(status, "pagination.next_url");
 		} while(oldest_cal.compareTo(ago)>0 && next_url != null);
 
-		return saveStatusJson(full_data, aUserID);
+		return saveStatusJson(full_data);
 	}
 
 	@SuppressWarnings("unused")
-	List<InstagramStatus> saveStatusJson(JSONArray data, String aUserID) {
-		Gson gson = new Gson();
+	List<InstagramStatus> saveStatusJson(JSONArray data) {
+		gson = new Gson();
 		List<InstagramStatus>result = new ArrayList<InstagramStatus>();
-		//		DBCollection coll = db.getCollection("instagram.status."+aUserID);
-		//		coll.ensureIndex(new BasicDBObject("id", 1), "uniq_id", true);
-		//		Iterator iter = data.iterator();
-		// one way..you save it without the Morphia layer..
-		//		while(false && iter.hasNext()) {
-		//DataObject obj = gson.fromJson(br, DataObject.class);
-		//com.nearfuturelaboratory.humans.entities.InstagramStatus istatus = gson.fromJson(iter.next().toString(), com.nearfuturelaboratory.humans.entities.InstagramStatus.class)
-		//			BasicDBObject bobj = gson.fromJson(iter.next().toString(), BasicDBObject.class);
-		//			coll.insert(bobj);
-		//		}
-		//		iter = data.iterator();
 		// the way with morphia + DAO model..
 		@SuppressWarnings("unchecked")
 		Iterator<JSONObject> iter = data.iterator();
 		while(iter.hasNext()) {
 			String i = iter.next().toString();
 			//logger.debug(i);
-			com.nearfuturelaboratory.humans.entities.InstagramStatus istatus = gson.fromJson(i, com.nearfuturelaboratory.humans.entities.InstagramStatus.class);
+			com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus istatus = gson.fromJson(i, com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
 			result.add(istatus);
 			statusDAO.save(istatus);
 		}
 		return result;
 	}
 
+	public List<InstagramFollows> getFollows() {
+		return followsDAO.findFollowsByExactUserID(this.getThisUser().getId());
+	}
+	
+	
 	/**
-	 *  Bad name for a network call. You don't get anything no returned value. Instead,
-	 *  this loads the follows from Instagram across the wire and saves them.
+	 *  
 	 *  
 	 */
-	//TODO rename this thing.
-	public void getFollows() {
-		getFollows("self");
+	public void serviceRequestFollows() {
+		serviceRequestFollows(this.getThisUser().getId());
 	}
 
-	//TODO rename this thing.
+	
 	/**
 	 * 
 	 * @param aUserID
 	 */
 	@SuppressWarnings("unchecked")
-	public List<InstagramFollows> getFollows(String aUserID) {
+	public List<InstagramFollows> serviceRequestFollows(String aUserID) {
 		InstagramUser aUser;
 		List<InstagramFollows> result = new ArrayList<InstagramFollows>();
 		
@@ -415,21 +441,30 @@ public class InstagramService {
 				break;
 			}
 		} while(pagination != null);
-		//JSONObject meta = (JSONObject)map.get("meta");
-		for(int i=0; i<allFollows.size(); i++) {
-			String u = allFollows.get(i).toString();
-
-			com.nearfuturelaboratory.humans.entities.InstagramUserBriefly iub = gson.fromJson(u, com.nearfuturelaboratory.humans.entities.InstagramUserBriefly.class);
-			iub.setFollower_id(aUser.getId());
-			InstagramFollows iuf = new InstagramFollows(iub);
-			iub.setFollower_id(aUser.getId());
-			followsDAO.save(iuf);
-			result.add(iuf);
-		}
-		logger.debug("Wrote follows for "+aUser.getUsername());
+		logger.debug("Save follows for "+aUser.getUsername());
+		saveFollowsJson(allFollows);
 		return result;
 	}
 
+	protected void saveFollowsJson(JSONArray data) {
+		Iterator<JSONObject> iter = data.iterator();
+		for(int i=0; i<data.size(); i++) {
+			String u = data.get(i).toString();
+			InstagramUserBriefly iub = gson.fromJson(u, InstagramUserBriefly.class);
+			iub.setFollower_id(getThisUser().getId());
+			InstagramFollows iuf = new InstagramFollows(iub);
+			iuf.setFollower_id(getThisUser().getId());
+			
+			InstagramFollows f = followsDAO.findFollowsByUserIDFollowsID(iub.getId(), getThisUser().getId());
+			if(f != null) {
+				f.setUser_briefly(iub);
+				followsDAO.save(f);
+			} else {
+				followsDAO.save(iuf);
+			}
+		}
+		
+	}
 
 	public static void serializeToken(Token aToken, InstagramUser aUser) {
 		ServiceTokenDAO dao = new ServiceTokenDAO("instagram");
@@ -440,6 +475,13 @@ public class InstagramService {
 		tokenToSave.setServicename("instagram");
 		dao.save(tokenToSave);
 	}
+	
+	private static Token deserializeToken(String aUsername) {
+		ServiceTokenDAO dao = new ServiceTokenDAO("instagram");
+		ServiceToken st = dao.findByExactUsername(aUsername);
+		return st.getToken();
+	}
+
 	
 	
 	public static Token deserializeToken(InstagramUser aUser) {
@@ -455,7 +497,7 @@ public class InstagramService {
 
 	public boolean localUserBasicIsFreshForUserID(String aUserID) {
 		boolean result = false;
-		com.nearfuturelaboratory.humans.entities.InstagramUser user = this.getLocalUserBasicForUserID(aUserID);
+		com.nearfuturelaboratory.humans.instagram.entities.InstagramUser user = this.getLocalUserBasicForUserID(aUserID);
 		
 		if(user == null) return false;
 		
@@ -475,7 +517,7 @@ public class InstagramService {
 
 	public boolean localServiceStatusIsFreshForUserID(String aUserID) {
 		boolean result = false;
-		com.nearfuturelaboratory.humans.entities.InstagramStatus most_recent = this.getMostRecentStatusForUserID(aUserID);
+		com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = this.getMostRecentStatusForUserID(aUserID);
 		Date d = most_recent.getLastUpdated();
 
 		long then = d.getTime();
@@ -497,67 +539,12 @@ public class InstagramService {
 	}
 
 
-//	public List<InstagramStatus> getStatus() {
-//		return getStatus(this.getThisUser().getId().toString());
-//	}
-//
-//
-//	public List<InstagramStatus> getStatus(String aUserID) {
-//		List<InstagramStatus> result = new ArrayList<InstagramStatus>();
-//		//List<Path>statusPaths = getStatusPaths(aUserID);
-//
-//		// load each file, iterate the status
-//		for(int i=0; statusPaths != null && i < statusPaths.size(); i++) {
-//			Path path = statusPaths.get(i);
-//			File f = path.toFile();
-//			JsonParser parser = new JsonParser();
-//			Gson gson = new GsonBuilder().create();
-//			try {
-//				InputStreamReader char_input = 
-//						new InputStreamReader(new FileInputStream(f),Charset.forName("UTF-8").newDecoder());
-//				Object obj = parser.parse(char_input);
-//				JsonArray statuses = (JsonArray)obj;
-//				for(int j=0; j<statuses.size(); j++) {
-//					if(statuses.get(i).isJsonObject()) {
-//						InstagramStatus is = gson.fromJson(statuses.get(j), InstagramStatus.class);
-//						is.setStatusJSON(statuses.get(j).getAsJsonObject());
-//						result.add(is);
-//						//logger.debug(is.toString());
-//					}
-//
-//				}
-//			} catch (JsonIOException | JsonSyntaxException
-//					| FileNotFoundException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//				logger.error(e);
-//			}
-//		}
-//		return result;
-//	}
 
-//	protected List<Path> getStatusPaths() {
-//		return getStatusPaths(this.getThisUser().getId().toString());
-//	}
 
-//	protected List<Path> getStatusPaths(String aUserID) {
-//		Path startingDir = Paths.get(USERS_DB_PATH_ROOT);
-//		String pattern = aUserID+"-\\w*-(\\d*-archival)?status.json";
-//		//logger.debug(aUserID+" "+pattern);
-//
-//		Finder finder = new Finder(pattern, "regex");
-//		//logger.debug(finder);
-//		try {
-//			Files.walkFileTree(startingDir, finder);
-//		} catch (IOException e) {
-//			//e.printStackTrace();
-//			logger.error(e);
-//		}
-//		//logger.debug(finder.results);
-//		List<Path> results = finder.results;
-//
-//		return results;
-//	}
-//
+
+
+
+
+
 
 }

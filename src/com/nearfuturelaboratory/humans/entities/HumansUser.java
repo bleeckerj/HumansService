@@ -31,23 +31,15 @@ import com.nearfuturelaboratory.humans.entities.ServiceUser;
 import com.nearfuturelaboratory.util.Pair;
 
 
-@Entity("users")
+@Entity(value="users",noClassnameStored = true)
 public class HumansUser extends BaseEntity {
 
 	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.entities.HumansUser.class);
 
-	//static HumansUserDAO dao = new HumansUserDAO();
-
-	//@Id protected ObjectId id;
 	@Indexed(value = IndexDirection.ASC, name = "username", unique = true, dropDups = true)
 	private String username;
 	private String password;
 	protected String email;
-	//	@Transient 	protected static Mongo mongo;
-	//	@Transient protected Datastore datastore;
-	//	@Transient private Morphia morphia;
-	//	@Transient private final String dbname = "humans";
-
 
 	@Embedded("humans")
 	protected List<Human> humans = new ArrayList<Human>();

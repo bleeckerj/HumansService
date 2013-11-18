@@ -4,13 +4,15 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Reference;
 
+import com.google.gson.Gson;
+
 
 /**
  * For our serviceUsers sub-document within our HumansUser thing
  * @author julian
  *
  */
-@Entity("serviceUsers")
+@Entity(value="serviceUsers",noClassnameStored = true)
 public class ServiceUser extends BaseEntity {
 
 	protected String username;
@@ -65,9 +67,10 @@ public class ServiceUser extends BaseEntity {
 
 	@Override
 	public String toString() {
-		return "ServiceUser [username=" + username + ", serviceID=" + serviceID
-				+ ", service=" + service + ", onBehalfOf=" + onBehalfOf
-				+ ", imageURL=" + imageURL + "]";
+		String o = new Gson().toJson(this).toString();
+		//System.out.println("o = "+o);
+		return o;
+		//return new Gson().toJsonTree(this, this.getClass()).getAsString();
 	}
 	@Override
 	public int hashCode() {

@@ -8,7 +8,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.jayway.jsonpath.JsonPath;
 
-public class FoursquareStatus implements ServiceStatus {
+@Deprecated
+public class FoursquareStatus extends ServiceStatus {
 
 	
 	protected JsonObject statusJSON;

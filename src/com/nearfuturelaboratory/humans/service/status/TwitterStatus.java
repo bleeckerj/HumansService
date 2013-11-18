@@ -5,7 +5,8 @@ import java.util.Date;
 //import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class TwitterStatus implements ServiceStatus {
+@Deprecated
+public class TwitterStatus extends ServiceStatus {
 	
 	protected int id;
 	protected String text;

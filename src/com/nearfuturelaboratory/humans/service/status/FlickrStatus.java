@@ -4,7 +4,8 @@ import java.util.Date;
 
 import com.google.gson.JsonObject;
 
-public class FlickrStatus implements ServiceStatus {
+@Deprecated
+public class FlickrStatus extends ServiceStatus {
 
 	protected JsonObject statusJSON;
 	protected String owner;

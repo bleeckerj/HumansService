@@ -10,7 +10,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.jayway.jsonpath.JsonPath;
 
-public class InstagramStatus implements ServiceStatus {
+@Deprecated
+public class InstagramStatus /*extends com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus*/  extends ServiceStatus {
 
 	protected JsonObject statusJSON;
 	protected String id;
