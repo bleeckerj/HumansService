@@ -56,7 +56,7 @@ public class TestHumansDAO {
 					//InstagramStatus i = gson.fromJson(o.toString(), InstagramStatus.class);
 					//					logger.debug(i.getCaptionText()+" "+i.getImageURL_StandardResolution()+" ");
 
-					com.nearfuturelaboratory.humans.entities.InstagramStatus i = gson.fromJson(o.toString(), com.nearfuturelaboratory.humans.entities.InstagramStatus.class);
+					com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus i = gson.fromJson(o.toString(), com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
 					logger.debug(i+" "+i.getUser());
 				} catch(Exception e) {
 					e.printStackTrace();

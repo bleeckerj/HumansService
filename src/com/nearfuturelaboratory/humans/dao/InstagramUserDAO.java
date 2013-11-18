@@ -8,8 +8,7 @@ import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
 
 import com.mongodb.Mongo;
-import com.nearfuturelaboratory.humans.entities.InstagramStatus;
-import com.nearfuturelaboratory.humans.entities.InstagramUser;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 
 public class InstagramUserDAO extends BasicDAO<InstagramUser, ObjectId> {
@@ -23,7 +22,7 @@ public class InstagramUserDAO extends BasicDAO<InstagramUser, ObjectId> {
 	}
 	
 	/**
-	 * A list of status by username, most recent first
+	 * A user by username, most recent first
 	 * @param aUsername
 	 * @return
 	 */

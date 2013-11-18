@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.mongodb.Mongo;
-import com.nearfuturelaboratory.humans.entities.InstagramStatus;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 
@@ -53,10 +53,6 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 		InstagramStatus result = null;
 		Query<InstagramStatus> q = this.getDs().find(this.getEntityClass()).filter("user.id", aUserID).order("-created_time").limit(1);
 		result = q.get();
-//		List<InstagramStatus> all = findByExactUserID(aUserID);
-//		if(all != null && all.size() > 0) {
-//			result = all.get(0);
-//		}
 		return result;
 	}
 

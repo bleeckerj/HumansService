@@ -26,7 +26,10 @@ initParams = {@WebInitParam(name="tokens-file-root", value="/Volumes/Slippy/User
 		)
 public class FoursquareLoginServlet extends HttpServlet {
 
-	private OAuthService service;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7242684152402981944L;
 	private static String apiKey = Constants.getString("FOURSQUARE_API_KEY");//"MKGJ3OZYTDNZAI5ZMROF3PAMAUND0ZO2HYRTZYXHIIR5TW1Q";
 	private static String apiSecret = Constants.getString("FOURSQUARE_API_SECRET");//"2G0DUIFCFAWBH1WPIYBUDQMESKRLFLGY5PHXY0BJNBE1MMN4";
 	private String callbackURL = Constants.getString("FOURSQUARE_CALLBACK_URL");//"http://localhost:8080/HumansService/FoursquareLogin";
@@ -34,7 +37,7 @@ public class FoursquareLoginServlet extends HttpServlet {
 
 	private Token accessToken;
 	protected JSONObject user;
-	//protected FoursquareService foursquare;
+	protected FoursquareService foursquare;
 
 	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
 	protected Token requestToken;
@@ -64,10 +67,10 @@ public class FoursquareLoginServlet extends HttpServlet {
 			
 			FoursquareService foursquareService = new FoursquareService(accessToken);
 			foursquareService.serviceRequestUserBasic();
-			foursquareService.getFollows();
+			foursquareService.serviceRequestFollows();
 			//logger.debug("User is "+Flickr.getThisUser());
-			logger.debug("username is "+foursquareService.getCodedUsername()+" "+foursquareService.getThisUser().get("id"));
-			user.addServiceForHuman("Foursquare", (String)foursquareService.getDerivedUsername(), (String)foursquareService.getThisUser().get("id"));
+			logger.debug("FoursquareUser is "+foursquareService.getThisUser());
+			user.addServiceForHuman("foursquare", (String)foursquareService.getDerivedUsername(), (String)foursquareService.getThisUser().getId());
 
 
 			FoursquareService.serializeToken(accessToken, foursquareService.getThisUser());

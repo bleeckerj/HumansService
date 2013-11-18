@@ -1,36 +1,44 @@
-package com.nearfuturelaboratory.humans.entities;
+package com.nearfuturelaboratory.humans.instagram.entities;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.bind.JAXBElement;
 
 import org.apache.log4j.Logger;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.PostLoad;
 import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.Transient;
+import org.mongodb.morphia.annotations.Version;
 import org.mongodb.morphia.utils.IndexDirection;
 
-import com.google.gson.JsonElement;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.annotations.SerializedName;
-import com.nearfuturelaboratory.humans.entities.BaseEntity;
+import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
+import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 
-@Entity("status")
-public class InstagramStatus /*extends BaseEntity*/ {
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.entities.InstagramStatus.class");
+
+@Entity(value = "status", noClassnameStored = true)
+public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
 
 	//	@Indexed(value = IndexDirection.ASC, name = "uniq_status_id", unique = true, dropDups = true)
 	//	@Id
 	//	@Property("status_id")
+	
+	@Version
+	@Property ("version")
+	private Long version;
+
+	
 	@Id
 	protected String id;
 	@Indexed(value = IndexDirection.ASC, name = "created_time", unique = false, dropDups = false)
-	protected String created_time;
+	protected Long created_time;
 
 	@Embedded
 	protected Map<String, Image> images;
@@ -41,6 +49,15 @@ public class InstagramStatus /*extends BaseEntity*/ {
 	@Embedded
 	protected User user;
 
+	/**
+	 * This user (above) that comes back from the server during service requests for status
+	 * doesn't seem to contain data for some of the adornment fields, like bio and website
+	 * Not that these are critical, but..we can @PostLoad these from the user database, as the
+	 * user with this status should (must?) exist in our instagram.user collection
+	 */
+	@Transient
+	protected InstagramUser transient_instagram_user;
+	
 	protected List<String> tags;
 
 	protected Map<String, String>location;
@@ -62,12 +79,19 @@ public class InstagramStatus /*extends BaseEntity*/ {
 	public static final String THUMBNAIL_RESOLUTION = "thumbnail_resolution";
 	public static final String LOW_RESOLUTION = "low_resolution";
 
+	@PostLoad void postLoad() {
+		InstagramUserDAO dao = new InstagramUserDAO();
+		transient_instagram_user = dao.findByExactUserID(user.id);
+	}
+	
 	protected Date lastUpdated;
 
+	
 
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
 	}
+	
 
 	public Date getLastUpdated() {
 		if(lastUpdated == null) lastUpdated = new Date();
@@ -115,10 +139,10 @@ public class InstagramStatus /*extends BaseEntity*/ {
 	public void setUser(User aUser) {
 		user = aUser;
 	}
-	public String getCreated_time() {
+	public Long getCreated_time() {
 		return created_time;
 	}
-	public void setCreated_time(String  aCreated_time) {
+	public void setCreated_time(Long  aCreated_time) {
 		created_time = aCreated_time;
 	}
 	public List<String> getTags() {
@@ -146,6 +170,66 @@ public class InstagramStatus /*extends BaseEntity*/ {
 		attribution = aAttribution;
 	}
 
+	public Long getVersion() {
+		return version;
+	}
+
+	public void setVersion(Long aVersion) {
+		version = aVersion;
+	}
+
+
+	public JsonObject getStatusJSON() {
+		JsonObject obj = new Gson().toJsonTree(this, this.getClass()).getAsJsonObject();
+		obj.addProperty("service", "instagram");
+		return obj;
+	}
+
+
+	public long getCreated() {
+		return this.created_time*1000L;
+	}
+
+
+//	@Override
+//	public int compareTo(ServiceStatus aO) {
+//		Date otherDate = aO.getCreatedDate();
+//		//otherDate.setTime(aO.getCreated()*1000l);
+//		return otherDate.compareTo(this.getCreatedDate());
+//
+//	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		InstagramStatus other = (InstagramStatus) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
+	}
+
 }
 
 class UserInPhoto {
@@ -166,7 +250,7 @@ class Comments {
 class CommentData {
 	String id;
 	String text;
-	String created_time;
+	Long created_time;
 	BriefUser from;
 }
 
@@ -245,7 +329,7 @@ class Caption {
 	String id;
 	String text;
 	Map<String, String> from;
-	protected String created_time;
+	protected Long created_time;
 	//String created_time;
 
 	protected String getId() {
@@ -266,10 +350,10 @@ class Caption {
 	protected void setFrom(Map<String, String> aFrom) {
 		from = aFrom;
 	}
-	protected String getCreated_time() {
+	protected Long getCreated_time() {
 		return created_time;
 	}
-	protected void setCreated_time(String aCreated_time) {
+	protected void setCreated_time(Long aCreated_time) {
 		created_time = aCreated_time;
 	}
 

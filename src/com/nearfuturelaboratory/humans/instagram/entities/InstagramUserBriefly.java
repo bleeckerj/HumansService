@@ -1,4 +1,4 @@
-package com.nearfuturelaboratory.humans.entities;
+package com.nearfuturelaboratory.humans.instagram.entities;
 
 public class InstagramUserBriefly {
 

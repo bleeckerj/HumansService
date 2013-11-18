@@ -38,7 +38,7 @@ public class ServiceToken extends BaseEntity {
 	@Indexed(value = IndexDirection.ASC, name = "user_id", unique = true, dropDups = true)
 	String user_id;
 	String username;
-
+	String servicename;
 	//TODO Encrypt the Token
 	@PrePersist void prePersist() {
 		//OutputStream os = new ByteArrayOutputStream();
@@ -75,6 +75,14 @@ public class ServiceToken extends BaseEntity {
 	public void setUsername(String aUsername) {
 		username = aUsername;
 	}
+	public String getServicename() {
+		return servicename;
+	}
+
+	public void setServicename(String aServicename) {
+		servicename = aServicename;
+	}
+
 	public byte[] getToken_bytes() {
 		return token_bytes;
 	}
@@ -112,4 +120,5 @@ public class ServiceToken extends BaseEntity {
 		return ciphertext;
 		
 	}
+
 }

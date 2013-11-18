@@ -16,7 +16,7 @@ import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
 import com.nearfuturelaboratory.humans.service.*;
 import com.nearfuturelaboratory.util.*;
 import com.nearfuturelaboratory.humans.core.*;
-import com.nearfuturelaboratory.humans.entities.InstagramUser;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
 
 import java.io.*;
 import java.util.*;

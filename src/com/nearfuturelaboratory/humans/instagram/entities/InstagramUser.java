@@ -1,4 +1,4 @@
-package com.nearfuturelaboratory.humans.entities;
+package com.nearfuturelaboratory.humans.instagram.entities;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +11,7 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.Version;
 import org.mongodb.morphia.utils.IndexDirection;
 
 import com.google.gson.JsonElement;
@@ -18,8 +19,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import com.nearfuturelaboratory.humans.entities.BaseEntity;
 
-@Entity("user")
+@Entity(value="user",noClassnameStored = true)
 public class InstagramUser {
+	@Version
+	@Property ("version")
+	private Long version;
 
 	@Id
 	protected String id;

@@ -16,6 +16,10 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 
+import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
+import com.nearfuturelaboratory.humans.entities.InstagramUser;
+import com.nearfuturelaboratory.humans.entities.ServiceToken;
+import com.nearfuturelaboratory.humans.entities.TwitterUser;
 import com.nearfuturelaboratory.humans.service.status.InstagramStatus;
 import com.nearfuturelaboratory.humans.service.status.TwitterStatus;
 import com.nearfuturelaboratory.util.*;
@@ -75,17 +79,24 @@ public class TwitterService {
 		return result;
 	}
 
-//	public static TwitterService createTwitterServiceOnBehalfOf(String aOnBehalfOf) {
-//		TwitterService result;
-//		logger.debug("create twitter service on behalf of "+aOnBehalfOf);
-//		JSONObject user = getLocalUserBasicForCodedUser(aCodedUsername);
-//		Token token = TwitterService.deserializeToken(user);
-//		result = new TwitterService(token);
-//		result.user = user;
-//		return result;
-//		
-//	}
+	public static TwitterService createTwitterServiceOnBehalfOfUsername(String aUsername) {
+		TwitterService result;
+		logger.debug("create twitter service on behalf of "+aUsername);
+		/////////////////JSONObject user = getLocalUserBasic(aCodedUsername);
+		TwitterUser user = TwitterService.getLocalUserBasicForUsername(aUsername);
+		Token token = TwitterService.deserializeToken(user);
+		result = new TwitterService(token);
+		result.user = user;
+		return result;
+		
+	}
 	
+	private static TwitterUser getLocalUserBasicForUsername(String aUsername) {
+		TwitterUser result = null;
+		
+		return result;
+	}
+
 	//TODO Change this all �����ridiculous constructor. Should all be factory methods like above.
 	public TwitterService(Token aAccessToken) {
 		accessToken = aAccessToken;
@@ -100,7 +111,7 @@ public class TwitterService {
 	/**
 	 * This will go to the service and get "self" for whoever's accessToken we have
 	 */
-	public void serviceRequestUserBasic() {
+	public JSONObject serviceRequestUserBasic() {
 		OAuthRequest request = new OAuthRequest(Verb.GET, VERIFY_URL);
 		service.signRequest(accessToken, request);
 		Response response = request.send();
@@ -113,6 +124,7 @@ public class TwitterService {
 		JSONObject obj = (JSONObject)JSONValue.parse(s);
 
 		user = (JSONObject)serviceRequestUserBasicForUserID((String)obj.get("id_str"), true);
+		return user;
 	}
 
 
@@ -950,9 +962,25 @@ public class TwitterService {
 		}
 	}
 
+	public static void serializeToken(Token aToken, TwitterUser aUser) {
+		ServiceTokenDAO dao = new ServiceTokenDAO("twitter");
+		ServiceToken tokenToSave = new ServiceToken();
+		tokenToSave.setToken(aToken);
+		tokenToSave.setUser_id(aUser.getId());
+		tokenToSave.setUsername(aUser.getScreen_name());
+		tokenToSave.setServicename("twitter");
+		dao.save(tokenToSave);
+	}
+	
+	
+	public static Token deserializeToken(TwitterUser aUser) {
+		//Token result = null;
+		ServiceTokenDAO dao = new ServiceTokenDAO("twitter");
+		ServiceToken serviceToken = dao.findByExactUserId( aUser.getId() );
+		return serviceToken.getToken();
+	}
 
-
-
+	@Deprecated
 	public static Token deserializeToken(JSONObject aUser) {
 		Token result = null;
 		String path = null;

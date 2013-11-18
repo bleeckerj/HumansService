@@ -437,6 +437,7 @@ public class InstagramService {
 		tokenToSave.setToken(aToken);
 		tokenToSave.setUser_id(aUser.getId());
 		tokenToSave.setUsername(aUser.getUsername());
+		tokenToSave.setServicename("instagram");
 		dao.save(tokenToSave);
 	}
 	

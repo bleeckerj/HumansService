@@ -24,13 +24,14 @@ import org.apache.log4j.Logger;
 		)
 public class FlickrLoginServlet extends HttpServlet {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7101722170578987731L;
 	private OAuthService service;
 	private String apiKey = Constants.getString("FLICKR_API_KEY");
 	private String apiSecret = Constants.getString("FLICKR_API_SECRET");
 	private String callbackURL = Constants.getString("FLICKR_CALLBACK_URL");
-	private static final Token EMPTY_TOKEN = null;
-
-
 	private Token accessToken;
 	protected JSONObject user;
 	protected FlickrService flickr;
@@ -67,11 +68,11 @@ public class FlickrLoginServlet extends HttpServlet {
 			flickr = new FlickrService(accessToken);
 			flickr.serviceRequestUserInfo();
 			
-			flickr.getFollows();
+			flickr.serviceRequestFollows();
 			//logger.debug("User is "+Flickr.getThisUser());
-			logger.debug("username is "+flickr.getFilesafeUsername()+" "+flickr.getThisUser().get("id"));
-			user.addServiceForHuman("Flickr", (String)flickr.getFilesafeUsername(), (String)flickr.getThisUser().get("id"));
+			logger.debug("username is "+flickr.getThisUser().getUsername()+" "+flickr.getThisUser().getId());
 			
+			user.addServiceForHuman("Flickr", (String)flickr.getThisUser().getUsername(), (String)flickr.getThisUser().getId());
 			
 			flickr.serializeToken(accessToken);
 			session.setAttribute("logged-in-user", user);
