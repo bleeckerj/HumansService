@@ -65,10 +65,24 @@ public class TestHumanGson {
 
 		//test.getAllEverythingForEveryone();
 
+		HumansUser hu = new HumansUser();
+		//HumanDAO humanDAO = new HumanDAO();
 		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser user = dao.findOneByUsername("fabien");
-		test.makeHumansForUser(user);
-
+		List<HumansUser> humans_users = dao.getAllHumansUsers();
+		for(HumansUser user : humans_users) {
+			
+			// freshen to get an id for serviceUsers - should only have to do this one run
+			//dao.save(user);
+			
+			List<Human> humans = user.getAllHumans();
+			for(Human human : humans) {
+				test.serviceRequestStatusForHuman(human);
+			}
+			test.makeHumansForUser(user);
+		}
+		//		
+		//		HumansUser user = dao.findOneByUsername("fabien");
+		//		test.makeHumansForUser(user);
 	}
 
 
@@ -80,10 +94,17 @@ public class TestHumanGson {
 		FlickrService flickr;
 		List<Human> humans = user.getAllHumans();
 		for(Human human : humans) {
+			
 			List<ServiceStatus> human_status = new ArrayList();
 			List<ServiceUser> su = human.getServiceUsers();
 			for(ServiceUser service_user : su) {
-
+				//
+				//
+				//ServiceUserDAO dao = new ServiceUserDAO();
+				
+				
+				//
+				//
 				String service = service_user.getService();
 				if(service.equalsIgnoreCase("twitter")) {
 					twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
@@ -101,9 +122,9 @@ public class TestHumanGson {
 						List<FlickrStatus> s = flickr.getStatusForUserID(service_user.getServiceID());
 						human_status.addAll(s);
 					} catch(BadAccessTokenException bad) {
-						logger.error(bad);
-						logger.error(bad.getStackTrace());
+						logger.error("",bad);
 						bad.printStackTrace();
+						continue;
 					}
 				}
 				if(service.equalsIgnoreCase("foursquare")) {
@@ -112,9 +133,11 @@ public class TestHumanGson {
 
 						List<FoursquareCheckin> s = foursquare.getCheckinsForUserID(service_user.getServiceID());
 						human_status.addAll(s);
-					} catch (BadAccessTokenException e) {
+					} catch (BadAccessTokenException bad) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error("",bad);
+						bad.printStackTrace();	
+					continue;	
 					}
 				}
 
@@ -129,6 +152,69 @@ public class TestHumanGson {
 			o.put("name", human.getName());
 			o.put("service_users", human.getServiceUsers());
 			writeJSON(user.getUsername()+"-"+human.getName()+"-humanstatus.json", "./", o);
+		}
+	}
+
+	/**
+	 * Get status for a human (the aggregate) and save it for later
+	 * @param aHuman
+	 */
+	public void serviceRequestStatusForHuman(Human aHuman) {
+		TwitterService twitter;
+		FoursquareService foursquare;
+		InstagramService instagram;
+		FlickrService flickr;
+		List<ServiceStatus> human_status = new ArrayList();
+		List<ServiceUser> su = aHuman.getServiceUsers();
+		for(ServiceUser service_user : su) {
+			String service = service_user.getService();
+			if(service.equalsIgnoreCase("twitter")) {
+				twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
+				if(false == twitter.localServiceStatusIsFreshFor(service_user.getServiceID())) {
+					List<TwitterStatus> s = twitter.serviceRequestStatusForUserID(service_user.getServiceID());
+					//List<TwitterStatus> s = twitter.getStatusForUserID(service_user.getServiceID());
+					//human_status.addAll(s);
+				}
+			}
+			if(service.equalsIgnoreCase("instagram")) {
+				instagram = InstagramService.createInstagramServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
+				if(false == instagram.localServiceStatusIsFreshForUserID(service_user.getServiceID())) {
+					List<InstagramStatus> s = instagram.serviceRequestStatusForUserID(service_user.getServiceID());
+					//human_status.addAll(s);
+				}
+			}
+			if(service.equalsIgnoreCase("flickr")) {
+				try {
+					flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
+					if(false == flickr.localServiceStatusIsFreshForUserID(service_user.getServiceID())) {
+						List<FlickrStatus> s = flickr.serviceRequestStatusForUserID(service_user.getServiceID());
+						//human_status.addAll(s);
+					}
+				} catch(BadAccessTokenException bad) {
+					logger.error("",bad);
+					//logger.error(bad.getStackTrace());
+					bad.printStackTrace();
+				}
+			}
+			if(service.equalsIgnoreCase("foursquare")) {
+				try {
+					//TODO we can get *sometimes* the latest checkin for a user via their user info..
+					// only bother if the service_user is ourself..foursquare does not allow you to
+					// get checkins/status for someone of your friends..
+					if(service_user.getOnBehalfOfUserId().equalsIgnoreCase(service_user.getServiceID())) {
+						foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
+						if(false == foursquare.localServiceStatusIsFreshForUserID(foursquare.getThisUser().getId())) {
+							//TODO have service request return the checkins/status
+							/*List<FoursquareCheckin> s = */
+							foursquare.serviceRequestLatestCheckins();
+						}
+						//human_status.addAll(s);
+					}
+				} catch (BadAccessTokenException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -258,7 +344,7 @@ public class TestHumanGson {
 			for(int i=0; i<foursquareServiceUsers.size(); i++) {
 				try {
 					foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID(foursquareServiceUsers.get(i).getOnBehalfOfUserId());
-					foursquare.serviceRequestFollows();
+					foursquare.serviceRequestFriends();
 				} catch (BadAccessTokenException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -280,7 +366,7 @@ public class TestHumanGson {
 			for(int i=0; i<flickrServiceUsers.size(); i++) {
 				try {
 					flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(flickrServiceUsers.get(i).getOnBehalfOfUserId());
-					flickr.serviceRequestFollows();
+					flickr.serviceRequestFriends();
 				} catch(BadAccessTokenException bad) {
 					logger.error(bad);
 					bad.printStackTrace();
@@ -309,7 +395,7 @@ public class TestHumanGson {
 			if(su.getService().equalsIgnoreCase("twitter")) {
 				logger.debug("Twitter: Operating on "+su.getUsername()+" on behalf of "+su.getOnBehalfOf());
 				twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(su.getOnBehalfOfUsername());
-				if(twitter.localServiceStatusIsFreshForUserID(su.getServiceID()) == false) {
+				if(twitter.localServiceStatusIsFreshFor(su.getServiceID()) == false) {
 					twitter.serviceRequestUserBasicForUserID(su.getServiceID());
 					twitter.serviceRequestStatusForUserID(su.getServiceID());
 				}
@@ -447,7 +533,7 @@ public class TestHumanGson {
 			for(int i=0; i<twitterServiceUsers.size(); i++) {
 				twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(twitterServiceUsers.get(i).getOnBehalfOfUsername());
 				logger.debug("getting twitter status for humans user "+aHumansUser.getUsername());
-				if(twitter.localServiceStatusIsFreshForUserID("self") == false) {
+				if(twitter.localServiceStatusIsFreshFor("self") == false) {
 					twitter.serviceRequestStatusForUserID("self");
 				}
 
@@ -470,7 +556,7 @@ public class TestHumanGson {
 			twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(su.getOnBehalfOfUsername());
 			logger.debug("operating on "+serviceUserTwitterUsername+" on behalf of.. "+su.getOnBehalfOf());
 
-			if(twitter.localServiceStatusIsFreshForUserID(serviceUserTwitterUserID) == false) {
+			if(twitter.localServiceStatusIsFreshFor(serviceUserTwitterUserID) == false) {
 				if(twitter.localUserBasicIsFreshForUserID(serviceUserTwitterUserID) == false) {
 					twitter.serviceRequestUserBasicForUserID(serviceUserTwitterUserID);
 				}
@@ -495,7 +581,7 @@ public class TestHumanGson {
 				instagram.serviceRequestUserBasicForUserID(instagramServiceUser.getServiceID());
 			}
 
-			if(false == instagram.localUserBasicIsFreshForSelf()) {
+			if(false == instagram.localUserBasicIsFresh()) {
 				instagram.serviceRequestUserBasic();
 			}
 			// freshen follows

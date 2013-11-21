@@ -91,7 +91,7 @@ class FriendVisitsItems {
 class FoursquarePhoto {
 	String prefix;
 	String suffix;
-	
+		
 	protected String getSquare(int sideSize) {
 		return prefix+sideSize+"x"+sideSize+suffix;
 	}

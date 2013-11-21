@@ -23,9 +23,6 @@ public class FlickrExample
 
   public static void main(String[] args)
   {
-	  
-	  
-	  
 	try {
 		Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/dev.app.properties");
 		String props = "/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/static-logger.properties";

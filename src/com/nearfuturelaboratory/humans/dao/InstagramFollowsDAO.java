@@ -29,14 +29,26 @@ public class InstagramFollowsDAO extends BasicDAO<InstagramFollows, ObjectId> {
 	
 	public List<InstagramFollows> findFollowsByExactUserID(String aUserID) {
 		List<InstagramFollows> result = new ArrayList<InstagramFollows>();
-		result = this.getDs().find(this.getEntityClass()).filter("follower_id", aUserID).order("user_briefly.username").asList();
+		result = this.getDs().find(this.getEntityClass()).filter("follower_id", aUserID).order("friend_username").asList();
 		return result;
 	}
 	
 	public InstagramFollows findFollowsByUserIDFollowsID(String aUserID, String aFollowsID) {
-		InstagramFollows result = this.getDs().find(this.getEntityClass()).filter("user_briefly.id", aUserID).filter("follower_id", aFollowsID).get();
+		InstagramFollows result = this.getDs().find(this.getEntityClass()).filter("friend_id", aUserID).filter("follower_id", aFollowsID).get();
 		return result;
 		
+	}
+
+	public InstagramFollows findMostRecentFollowsByExactUserID(String aUserID) {
+		InstagramFollows result = this.getDs().find(this.getEntityClass()).filter("follower_id", aUserID).order("-lastUpdated").get();
+		return result;
+
+	}
+	
+	public InstagramFollows findOldestFollowsByExactUserID(String aUserID) {
+		InstagramFollows result = this.getDs().find(this.getEntityClass()).filter("follower_id", aUserID).order("lastUpdated").get();
+		return result;
+
 	}
 
 }

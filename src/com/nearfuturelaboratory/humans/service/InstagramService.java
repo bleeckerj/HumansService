@@ -3,10 +3,12 @@ package com.nearfuturelaboratory.humans.service;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -27,6 +29,8 @@ import com.nearfuturelaboratory.humans.dao.InstagramStatusDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
+import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFollows;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
@@ -47,9 +51,9 @@ public class InstagramService {
 	private static final String USER_URL = "https://api.instagram.com/v1/users/%s";
 
 	private OAuthService service;
-//	private static String apiKey = Constants.getString("INSTAGRAM_API_KEY");
-//	private static String apiSecret = Constants.getString("INSTAGRAM_API_SECRET");
-//	private static String callbackURL = Constants.getString("INSTAGRAM_CALLBACK_URL");
+	//	private static String apiKey = Constants.getString("INSTAGRAM_API_KEY");
+	//	private static String apiSecret = Constants.getString("INSTAGRAM_API_SECRET");
+	//	private static String callbackURL = Constants.getString("INSTAGRAM_CALLBACK_URL");
 
 	private Token accessToken;
 
@@ -61,7 +65,7 @@ public class InstagramService {
 	protected InstagramUserDAO userDAO;
 	protected InstagramFollowsDAO followsDAO;
 	protected ServiceTokenDAO tokenDAO;
-	
+
 	protected Gson gson;
 
 	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.service.InstagramService.class);
@@ -81,7 +85,7 @@ public class InstagramService {
 
 		tokenDAO = new ServiceTokenDAO("instagram");
 		tokenDAO.ensureIndexes();
-		
+
 		gson = new Gson();
 
 	}
@@ -100,9 +104,9 @@ public class InstagramService {
 		.build();
 	}
 
-	
 
-	public static InstagramService createInstagramServiceOnBehalfOfUsername(String aUsername)
+
+	public static InstagramService createInstagramServiceOnBehalfOfUsername(String aUsername) throws BadAccessTokenException
 	{
 		InstagramService result;
 		Token token;
@@ -118,8 +122,7 @@ public class InstagramService {
 			result = new InstagramService(token);
 		}
 		if(token == null) {
-			logger.error("null token for "+aUsername);
-			return null;
+			if(token == null) throw new BadAccessTokenException("The access token for Instagram User "+aUsername+" is null. It probably does not exist.");
 		}
 
 		result.user = user;
@@ -165,7 +168,7 @@ public class InstagramService {
 		Object obj = JSONValue.parse(s);
 		aUser = (JSONObject) ((JSONObject)obj).get("data");
 
-		this.saveUserBasicJson(aUser);
+		saveUserBasicJson(aUser);
 		com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUser.toString(), 
 				com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
 		return iuser;
@@ -189,7 +192,7 @@ public class InstagramService {
 		return userDAO.save(iuser);
 
 	}
-	
+
 	protected String getMostRecentStatusID(String aUserID) {
 		String result = null;
 		com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = getMostRecentStatusForUserID(aUserID);
@@ -198,7 +201,7 @@ public class InstagramService {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Weird method to see if I can easily change the type of the created_time field to Long
 	 */
@@ -208,11 +211,11 @@ public class InstagramService {
 			statusDAO.save(item);
 		}
 	}
-	
+
 	public List<InstagramStatus> getStatus() {
 		return getStatusForUserID(this.getThisUser().getId());
 	}
-	
+
 	public List<InstagramStatus> getStatusForUserID(String aUserID) {
 		return statusDAO.findByExactUserID(aUserID);
 	}
@@ -282,7 +285,7 @@ public class InstagramService {
 	public List<InstagramStatus> serviceRequestStatusForUserID() {
 		return serviceRequestStatusForUserID(this.getThisUser().getId());
 	}
-	
+
 	public List<InstagramStatus> serviceRequestStatusForUserID(String aUserID) {
 		if(aUserID.equalsIgnoreCase("self")) {
 			aUserID = this.getThisUser().getId();
@@ -290,7 +293,12 @@ public class InstagramService {
 		//long startTime = System.nanoTime();
 		String aMinID = this.getMostRecentStatusID(aUserID);
 		//long endTime = System.nanoTime();
-		return this.serviceRequestStatusForUserIDAfterMinID(aUserID, aMinID);
+		if(aMinID == null) {
+			return this.serviceRequestStatusForUserIDToMonthsAgo(aUserID, 1);
+		} else {
+
+			return this.serviceRequestStatusForUserIDAfterMinID(aUserID, aMinID);
+		}
 		//serviceRequestStatusForUserIDToMonthsAgo(aUserID, 0);
 	}
 
@@ -366,11 +374,35 @@ public class InstagramService {
 		return result;
 	}
 
+
+	public boolean localFriendsIsFresh() {
+		boolean result = false;
+		InstagramFollows friend = followsDAO.findOldestFollowsByExactUserID(this.getThisUser().getId());
+
+		if (friend == null)
+			return false;
+
+		Date d = friend.getLastUpdated();//  .getFriend().getLastUpdated();
+
+		long then = d.getTime();
+		long now = new Date().getTime();
+		long diff = now - then;
+		if (diff < Constants.getLong("FOLLOWS_STALE_TIME")) {
+			result = true;
+		}
+
+		return result;
+
+	}
+
 	public List<InstagramFollows> getFollows() {
 		return followsDAO.findFollowsByExactUserID(this.getThisUser().getId());
 	}
-	
-	
+
+	protected List<InstagramFollows> getFollowsFor(String aUserID) {
+		return followsDAO.findFollowsByExactUserID(aUserID);
+	}
+
 	/**
 	 *  
 	 *  
@@ -379,7 +411,7 @@ public class InstagramService {
 		serviceRequestFollows(this.getThisUser().getId());
 	}
 
-	
+
 	/**
 	 * 
 	 * @param aUserID
@@ -388,11 +420,11 @@ public class InstagramService {
 	public List<InstagramFollows> serviceRequestFollows(String aUserID) {
 		InstagramUser aUser;
 		List<InstagramFollows> result = new ArrayList<InstagramFollows>();
-		
+
 		if(aUserID == null || aUserID.equalsIgnoreCase("self")) {
 			aUserID = user.getId();
 			// if the user basic isn't fresh for self, then request it and reset ourselves
-			if(this.localUserBasicIsFreshForSelf() == false) {
+			if(this.localUserBasicIsFresh() == false) {
 				user = serviceRequestUserBasic();
 			}
 			//aUser = user;
@@ -414,11 +446,16 @@ public class InstagramService {
 		JSONObject map = (JSONObject)obj;
 
 		JSONObject pagination = (JSONObject)map.get("pagination");
-		JSONArray allFollows = new JSONArray();
+		//JSONArray allFollows = new JSONArray();
+		List<JSONObject> allFollows = new ArrayList<JSONObject>();
 
 		do {
-			JSONArray data = (JSONArray)map.get("data");
-			allFollows.addAll(data);
+			//			JSONArray data = (JSONArray)map.get("data");
+			List<JSONObject> f = JsonPath.read(map, "data");
+			if(f != null) {
+				allFollows.addAll(f);
+			}
+			//allFollows.addAll(data);
 			//logger.debug("Adding "+data.size());
 			//logger.debug("All Follows now "+allFollows.size());
 			String next_url = (String)pagination.get("next_url");
@@ -442,28 +479,78 @@ public class InstagramService {
 			}
 		} while(pagination != null);
 		logger.debug("Save follows for "+aUser.getUsername());
-		saveFollowsJson(allFollows);
+		saveFollowsJson(allFollows, aUserID);
 		return result;
 	}
 
-	protected void saveFollowsJson(JSONArray data) {
-		Iterator<JSONObject> iter = data.iterator();
-		for(int i=0; i<data.size(); i++) {
-			String u = data.get(i).toString();
-			InstagramUserBriefly iub = gson.fromJson(u, InstagramUserBriefly.class);
-			iub.setFollower_id(getThisUser().getId());
-			InstagramFollows iuf = new InstagramFollows(iub);
+	//TODO we should delete all the follows first..then add them back?
+	//TODO or find the ones we would be deleting in the overlap exclusion?
+	//TODO TwitterService passes the id of the follower to this method
+	protected void saveFollowsJson(List<JSONObject> data, String follower_id) {
+
+	 	List<InstagramFollows> new_friends = new ArrayList<InstagramFollows>();
+		for(JSONObject j : data) {
+			InstagramUserBriefly iub = gson.fromJson(j.toString(), InstagramUserBriefly.class);
+			InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
+			if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
+				friend = this.serviceRequestUserBasicForUserID(iub.getId());
+			}
+			InstagramFollows iuf = new InstagramFollows(friend);
 			iuf.setFollower_id(getThisUser().getId());
-			
-			InstagramFollows f = followsDAO.findFollowsByUserIDFollowsID(iub.getId(), getThisUser().getId());
+			iuf.setFriend_id(iub.getId());
+			iuf.setFriend_username(iub.getUsername());
+			iuf.setFollower(this.getThisUser());
+
+			InstagramFollows f = followsDAO.findFollowsByUserIDFollowsID(friend.getId(), follower_id);
 			if(f != null) {
-				f.setUser_briefly(iub);
-				followsDAO.save(f);
+				f.setFriend(friend);
+				f.setFollower(this.getThisUser());
+				new_friends.add(f);
 			} else {
-				followsDAO.save(iuf);
+				new_friends.add(iuf);
 			}
 		}
-		
+
+		List<InstagramFollows> existing_friends = this.getFollowsFor(follower_id);
+
+		Collection<InstagramFollows> new_friends_to_save = CollectionUtils.subtract(new_friends, existing_friends);
+		Collection<InstagramFollows> no_longer_friends = CollectionUtils.subtract(existing_friends, new_friends);
+
+		for(InstagramFollows not_a_friend : no_longer_friends) {
+			followsDAO.delete(not_a_friend);
+		}
+
+		for(InstagramFollows is_a_friend : new_friends_to_save) {
+			followsDAO.save(is_a_friend);
+		}
+
+		//		Iterator<JSONObject> iter = data.iterator();
+		//		for(int i=0; i<data.size(); i++) {
+		//			String u = data.get(i).toString();
+		//			InstagramUserBriefly iub = gson.fromJson(u, InstagramUserBriefly.class);
+		//			//iub.setFollower_id(getThisUser().getId());
+		//			
+		//			//TODO save the big user, or this brief one that comes back when we request follows?
+		//			//InstagramUser friend = this.serviceRequestUserBasicForUserID(iub.getId());
+		//			InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
+		//			if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
+		//				friend = this.serviceRequestUserBasicForUserID(iub.getId());
+		//			}
+		//			
+		//			InstagramFollows iuf = new InstagramFollows(friend);
+		//			iuf.setFollower_id(getThisUser().getId());
+		//			iuf.setFriend_id(iub.getId());
+		//			iuf.setFriend_username(iub.getUsername());
+		//			
+		//			InstagramFollows f = followsDAO.findFollowsByUserIDFollowsID(friend.getId(), getThisUser().getId());
+		//			if(f != null) {
+		//				f.setFriend(friend);
+		//				followsDAO.save(f);
+		//			} else {
+		//				followsDAO.save(iuf);
+		//			}
+		//		}
+
 	}
 
 	public static void serializeToken(Token aToken, InstagramUser aUser) {
@@ -475,15 +562,15 @@ public class InstagramService {
 		tokenToSave.setServicename("instagram");
 		dao.save(tokenToSave);
 	}
-	
+
 	private static Token deserializeToken(String aUsername) {
 		ServiceTokenDAO dao = new ServiceTokenDAO("instagram");
 		ServiceToken st = dao.findByExactUsername(aUsername);
 		return st.getToken();
 	}
 
-	
-	
+
+
 	public static Token deserializeToken(InstagramUser aUser) {
 		//Token result = null;
 		ServiceTokenDAO dao = new ServiceTokenDAO("instagram");
@@ -491,16 +578,16 @@ public class InstagramService {
 		return serviceToken.getToken();
 	}
 
-	public boolean localUserBasicIsFreshForSelf() {
+	public boolean localUserBasicIsFresh() {
 		return this.localUserBasicIsFreshForUserID(this.user.getId());
 	}
 
 	public boolean localUserBasicIsFreshForUserID(String aUserID) {
 		boolean result = false;
 		com.nearfuturelaboratory.humans.instagram.entities.InstagramUser user = this.getLocalUserBasicForUserID(aUserID);
-		
+
 		if(user == null) return false;
-		
+
 		Date d = user.getLastUpdated();
 
 		long then = d.getTime();
@@ -517,21 +604,25 @@ public class InstagramService {
 
 	public boolean localServiceStatusIsFreshForUserID(String aUserID) {
 		boolean result = false;
-		com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = this.getMostRecentStatusForUserID(aUserID);
-		Date d = most_recent.getLastUpdated();
+		try {
+			com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = this.getMostRecentStatusForUserID(aUserID);
+			Date d = most_recent.getLastUpdated();
 
-		long then = d.getTime();
-		long now = new Date().getTime();
+			long then = d.getTime();
+			long now = new Date().getTime();
 
-		long diff = now - then;
-		if(diff < Constants.getLong("STATUS_STALE_TIME")) {
-			result = true;
+			long diff = now - then;
+			if(diff < Constants.getLong("STATUS_STALE_TIME")) {
+				result = true;
+			}
+		} catch(NullPointerException npe) {
+			logger.warn(npe);
+			logger.warn("Probably no status at all, so no Farm Fresh Local Status Today");
 		}
-		
 		return result;
 	}
 
-	
+
 	protected static InstagramUser getLocalUserBasicForUsername(String aUsername) {
 		InstagramUserDAO dao = new InstagramUserDAO();
 		InstagramUser user = dao.findByExactUsername(aUsername);

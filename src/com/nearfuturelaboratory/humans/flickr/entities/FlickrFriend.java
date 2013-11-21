@@ -13,13 +13,15 @@ import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Version;
 import org.mongodb.morphia.annotations.Entity;
 
+import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
+
 
 @Entity("friend")
 @Indexes( @Index(name="friend_index", value="user_id, friend_id", unique=true/*, dropDups=true*/) )
-public class FlickrFriend {
+public class FlickrFriend implements MinimalSocialServiceUser {
 
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.entities.FlickrFriend.class");
-	
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend.class);
+
 	@Version
 	@Property ("version")
 	private Long version;
@@ -27,7 +29,7 @@ public class FlickrFriend {
 
 	@Id
 	protected ObjectId id;
-	
+
 	@Property("friend_id")
 	protected String nsid;
 	protected String username;
@@ -39,11 +41,11 @@ public class FlickrFriend {
 	protected Integer family;
 	protected String path_alias;
 	protected String location;
-	
+
 	//      { "nsid": "43511287@N06", "username": "*Elybeth", "iconserver": "3337", "iconfarm": 4, "ignored": 0, "realname": "Elisabetta Pisano", "friend": 0, "family": 0, 
 	// "path_alias": "elybeth", "location": "Milano, Italia" },
 	protected String user_id;
-	
+
 	@Reference
 	protected FlickrUser user;
 
@@ -51,11 +53,11 @@ public class FlickrFriend {
 		lastUpdated = new Date();
 	}
 
-	
+
 	public String getFriendID() {
 		return getNsid();
 	}
-	
+
 	public FlickrUser getUser() {
 		return user;
 	}
@@ -182,15 +184,100 @@ public class FlickrFriend {
 		family = aFamily;
 	}
 
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
-		return "FlickrFriend [version=" + version + ", lastUpdated="
-				+ lastUpdated + ", id=" + id + ", nsid=" + nsid + ", username="
-				+ username + ", iconserver=" + iconserver + ", iconfarm="
-				+ iconfarm + ", ignored=" + ignored + ", realname=" + realname
-				+ ", friend=" + friend + ", family=" + family + ", path_alias="
-				+ path_alias + ", location=" + location + ", user_id="
-				+ user_id + ", user=" + user + "]";
+		return "FlickrFriend [lastUpdated=" + lastUpdated + ", id=" + id
+				+ ", nsid=" + nsid + ", username=" + username + ", iconserver="
+				+ iconserver + ", iconfarm=" + iconfarm + ", ignored="
+				+ ignored + ", realname=" + realname + ", friend=" + friend
+				+ ", family=" + family + ", path_alias=" + path_alias
+				+ ", location=" + location + ", user_id=" + user_id + ", user="
+				+ user + ", getImageURL()=" + getImageURL() + "]";
 	}
-	
+
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((nsid == null) ? 0 : nsid.hashCode());
+		result = prime * result + ((user == null) ? 0 : user.hashCode());
+		return result;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FlickrFriend other = (FlickrFriend) obj;
+		if (nsid == null) {
+			if (other.nsid != null)
+				return false;
+		} else if (!nsid.equals(other.nsid))
+			return false;
+		if (user == null) {
+			if (other.user != null)
+				return false;
+		} else if (!user.equals(other.user))
+			return false;
+		return true;
+	}
+
+
+	/**
+	 * MinimalSocialServiceUser methods
+	 * 
+	 */
+
+
+	@Override
+	public String getImageURL() {
+		String result;
+		Integer i = Integer.parseInt(iconserver);
+		if(i != null && i.intValue() > 0) {
+			result = "http://farm"+iconfarm+".staticflickr.com/"+iconserver+"/buddyicons/"+nsid+".jpg";
+		} else {
+			result = "http://www.flickr.com/images/buddyicon.gif";
+		}
+		return result;
+	}
+
+
+	@Override
+	public String getUserID() {
+		return this.getNsid();
+	}
+
+
+	@Override
+	public String getServiceName() {
+		return "flickr";
+	}
+
+
+	@Override
+	public String getLargeImageURL() {
+		return getImageURL();
+	}
+
 }

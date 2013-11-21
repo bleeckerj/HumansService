@@ -1,5 +1,7 @@
 package com.nearfuturelaboratory.humans.dao;
 
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -23,4 +25,29 @@ public class FlickrFollowsDAO extends BasicDAO<FlickrFriend, ObjectId> {
 		return this.getDs().find(this.getEntityClass()).filter("friend_id", aFriendID).filter("user_id", aUserID).get();
 	}
 
+	public List<FlickrFriend> findByUserID(String aUserID) {
+		return this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("username").asList();
+	}
+
+	/**
+	 * For a specific user, find the most recent friend (by lastUpdate) in the database
+	 * @param aUserID
+	 * @return
+	 */
+	public FlickrFriend findNewestFriendByExactUserID(String aUserID) {
+		return this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("lastUpdated").get();
+
+	}
+	
+	/**
+	 * For a specific user, find the oldest friend (by lastUpdate) in the database
+	 * @param aUserID
+	 * @return
+	 */
+	public FlickrFriend findOldestFriendByExactUserID(String aUserID) {
+		FlickrFriend friend= this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("-lastUpdated").get();
+		return friend;
+	}
+
+	
 }

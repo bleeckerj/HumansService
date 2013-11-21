@@ -2,6 +2,7 @@ package com.nearfuturelaboratory.humans.test;
 
 import static org.junit.Assert.*;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -10,6 +11,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.nearfuturelaboratory.humans.dao.FoursquareFollowsDAO;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.InstagramService;
@@ -19,6 +21,12 @@ public class FoursquareServiceTest {
 	static FoursquareService foursquare;
 	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
+	public static void main(String[] args) throws Exception {
+		FoursquareServiceTest test = new FoursquareServiceTest();
+		FoursquareServiceTest.setUpBeforeClass();
+		test.test_getFollows();
+	}
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
@@ -44,7 +52,7 @@ public class FoursquareServiceTest {
 //		fail("Not yet implemented");
 	}
 	
-	@Ignore
+	@Test
 	public void test_ServiceRequestCheckins() {
 		try {
 			foursquare.serviceRequestCheckins();
@@ -54,17 +62,30 @@ public class FoursquareServiceTest {
 		}
 	}
 	
-	@Ignore
-	public void test_GetFollows() {
+	@Test
+	public void test_getFollows() {
 		try {
-			foursquare.serviceRequestFollows();
+			FoursquareFriend f;
+			FoursquareFollowsDAO followsDAO = new FoursquareFollowsDAO();
+			followsDAO.ensureIndexes();
+			foursquare.serviceRequestFriends();
+
 			List<FoursquareFriend> friends = foursquare.getFriends();
-			for(FoursquareFriend friend : friends) {
-				logger.debug(friend);
-			}
+			
+//			f = friends.get(0);
+//			//friends = null;
+//			followsDAO.updateLastUpdated(f);
+//			
+//			followsDAO.save(f);
+
+//			for(FoursquareFriend friend : friends) {
+//				//logger.debug(friend);
+//				followsDAO.createUpdateOperations();
+//				followsDAO.save(friend);
+//			}
 			
 		} catch(Exception e) {
-			logger.error(e);
+			logger.error("",e);
 			e.printStackTrace();
 		}
 	}

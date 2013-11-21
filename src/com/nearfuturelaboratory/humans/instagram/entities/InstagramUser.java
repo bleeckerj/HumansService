@@ -118,6 +118,16 @@ public class InstagramUser {
 	public String getFollowedByCount() {
 		return counts.getFollowedBy();
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "InstagramUser [id=" + id + ", username=" + username
+				+ ", profile_picture=" + profile_picture + ", lastUpdated="
+				+ lastUpdated + "]";
+	}
 }
 
 class Counts {

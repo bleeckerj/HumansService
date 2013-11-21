@@ -68,7 +68,7 @@ public class FlickrLoginServlet extends HttpServlet {
 			flickr = new FlickrService(accessToken);
 			flickr.serviceRequestUserInfo();
 			
-			flickr.serviceRequestFollows();
+			flickr.serviceRequestFriends();
 			//logger.debug("User is "+Flickr.getThisUser());
 			logger.debug("username is "+flickr.getThisUser().getUsername()+" "+flickr.getThisUser().getId());
 			

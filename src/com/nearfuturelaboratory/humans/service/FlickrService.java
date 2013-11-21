@@ -5,6 +5,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +24,9 @@ import org.scribe.oauth.OAuthService;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.jayway.jsonpath.JsonPath;
 import com.nearfuturelaboratory.humans.dao.FlickrFollowsDAO;
 import com.nearfuturelaboratory.humans.dao.FlickrStatusDAO;
@@ -33,12 +37,15 @@ import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrStatus;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramFollows;
 import com.nearfuturelaboratory.util.Constants;
 import com.sun.istack.internal.NotNull;
 
+import org.apache.commons.collections4.CollectionUtils;
 
 public class FlickrService {
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.service.FlickrService.class);
 
 	private String apiKey = Constants.getString("FLICKR_API_KEY");
 	private String apiSecret = Constants.getString("FLICKR_API_SECRET");
@@ -47,14 +54,14 @@ public class FlickrService {
 	private Token accessToken;
 	protected FlickrUser user;
 	private OAuthService service;
-	private static final String FRIENDS_LIST_URL = "https://api.tumblr.com/v2/user/following?limit=20&offset=%s";
-	private static final String GET_CONTACTS_URL = "";
-	private static final String USER_INFO = "https://api.tumblr.com/v2/user/info";
+//	private static final String FRIENDS_LIST_URL = "https://api.tumblr.com/v2/user/following?limit=20&offset=%s";
+//	private static final String GET_CONTACTS_URL = "";
+//	private static final String USER_INFO = "https://api.tumblr.com/v2/user/info";
 	private static final String SERVICE_URL = "https://secure.flickr.com/services/rest/?";
 
 	protected FlickrUserDAO userDAO;
 	protected FlickrStatusDAO statusDAO;
-	protected FlickrFollowsDAO followsDAO;
+	protected FlickrFollowsDAO friendsDAO;
 	
 	protected Gson gson;
 	
@@ -92,8 +99,8 @@ public class FlickrService {
 		statusDAO = new FlickrStatusDAO();
 		statusDAO.ensureIndexes();
 		
-		followsDAO = new FlickrFollowsDAO();
-		followsDAO.ensureIndexes();
+		friendsDAO = new FlickrFollowsDAO();
+		friendsDAO.ensureIndexes();
 		
 		gson = new GsonBuilder().setDateFormat("yyyy-MM-dd hh:mm:ss").create();
 
@@ -118,6 +125,27 @@ public class FlickrService {
 //		statusDAO.
 //	}
 	
+
+	public boolean localServiceStatusIsFreshForUserID(String aServiceID) {
+		boolean result = false;
+		
+		//Date d = this. getLatestStatus().getDateupload();
+		long then = this.getLatestStatus().getDateupload();
+		long now = new Date().getTime();
+		long diff = now - then;
+		if(diff < Constants.getLong("STATUS_STALE_TIME")) {
+			result = true;
+		}
+		return result;
+
+		
+		
+	}
+
+	public FlickrStatus getLatestStatus() {
+		FlickrStatus lastLocalStatus = statusDAO.findMostRecentStatusByExactUserID(this.getThisUser().getId());
+		return lastLocalStatus;
+	}
 	
 	public List<FlickrStatus> getStatusForUserID(String aUserID) 
 	{
@@ -130,7 +158,13 @@ public class FlickrService {
 		serviceRequestStatusForUserID(getThisUser().getId());
 	}
 	
-	public void serviceRequestStatusForUserID(String aUserID) {
+	/**
+	 * Okay. Weird one. This will get status for a user after the most recent status we already have stored locally.
+	 * 
+	 * @param aUserID
+	 * @return The status retrieved
+	 */
+	public List<FlickrStatus> serviceRequestStatusForUserID(String aUserID) {
 //		this.serviceRequestStatusForUserIDToMonthsAgo(aUserID, 6);
 		if(aUserID == null || aUserID.equalsIgnoreCase("self")) {
 			aUserID = (String)user.getId();
@@ -138,8 +172,8 @@ public class FlickrService {
 
 		FlickrStatus latest = statusDAO.findMostRecentStatusByExactUserID(aUserID);
 		if(latest == null) {
-			this.serviceRequestStatusForUserIDToMonthsAgo(aUserID, 1);
-			return;
+			logger.info("Doesn't seem to be any local status for "+aUserID+". Going to try and fix that by requesting some.");
+			return this.serviceRequestStatusForUserIDToMonthsAgo(aUserID, 1);
 		}
 		OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
 		request.addQuerystringParameter("method", "flickr.people.getPhotos");
@@ -192,13 +226,14 @@ public class FlickrService {
 			page = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
 			pages = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
 		}
-		saveStatus(photos);
+		return saveStatus(photos);
+
 	}
 
 	//protected void serviceRequestStatusForUserID
 
 	@SuppressWarnings("unchecked")
-	protected void serviceRequestStatusForUserIDToMonthsAgo(String aUserID, int aMonthsAgo) {
+	protected List<FlickrStatus> serviceRequestStatusForUserIDToMonthsAgo(String aUserID, int aMonthsAgo) {
 		Calendar ago =Calendar.getInstance();
 		ago.add(Calendar.MONTH, -1*aMonthsAgo);
 		String pattern = "yyyy-MM-dd hh:mm:ss";
@@ -226,10 +261,8 @@ public class FlickrService {
 		JSONObject status = (JSONObject)jsonResponse;
 
 		if(status == null || status.get("stat").toString().equalsIgnoreCase("fail")) {
-			logger.warn("Error "+status.toString());
-			logger.warn(aUserID);
-			logger.warn(this);
-			return;
+			logger.warn("Despite best efforts, I got an error from Flickr "+status.toString()+"\nfor userid="+aUserID+"\n"+this);
+			return new ArrayList<FlickrStatus>();
 		}
 
 		JSONArray photos = JsonPath.read(status, "photos.photo");
@@ -254,7 +287,8 @@ public class FlickrService {
 		}
 		photos = JsonPath.read(status, "photos.photo");
 		if(photos.size() < 1) {
-			return;
+			logger.warn("Despite my best efforts, I got nothing back from Flickr for userid="+aUserID+"\n"+this);
+			return new ArrayList<FlickrStatus>();
 		} else {
 			oldest = (JSONObject)photos.get(photos.size()-1);
 		}
@@ -268,6 +302,7 @@ public class FlickrService {
 
 		} catch (java.text.ParseException | NullPointerException e) {
 			logger.error(e);
+			logger.error(e.getStackTrace());
 			e.printStackTrace();
 		}
 
@@ -306,7 +341,7 @@ public class FlickrService {
 			pages = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
 
 		}
-		saveStatus(photos);
+		return saveStatus(photos);
 
 	}
 
@@ -329,26 +364,26 @@ public class FlickrService {
 		return result;
 	}
 
-	/**
-	 *  Get basic user info from Flickr
-	 */
-	public void serviceRequestUserBasic(String aUserID) {
-		OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
-		request.addQuerystringParameter("method", "flickr.people.getInfo");
-		request.addQuerystringParameter("user_id", aUserID);
-		request.addQuerystringParameter("format", "json");
-		request.addQuerystringParameter("nojsoncallback", "1");
-
-		service.signRequest(accessToken, request);
-		Response response = request.send();
-		String s = response.getBody();
-		JSONObject obj = (JSONObject)JSONValue.parse(s);
-		logger.debug("got "+s+" "+obj);
-		JSONObject user = (JSONObject)obj.get("user");
-		String id = user.get("id").toString();
-		logger.debug("id="+id);
-		serviceRequestUserBasicByUserID(id);
-	}
+//	/**
+//	 *  Get basic user info from Flickr
+//	 */
+//	public void serviceRequestUserBasic(String aUserID) {
+//		OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
+//		request.addQuerystringParameter("method", "flickr.people.getInfo");
+//		request.addQuerystringParameter("user_id", aUserID);
+//		request.addQuerystringParameter("format", "json");
+//		request.addQuerystringParameter("nojsoncallback", "1");
+//
+//		service.signRequest(accessToken, request);
+//		Response response = request.send();
+//		String s = response.getBody();
+//		JSONObject obj = (JSONObject)JSONValue.parse(s);
+//		logger.debug("got "+s+" "+obj);
+//		JSONObject user = (JSONObject)obj.get("user");
+//		String id = user.get("id").toString();
+//		logger.debug("id="+id);
+//		//serviceRequestUserBasicByUserID(id);
+//	}
 
 	/**
 	 * Get basic user info on a user
@@ -394,10 +429,12 @@ public class FlickrService {
 		return result;
 	}
 
-	public FlickrUser serviceRequestUserBasicForUserID(String aUserID)
+	public FlickrUser serviceRequestUserBasicForUserID(String aUserID) throws BadAccessTokenException
 	{
+		Response response = null;
+		
 		JSONObject aUser;
-
+		
 		OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
 		request.addQuerystringParameter("method", "flickr.people.getInfo");
 		request.addQuerystringParameter("format", "json");
@@ -406,8 +443,22 @@ public class FlickrService {
 
 
 		service.signRequest(accessToken, request);
-		Response response = request.send();
+		response = request.send();
 		String s = response.getBody();
+		
+		JsonElement e = new JsonParser().parse(s);
+		JsonObject o = e.getAsJsonObject();
+		if(o != null && o.get("stat").getAsString().equalsIgnoreCase("fail")) {
+			
+			String msg = o.get("message").getAsString();
+			int code = o.get("code").getAsInt();
+			if(code == 98) {
+				throw new BadAccessTokenException("For user id "+aUserID+" Flickr says '"+msg+"'\nToken is "+this.accessToken);
+			} else {
+				logger.warn("Flickr returned fail but the code wasn't 98 "+o);
+			}
+		}
+		
 		JSONObject obj = (JSONObject)JSONValue.parse(s);
 		aUser = (JSONObject)obj.get("person");
 		FlickrUser fuser = gson.fromJson(aUser.toJSONString(), FlickrUser.class);
@@ -452,8 +503,37 @@ public class FlickrService {
 		return result;
 	}
 
+	
+	public boolean localFriendsIsFresh() {
+		boolean result = false;
+		FlickrFriend friend = friendsDAO.findNewestFriendByExactUserID(this.getThisUser().getId());
+
+		if (friend == null)
+			return false;
+
+		Date d = friend.getLastUpdated();//  .getFriend().getLastUpdated();
+
+		long then = d.getTime();
+		long now = new Date().getTime();
+		long diff = now - then;
+		if (diff < Constants.getLong("FOLLOWS_STALE_TIME")) {
+			result = true;
+		}
+
+		
+		return result;
+	}
+	
+	public List<FlickrFriend> getFriends() {
+		return friendsDAO.findByUserID(this.getThisUser().getId());
+	}
+	
+	protected List<FlickrFriend> getFriendsFor(String aUserId) {
+		return friendsDAO.findByUserID(aUserId);
+	}
+	
 	//TODO might be a few pages need to check right now you only get the first 1000
-	public void serviceRequestFollows() {
+	public void serviceRequestFriends() {
 		List<JSONObject> follows;// = new JSONArray();
 		OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
 		request.addQuerystringParameter("method", "flickr.contacts.getList");
@@ -516,20 +596,50 @@ public class FlickrService {
 			pages = Integer.parseInt(JsonPath.read(obj, "contacts.pages").toString());
 			page = Integer.parseInt(JsonPath.read(obj, "contacts.page").toString());
 		}
-		JSONArray result = new JSONArray();
-		for(int i=0; i<follows.size(); i++) {
-			result.add(follows.get(i));
-			FlickrFriend friend = gson.fromJson(follows.get(i).toJSONString(), FlickrFriend.class);
-			FlickrFriend existing = followsDAO.findByFriendIDUserID(friend.getNsid(), getThisUser().getId());
-			if(existing != null) {
-				friend.setId(existing.getId());
-			}
-			friend.setUser(this.getThisUser());
-			//friend.setUser_id(this.getThisUser().getId());
-			followsDAO.save(friend);
-		}
+		saveFollowsJson(follows, this.getThisUser().getId());
 	}
 
+
+	protected void saveFollowsJson(List<JSONObject> list_of_friends, String follower_id) {
+		//JSONArray result = new JSONArray();
+		//friendsDAO.deleteByQuery??;
+		
+		List<FlickrFriend> new_friends= new ArrayList<FlickrFriend>();
+		for(JSONObject j : list_of_friends) {
+			FlickrFriend friend = gson.fromJson(j.toString(), FlickrFriend.class);
+			new_friends.add(friend);
+		}
+		
+		// presave this will be the friends the last time we made a service request
+		List<FlickrFriend> existing_friends = this.getFriendsFor(follower_id);
+		
+		Collection<FlickrFriend> new_friends_to_save = CollectionUtils.subtract(new_friends, existing_friends);
+		Collection<FlickrFriend> no_longer_friends = CollectionUtils.subtract(existing_friends, new_friends);
+		
+		for(FlickrFriend not_a_friend : no_longer_friends) {
+			friendsDAO.delete(not_a_friend);
+		}
+		
+		for(FlickrFriend is_a_friend : new_friends_to_save) {
+			friendsDAO.save(is_a_friend);
+		}
+		
+//		
+//		
+//		for(int i=0; i<aFriend.size(); i++) {
+//			//result.add(data.get(i));
+//			FlickrFriend friend = gson.fromJson(aFriend.get(i).toString(), FlickrFriend.class);
+//			FlickrFriend existing = friendsDAO.findByFriendIDUserID(friend.getNsid(), getThisUser().getId());
+//			if(existing != null) {
+//				friend.setId(existing.getId());
+//			}
+//			friend.setUser(this.getThisUser());
+//			//friend.setUser_id(this.getThisUser().getId());
+//			friendsDAO.save(friend);
+//		}
+
+	}
+	
 	/**
 	 * Weird bootstrap method needed while migrating. We really should not have a token
 	 * if we don't have a local user in the database, but we did when we migrated Tokens from the
@@ -582,3 +692,4 @@ public class FlickrService {
 		return "["+this.getThisUser().toString()+", accessToken="+this.accessToken+"]";
 	}
 }
+

@@ -90,7 +90,7 @@ public class TestHumansDAO {
 
 
 		HumansUser h = daoTest.findOneByUsername("darthjulian");
-		h.getServiceNamesAssigned();
+		//h.getServiceNamesAssigned();
 		h.getServices();
 
 		HumansUser user = new HumansUser();

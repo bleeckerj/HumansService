@@ -25,7 +25,7 @@ public class InstagramServiceTest {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/dev.app.properties");
 			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/static-logger.properties");
 			//logger.debug("Hey Ho!");
-			instagram = InstagramService.createInstagramServiceOnBehalfOfUsername("nicolasnova");
+			instagram = InstagramService.createInstagramServiceOnBehalfOfUsername("darthjulian");
 
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -38,12 +38,12 @@ public class InstagramServiceTest {
 	}
 
 	@Ignore
-	public void test_FreshenStatus() {
+	public void test_freshenStatus() {
 		instagram.freshenStatus();
 	}
 	
 	
-	@Test
+	@Ignore
 	public void test() {
 		//Token t = instagram.deserializeToken(aUser)
 		List<InstagramStatus> status = instagram.getStatus();
@@ -53,18 +53,23 @@ public class InstagramServiceTest {
 		//fail("Not yet implemented");
 	}
 	
-	@Ignore
+	@Test
 	public void getFollows() {
 		List<InstagramFollows> result = instagram.getFollows();
-//		for(InstagramFollows f : result) {
-//			logger.debug(f.getUser_briefly().getUsername());
-//		}
-//		instagram.getFollows();
+		for(InstagramFollows f : result) {
+			logger.debug(f.getFriend().getUsername());
+		}
+		instagram.getFollows();
 //		instagram.getFollows("11394571");
 	}
 	
-	@Ignore
+	@Test
 	public void test_serviceRequestFollows() {
+		try {
 		instagram.serviceRequestFollows();
+		} catch(Exception e) {
+			e.printStackTrace();
+			logger.error(e);
+		}
 	}
 }

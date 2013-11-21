@@ -25,7 +25,7 @@ import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 @Indexes( @Index(name="checkins_index", value="_id, user_id", unique=true/*, dropDups=true*/) )
 
 public class FoursquareCheckin extends ServiceStatus {
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.entities.FoursquareCheckin.class");
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin.class);
 	@Version
 	@Property ("version")
 	private Long version;

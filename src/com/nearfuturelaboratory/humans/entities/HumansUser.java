@@ -20,14 +20,20 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.PostLoad;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.utils.IndexDirection;
 
 import com.mongodb.Mongo;
+import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.entities.ServiceUser;
+import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
+import com.nearfuturelaboratory.humans.service.FlickrService;
+import com.nearfuturelaboratory.humans.service.FoursquareService;
+import com.nearfuturelaboratory.humans.service.InstagramService;
+import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.util.Pair;
 
 
@@ -44,13 +50,16 @@ public class HumansUser extends BaseEntity {
 	@Embedded("humans")
 	protected List<Human> humans = new ArrayList<Human>();
 
-//	@Embedded("humans.serviceUsers")
-//	protected List<ServiceUser> serviceUsers = new ArrayList<ServiceUser>();
+	//	@Embedded("humans.serviceUsers")
+	//	protected List<ServiceUser> serviceUsers = new ArrayList<ServiceUser>();
 
 	// Services are a list of a Service Name mapped to a List of Pair<ServiceID, ServiceUsername>
 	// Service entry looks like "flickr" : {["66854529@N00","JulianBleecker"],["858291847@N11","Near Future Laboratory"]}
+	//	protected List<Map<String, List<ServiceEntry>>> services = new ArrayList<Map<String, List<ServiceEntry>>>();
+	//
 	@Embedded("services")
-	protected List<Map<String, List<ServiceEntry>>> services = new ArrayList<Map<String, List<ServiceEntry>>>();
+	protected List<ServiceEntry> services;
+	//protected List<Map<String,List<ServiceEntry>>> services;
 
 
 	public String getUsername() {
@@ -145,25 +154,72 @@ public class HumansUser extends BaseEntity {
 
 	}
 
-	//	public void getFollows() {
-	//		List<String>services = getServicesAssigned();
-	//		for(String serviceName : services) {
-	//			List<String> serviceUsers = this.getService
-	//		}
-	//	}
+	public List<MinimalSocialServiceUser> getFriends() {
+		List<MinimalSocialServiceUser> friends = new ArrayList<MinimalSocialServiceUser>();
 
-	public List<String> getServiceNamesAssigned() {
-		List<String> result = new ArrayList<String>();
-		List<Map<String, List<ServiceEntry>>> services = this.getServices();
-
-		for(Map<String, List<ServiceEntry>> service : services) {
-			//logger.debug(service.toString());
-			logger.debug(service.entrySet());
-			for ( String key : service.keySet() ) {
-				if(result.contains(key) == false) {
-					result.add( key );
+		for(ServiceEntry service_entry : getServices()) {
+			if(service_entry.getServiceName().equalsIgnoreCase("flickr")) {
+				FlickrService flickr;
+				try {
+					flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(service_entry.getServiceUserID());
+					if(flickr.localFriendsIsFresh() == false) {
+						flickr.serviceRequestFriends();
+					}
+					friends.addAll(flickr.getFriends());
+				} catch (BadAccessTokenException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error("",e);
 				}
 			}
+			if(service_entry.getServiceName().equalsIgnoreCase("instagram")) {
+				InstagramService instagram;
+				try {
+					instagram = InstagramService.createInstagramServiceOnBehalfOfUsername(service_entry.getServiceUsername());
+					if(instagram.localFriendsIsFresh() == false) {
+						instagram.serviceRequestFollows();
+					}
+					friends.addAll(instagram.getFollows());
+
+				} catch (BadAccessTokenException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error("",e);
+				}
+			}
+			if(service_entry.getServiceName().equalsIgnoreCase("twitter")) {
+				TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_entry.getServiceUsername());
+				if(twitter.localFollowsIsFresh() == false) {
+					twitter.serviceRequestFollows();
+				}
+				friends.addAll(twitter.getFriends());
+			}
+			if(service_entry.getServiceName().equalsIgnoreCase("foursquare")) {
+				try {
+					FoursquareService foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID(service_entry.getServiceUserID());
+					if(foursquare.localFriendsIsFresh() == false) {
+						foursquare.serviceRequestFriends();
+					}
+					friends.addAll(foursquare.getFriends());
+				} catch (BadAccessTokenException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error("",e);
+				}
+			}
+
+		}
+
+		return friends;
+	}
+
+	protected List<String> getServiceNamesAssigned() {
+		List<String> result = new ArrayList<String>();
+		//List<ServiceEntry> services = this.getServices();
+
+		for(ServiceEntry service_entry : getServices()) {
+			//logger.debug(service.toString());
+			result.add(service_entry.getServiceName());
 		}
 		return result;
 
@@ -176,10 +232,10 @@ public class HumansUser extends BaseEntity {
 	 * @return
 	 * @deprecated use {@link getServiceNamesAssigned()}
 	 */
-	@Deprecated
-	public List<String> getServicesAssigned() {
-		return getServiceNamesAssigned();
-	}
+	//	@Deprecated
+	//	public List<String> getServicesAssigned() {
+	//		return getServiceNamesAssigned();
+	//	}
 
 
 	/**
@@ -188,8 +244,7 @@ public class HumansUser extends BaseEntity {
 	 *            typically lowercase name of a service, eg twitter, instagram,
 	 *            flickr, foursquare
 	 * @return a List<String> of the accounts for that service assigned/attached
-	 *         on behalf of this humans user in this "coded" format of
-	 *         id-username which is a good key to useful files.
+	 *         on behalf of this humans user
 	 */
 	public List<ServiceUser> getServiceUsersForServiceName(String aServiceName) {
 		List<ServiceUser>result = new ArrayList<ServiceUser>();
@@ -200,7 +255,7 @@ public class HumansUser extends BaseEntity {
 			for(ServiceUser serviceUser : serviceUsers) {
 				if(serviceUser.service != null && serviceUser.service.equalsIgnoreCase(aServiceName)) {
 					if(serviceUser.getOnBehalfOfUsername() == null) {
-						logger.warn("WTF?");
+						logger.warn("WTF? "+this+" The username for serviceUser.getOnBehalfOf is null: "+serviceUser);
 					}
 					result.add(serviceUser);
 				}
@@ -221,12 +276,33 @@ public class HumansUser extends BaseEntity {
 		return result;
 	}
 
-	
+
 	public void removeServiceUser(ServiceUser aServiceUser) {
 		List<Human> allHumans = this.getAllHumans();
 		for(Human human : allHumans) {
 			human.removeServiceUser(aServiceUser);
 		}
+	}
+
+	public void addService(@NonNull String aServiceUserID, @NonNull String aServiceUsername, @NonNull String aServiceTypeName) {
+		ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceTypeName);
+		if(aServiceUserID == null || aServiceUsername == null || aServiceTypeName == null) {
+			logger.warn("While adding a service_entry, got an empty value for one of userid("+aServiceUserID+"), username("+aServiceUsername+") or service("+aServiceTypeName+") when attempting to add a service_entry "+this);
+			return;		
+		}
+		// check for dupes?
+		if(services.contains(service_entry)) {
+			logger.info("Attempted to add an already existing ServiceEntry to "+this);
+		} else {
+			services.add(service_entry);
+		}
+	}
+
+	public boolean removeService(@NonNull String aServiceUserID, @NonNull String aServiceUsername, @NonNull String aServiceTypeName) {
+		ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceTypeName);
+		boolean result = services.remove(service_entry);
+		logger.debug("Removing service_entry "+service_entry+" from "+this+" result="+result);
+		return result;
 	}
 
 	//	public List<HumansUser>getAllHumansUsers() {
@@ -245,46 +321,68 @@ public class HumansUser extends BaseEntity {
 	//		
 	//	}
 
-	public List<Map<String, List<ServiceEntry>>> getServices() {
-		return services;
-	}
-	public void setServices(List<Map<String, List<ServiceEntry>>> aServices) {
-		services = aServices;
-	}
+	//	public List<Map<String, List<ServiceEntry>>> getServices() {
+	//		return services;
+	//	}
+	//	public void setServices(List<Map<String, List<ServiceEntry>>> aServices) {
+	//		services = aServices;
+	//	}
 
-	/**
-	 * 
-	 * @param aServiceTypeName
-	 * @param aServiceUsername
-	 * @param aServiceUserID
-	 * 
-	 * * @deprecated use {@link addService(String, String, String)} instead. 
-	 */
-	@Deprecated
-	public void addServiceForHuman(@NonNull String aServiceTypeName, @NonNull String aServiceUsername, @NonNull String aServiceUserID) {
-		this.addService(aServiceTypeName, aServiceUsername, aServiceUserID);
-	}
-
+	//	/**
+	//	 * @return the services
+	//	 */
+	//	public List<Map<String, List<ServiceEntry>>> getServices() {
+	//		return services;
+	//	}
+	//	/**
+	//	 * @param aServices the services to set
+	//	 */
+	//	public void setServices(List<Map<String, List<ServiceEntry>>> aServices) {
+	//		services = aServices;
+	//	}
+	//	/**
+	//	 * 
+	//	 * @param aServiceTypeName
+	//	 * @param aServiceUsername
+	//	 * @param aServiceUserID
+	//	 * 
+	//	 * * @deprecated use {@link addService(String, String, String)} instead. 
+	//	 */
+	//	@Deprecated
+	//	public void addServiceForHuman(@NonNull String aServiceTypeName, @NonNull String aServiceUsername, @NonNull String aServiceUserID) {
+	//		this.addService(aServiceTypeName, aServiceUsername, aServiceUserID);
+	//	}
+	//
+	/*
 	public void addService(@NonNull String aServiceTypeName, @NonNull String aServiceUsername, @NonNull String aServiceUserID) {
 
+//		if(services == null) {
+//			services = new ArrayList<Map<String, List<ServiceEntry>>>();
+//		}
+
 		if(services == null) {
-			services = new ArrayList<Map<String, List<ServiceEntry>>>();
+			//services = new ArrayList<Map<String,List<ServiceEntry>>>();
 		}
+
 		if(aServiceTypeName == null || aServiceUsername == null || aServiceUserID == null) {
 			logger.warn("Bailing cause I found null values when adding a Service "+aServiceTypeName+", "+aServiceUsername+", "+aServiceUserID);
 			return;
 		}
 		// aiyee. find the entries for the specific service
+		//Iterator<Map<String, List<ServiceEntry>>> services_iterator = services.iterator();
 		Iterator<Map<String, List<ServiceEntry>>> services_iterator = services.iterator();
+
 		//for(Map<String, List<ServiceEntry>> service : services){
 		while(services_iterator.hasNext()) {
-			Map<String, List<ServiceEntry>>service = services_iterator.next();
+			//Map<String, List<ServiceEntry>>service = services_iterator.next();
+			Map<String, List<ServiceEntry>> service = services_iterator.next();
 			if(service.containsKey(aServiceTypeName.toLowerCase())) {
-
+			//if(service.getServiceName().equalsIgnoreCase(aServiceTypeName)) {
 				//
 				// the Pair is first the serviceUserID and then the serviceUsername
 				//
 				List<ServiceEntry> servicesForKey = service.get(aServiceTypeName.toLowerCase());
+				//List<ServiceEntry> servicesForKey = service.getServiceEntries();
 				if(servicesForKey == null) {
 					services_iterator.remove();
 					//services.remove(service);
@@ -303,7 +401,7 @@ public class HumansUser extends BaseEntity {
 
 
 				}
-				// add it..
+			// add it..
 				//servicesForKey.add(new ServiceEntry(aServiceUserID, aServiceUsername));
 
 			} else {
@@ -313,114 +411,22 @@ public class HumansUser extends BaseEntity {
 		List<ServiceEntry> list = new ArrayList<ServiceEntry>();
 		list.add(entry);
 		Map<String, List<ServiceEntry>> map = new HashMap<String, List<ServiceEntry>>();
+		//Service newService = new Service();
+//		newService.setServiceName(aServiceTypeName);
+//		newService.setServiceEntries(list);
 		map.put(aServiceTypeName, list);
-		services.add(map);
+		//services.add(newService);
 
 	}
+	 */	
 	public ObjectId getId() {
 		return id;
 	}
 	public void setId(ObjectId aId) {
 		id = aId;
 	}
-
-}
-
-class ServiceEntry  {
-
-	//@Transient protected Pair<String, String> pair;
-	@Property("serviceUserID") protected String serviceUserID;
-	@Property("serviceUsername") protected String serviceUsername;
-	@Property("serviceName") protected String serviceName;
-
-	protected ServiceEntry() {}
-
-
-
-	public ServiceEntry(String aServiceUserID, String aServiceUsername, String aServiceName) {
-		serviceUserID = aServiceUserID;
-		serviceUsername = aServiceUsername;
-		serviceName = aServiceName;
-	} 
-
-	public String getServiceUserID() {
-		return serviceUserID;
+	public List<ServiceEntry> getServices() {
+		return services;
 	}
 
-	public String getServiceUsername() {
-		return serviceUsername;
-	}
-
-	public void setServiceUserID(String aServiceUserID) {
-		serviceUserID = aServiceUserID;
-	}
-
-	public void setServiceUsername(String aServiceUsername) {
-		serviceUsername = aServiceUsername;
-	}
-
-
-
-	protected String getServiceName() {
-		return serviceName;
-	}
-
-
-
-	protected void setServiceName(String aServiceName) {
-		serviceName = aServiceName;
-	}
-
-
-
-	@Override
-	public String toString() {
-		return "ServiceEntry [serviceUserID=" + serviceUserID
-				+ ", serviceUsername=" + serviceUsername + ", serviceName="
-				+ serviceName + "]";
-	}
-
-
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((serviceName == null) ? 0 : serviceName.hashCode());
-		result = prime * result
-				+ ((serviceUserID == null) ? 0 : serviceUserID.hashCode());
-		result = prime * result
-				+ ((serviceUsername == null) ? 0 : serviceUsername.hashCode());
-		return result;
-	}
-
-
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ServiceEntry other = (ServiceEntry) obj;
-		if (serviceName == null) {
-			if (other.serviceName != null)
-				return false;
-		} else if (!serviceName.equals(other.serviceName))
-			return false;
-		if (serviceUserID == null) {
-			if (other.serviceUserID != null)
-				return false;
-		} else if (!serviceUserID.equals(other.serviceUserID))
-			return false;
-		if (serviceUsername == null) {
-			if (other.serviceUsername != null)
-				return false;
-		} else if (!serviceUsername.equals(other.serviceUsername))
-			return false;
-		return true;
-	}
 }

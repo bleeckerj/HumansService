@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
  * @author julian
  * 
  */
+@Deprecated
 public class HumansUser {
 
 	protected String username;
@@ -386,74 +387,9 @@ public class HumansUser {
 		return result;
 	}
 
-/*	@SuppressWarnings("unchecked")
-	public JSONObject getFollows() {
-		JSONObject result = new JSONObject();
-		List<String> services = getServicesAssigned();
-		for (int i = 0; i < services.size(); i++) {
-			// service name
-			String serviceName = services.get(i);
-			// JSONObject obj = new JSONObject();
-			JSONObject followedFrom = new JSONObject();
-			// a list of service users for this service, with a name
-			List<String> serviceUsers = getCodedServiceUsersForServiceName(serviceName);
-			// find the service user follows based on these things
-			// logger.debug("for "+serviceName+" just got "+serviceUsers+" of size:"+serviceUsers.size());
 
-			// Set guarantees unique entries �����not semantically but unique
-			// Strings ��� via e1.equals(e2)
-			// See the java.util.Set Javadoc
-
-			for (int j = 0; j < serviceUsers.size(); j++) {
-				JSONArray arrayOfFollows = new JSONArray();
-				Set<String> mySetOfUniqueFollows = new HashSet<String>();
-				logger.debug("Get follows for " + serviceUsers.get(j));
-				if (serviceName.equals("twitter")) {
-					// TODO Make sure we don't add duplicates to the
-					// arrayOfFollows (by id)
-					List<String> followsAsStrings = TwitterService
-							.getHydratedFollowsFor(serviceUsers.get(j));
-					// logger.debug("for "+serviceUsers.get(j)+" got this many hydrated follows: "+followsAsStrings.size());
-					mySetOfUniqueFollows.addAll(followsAsStrings);
-					arrayOfFollows.addAll(mySetOfUniqueFollows);
-					followedFrom.put(serviceUsers.get(j), arrayOfFollows);
-				}
-				if (serviceName.equals("instagram")) {
-					// arrayOfFollows.addAll();
-					List<String> followsAsStrings = InstagramService
-							.getFollowsFor(serviceUsers.get(j));
-					// logger.debug("for "+serviceUsers.get(j)+" got this many follows: "+followsAsStrings.size());
-					mySetOfUniqueFollows.addAll(followsAsStrings);
-					arrayOfFollows.addAll(mySetOfUniqueFollows);
-					followedFrom.put(serviceUsers.get(j), arrayOfFollows);
-				}
-				if (serviceName.equals("flickr")) {
-					// arrayOfFollows.addAll();
-					List<String> followsAsStrings = FlickrService
-							.getFollowsFor(serviceUsers.get(j));
-					// logger.debug("for "+serviceUsers.get(j)+" got this many follows: "+followsAsStrings.size());
-					mySetOfUniqueFollows.addAll(followsAsStrings);
-					arrayOfFollows.addAll(mySetOfUniqueFollows);
-					followedFrom.put(serviceUsers.get(j), arrayOfFollows);
-				}
-				if (serviceName.equals("foursquare")) {
-					// arrayOfFollows.addAll();
-					List<String> followsAsStrings = FoursquareService
-							.getFollowsFor(serviceUsers.get(j));
-					//logger.debug("for " + serviceUsers.get(j)+ " got this many follows for foursquare: "+ followsAsStrings.size());
-					mySetOfUniqueFollows.addAll(followsAsStrings);
-					arrayOfFollows.addAll(mySetOfUniqueFollows);
-					followedFrom.put(serviceUsers.get(j), arrayOfFollows);
-				}
-
-			}
-			result.put(serviceName, followedFrom);
-		}
-		return result;
-	}
-*/
 	/**
-	 * Get all of the services this Humans User has assigned ��� twitter,
+	 * Get all of the services this Humans User has assigned twitter,
 	 * instagram, flickr, etc., etc.
 	 * 
 	 * @return
@@ -471,8 +407,6 @@ public class HumansUser {
 
 	public List<ServiceUser> getServiceUsersForServiceName(String aServiceName) {
 		List<ServiceUser>serviceUsers = new ArrayList<ServiceUser>();
-		
-		
 		return serviceUsers;
 	}
 	

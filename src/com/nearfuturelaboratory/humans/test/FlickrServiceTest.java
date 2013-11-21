@@ -30,17 +30,17 @@ public class FlickrServiceTest {
 
 	}
 
-	@Ignore
+	@Test
 	public void test_serviceGetFollows() {
 		try {
-			flickr.serviceRequestFollows();
+			flickr.serviceRequestFriends();
 		} catch(Exception e) {
 			logger.error(e);
 			e.printStackTrace();
 		}
 	}
 	
-	@Test
+	@Ignore
 	public void test_serviceRequestStatus() {
 		try {
 			flickr.serviceRequestStatus();

@@ -67,7 +67,7 @@ public class FoursquareLoginServlet extends HttpServlet {
 			
 			FoursquareService foursquareService = new FoursquareService(accessToken);
 			foursquareService.serviceRequestUserBasic();
-			foursquareService.serviceRequestFollows();
+			foursquareService.serviceRequestFriends();
 			//logger.debug("User is "+Flickr.getThisUser());
 			logger.debug("FoursquareUser is "+foursquareService.getThisUser());
 			user.addServiceForHuman("foursquare", (String)foursquareService.getDerivedUsername(), (String)foursquareService.getThisUser().getId());

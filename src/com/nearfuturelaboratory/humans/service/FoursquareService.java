@@ -18,6 +18,7 @@ import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCompactUser;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
+import com.nearfuturelaboratory.humans.twitter.entities.TwitterFollows;
 import com.nearfuturelaboratory.util.*;
 import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
@@ -65,19 +66,22 @@ public class FoursquareService {
 		gson = new Gson();
 	}
 
-	public static FoursquareService createFoursquareServiceOnBehalfOfUserID(String aUserID)  
-			throws BadAccessTokenException 
+	public static FoursquareService createFoursquareServiceOnBehalfOfUserID(String aUserID)  throws BadAccessTokenException 
 	{
 		FoursquareService result;//  = new FoursquareService(token);
 		Token token = null;
 		FoursquareUser user = getLocalUserBasicForUserID(aUserID);
 		if(user == null) {
 			token = FoursquareService.deserializeTokenByUserID(aUserID);
+			result = new FoursquareService(token);
+			user = result.serviceRequestUserBasic();
+
 		} else {
 			token = FoursquareService.deserializeToken(user);
+			result = new FoursquareService(token);
+
 		}
 		if(token == null) throw new BadAccessTokenException("The access token for Foursquare User "+aUserID+" is null. It probably does not exist.");
-		result = new FoursquareService(token);
 		result.user = user;
 		return result;
 	}
@@ -117,13 +121,9 @@ public class FoursquareService {
 		JSONObject respUser = (JSONObject)respJSON.get("user");
 
 		FoursquareUser fuser = gson.fromJson(respUser.toJSONString(), FoursquareUser.class);		
-		//this.saveUserBasicJson(obj);
+
 		userDAO.save(fuser);
 		return fuser;
-
-		//		File f = new File(String.format(USERS_FOLLOWS_PATH_CODED, getCodedUsername()));
-		//		String p =  String.format(USER_INFO_FILENAME_CODED, aCodedUsername);
-		//		writeJSONToFile(user, f, p);
 	}
 
 
@@ -135,26 +135,20 @@ public class FoursquareService {
 	 */
 	public FoursquareUser serviceRequestUserBasic() {
 		return serviceRequestUserBasicForUserID("self");
-		//		String userURL = String.format(USER_URL, "self", accessToken.getToken());
-		//		logger.debug("here access token is "+accessToken.getToken());
-		//		logger.debug("userURL is "+userURL);
-		//		OAuthRequest request = new OAuthRequest(Verb.GET, userURL );
-		//		service.signRequest(accessToken, request);
-		//		
-		//		Response response = request.send();
-		//		String s = response.getBody();
-		//		JSONObject obj = (JSONObject)JSONValue.parse(s);
-		//		JSONObject respJSON = (JSONObject) obj.get("response");
-		//
-		//		JSONObject user = (JSONObject)respJSON.get("user");
-		//
-		//		logger.debug("user here is "+user);
-		//		File f = new File(String.format(USERS_DB_PATH_CODED, this.getCodedUsername()));
-		//		String p =  String.format(USER_INFO_FILENAME, (String)user.get("id"), getDerivedUsername());
-		//		writeJSONToFile(user, f, p);
 	}
 
 
+	public boolean localServiceStatusIsFreshForUserID(String aUserID) {
+		boolean result = false;
+		Date d = this.getLatestCheckin().getLastUpdated();
+		long then = d.getTime();
+		long now = new Date().getTime();
+		long diff = now - then;
+		if(diff < Constants.getLong("STATUS_STALE_TIME")) {
+			result = true;
+		}
+		return result;
+	}
 
 	public boolean localUserBasicIsFreshForUserID(String aUserID) {
 		boolean result = false;
@@ -205,14 +199,14 @@ public class FoursquareService {
 		}
 
 	}
-	
+
 	/**
 	 *  You can only get checkins for "self", not for anyone
 	 */
 	protected void serviceRequestCheckins(long afterTimeStamp)
 	{
-		List<JSONObject> checkinsAll;
-
+		//List<JSONObject> checkinsAll;
+		JSONArray checkinsAll;
 		String checkinsURL = String.format(CHECKINS_URL, accessToken.getToken());
 		OAuthRequest request = new OAuthRequest(Verb.GET, checkinsURL );
 		request.addQuerystringParameter("limit", "250");
@@ -258,19 +252,21 @@ public class FoursquareService {
 			}
 		}
 		logger.debug("For user_id "+this.getThisUser().getId()+" found "+checkinsAll.size()+" checkins.");
-
-		for(int i=0; i<checkinsAll.size(); i++) {
-			JSONObject o = (JSONObject)JSONValue.parse(checkinsAll.get(i).toJSONString());
-			FoursquareCheckin checkin = gson.fromJson(o.toJSONString(), FoursquareCheckin.class);	
-			checkin.setUserID(this.getThisUser().getId());
-			//			checkin.setUsername(this.getThisUser().getFirstName()+"_"+this.getThisUser().getLastname());
-			checkinDAO.save(checkin);
-			//result.add(checkinsAll.get(i));
-		}
+		saveCheckins(checkinsAll);
 	}
 
 
-	public void serviceRequestFollows() {
+	public void saveCheckins(JSONArray data) {
+		for(int i=0; i<data.size(); i++) {
+			String s = data.get(i).toString();
+			JSONObject o = (JSONObject)JSONValue.parse(s);
+			FoursquareCheckin checkin = gson.fromJson(o.toJSONString(), FoursquareCheckin.class);	
+			checkin.setUserID(this.getThisUser().getId());
+			checkinDAO.save(checkin);
+		}
+	}
+
+	public void serviceRequestFriends() {
 		List<JSONObject> follows;
 		String userURL = String.format(FOLLOWS_URL, "self", accessToken.getToken());
 		OAuthRequest request = new OAuthRequest(Verb.GET, userURL );
@@ -304,16 +300,21 @@ public class FoursquareService {
 			}
 		}
 
+	}
+	
+	//TODO why is this a List<JSONObject> unlike the other services saveFollowsJson methods??
+	//TODO we need to delete first..
+	protected void saveFollowsJson(List<JSONObject> data, String follower_id) {
 		//JSONArray result = new JSONArray();
-		for(int i=0; i<follows.size(); i++) {
-			JSONObject o = (JSONObject)JSONValue.parse(follows.get(i).toJSONString());
+		//List<FoursquareUser>friends1 = new ArrayList<FoursquareUser>();
+		for(int i=0; i<data.size(); i++) {
+			JSONObject o = (JSONObject)JSONValue.parse(data.get(i).toJSONString());
 			FoursquareUser friend = gson.fromJson(o.toJSONString(), FoursquareUser.class);	
-			FoursquareUser friendLocal = userDAO.findByExactUserID(friend.getId());
-//			if(friendLocal == null) {
-				userDAO.save(friend);
-//			}
-			
-			
+			//			if(friendLocal == null) {
+			userDAO.save(friend);
+			//friends1.add(friend);
+			//			}
+
 			FoursquareFriend me = followsDAO.findForUserIDFriendID(this.getThisUser().getId(), friend.getId());
 			if(me == null) {
 				me = new FoursquareFriend();
@@ -321,28 +322,33 @@ public class FoursquareService {
 				me.setFriend_id(friend.getId());
 				me.setFriend(friend);
 				followsDAO.save(me);
+
 			} else {
-				//followsDAO.save(me);
-
-				//followsDAO.update(me);
+				followsDAO.updateLastUpdated(me);
 			}
-			//logger.debug("My Friend is "+me.getFriend());
-			/*else {
-				followsDAO.delete(me);
-				me.setUser_id(this.getThisUser().getId());
-				me.setFriend_id(friend.getId());
-//				me.setFriend(friend);
-				followsDAO.save(me);
-				
-			//FoursquareUser h = userDAO.findByExactUserID(friend.getId());
-			//g.setFriend(f);
-
-
-			//followsDAO.save(g);
-			//result.add(follows.get(i));
-			}
-			*/
 		}
+
+	}
+	
+	public boolean localFriendsIsFresh() {
+		boolean result = false;
+
+		FoursquareFriend friend = followsDAO.findOldestFriendByExactUserID(this.getThisUser().getId());
+
+		if (friend == null)
+			return false;
+
+		Date d = friend.getFriend().getLastUpdated();
+
+		long then = d.getTime();
+		long now = new Date().getTime();
+		long diff = now - then;
+		if (diff < Constants.getLong("FOLLOWS_STALE_TIME")) {
+			result = true;
+		}
+
+		return result;
+
 	}
 
 	public List<FoursquareFriend> getFriends() {

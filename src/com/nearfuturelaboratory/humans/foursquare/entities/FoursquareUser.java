@@ -14,7 +14,7 @@ import org.mongodb.morphia.annotations.Entity;
 
 @Entity(value="user", noClassnameStored = true)
 public class FoursquareUser {
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.entities.FousquareUser.class");
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser.class);
 	@Version
 	@Property ("version")
 	private Long version;
@@ -90,8 +90,8 @@ public class FoursquareUser {
 		return photo.getSquare(side);
 	}
 	
-	public String get60SquarePhoto() {
-		return this.getSquarePhoto(60);
+	public String get72SquarePhoto() {
+		return this.getSquarePhoto(72);
 	}
 	
 	public void setPhoto(FoursquarePhoto aPhoto) {
@@ -145,7 +145,7 @@ public class FoursquareUser {
 		return "FoursquareUser [version=" + version + ", lastUpdated="
 				+ lastUpdated + ", id=" + id + ", firstName=" + firstName
 				+ ", lastName=" + lastName + ", photo=" + photo
-				+ ", 60sq=" + this.get60SquarePhoto()
+				+ ", 60sq=" + this.get72SquarePhoto()
 				+ ", relationship=" + relationship + ", friends=" + friends
 				+ ", type=" + type + ", homeCity=" + homeCity + ", gender="
 				+ gender + ", contact=" + contact + ", bio=" + bio + ", tips="
