@@ -1,5 +1,13 @@
 package com.nearfuturelaboratory.humans.entities;
 
+import static ch.lambdaj.Lambda.having;
+import static ch.lambdaj.Lambda.on;
+import static ch.lambdaj.Lambda.select;
+import static ch.lambdaj.Lambda.selectFirst;
+import static ch.lambdaj.Lambda.selectUnique;
+import static ch.lambdaj.function.matcher.AndMatcher.and;
+import static org.hamcrest.CoreMatchers.equalTo;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -7,10 +15,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
-import org.eclipse.jdt.annotation.NonNull;
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Indexed;
@@ -23,7 +28,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
-import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
@@ -36,10 +40,6 @@ import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
-
-import static ch.lambdaj.Lambda.*;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static ch.lambdaj.function.matcher.AndMatcher.and;
 
 
 @Entity(value="users",noClassnameStored = true)
@@ -688,7 +688,7 @@ public class HumansUser extends BaseEntity {
 	 * @param aServiceTypeName
 	 * @return
 	 */
-	public boolean removeService(@NonNull String aServiceUserID, @NonNull String aServiceUsername, @NonNull String aServiceTypeName) {
+	public boolean removeService(String aServiceUserID, String aServiceUsername, String aServiceTypeName) {
 		ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceTypeName);
 		boolean result = services.remove(service_entry);
 		logger.debug("removing service entry "+service_entry);
@@ -731,7 +731,7 @@ public class HumansUser extends BaseEntity {
 	 * @param aServiceUsername
 	 * @param aServiceTypeName
 	 */
-	public void addService(@NonNull String aServiceUserID, @NonNull String aServiceUsername, @NonNull String aServiceTypeName) {
+	public void addService(String aServiceUserID, String aServiceUsername, String aServiceTypeName) {
 		ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceTypeName);
 		if(aServiceUserID == null || aServiceUsername == null || aServiceTypeName == null) {
 			logger.warn("While adding a service_entry, got an empty value for one of userid("+aServiceUserID+"), username("+aServiceUsername+") or service("+aServiceTypeName+") when attempting to add a service_entry "+this);

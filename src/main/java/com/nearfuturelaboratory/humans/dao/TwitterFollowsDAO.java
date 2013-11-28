@@ -25,33 +25,33 @@ public class TwitterFollowsDAO extends BasicDAO<TwitterFriend, ObjectId> {
 	
 	public List<TwitterFriend> findFollowsByExactUserID(String aUserID) {
 		List<TwitterFriend> result = new ArrayList<TwitterFriend>();
-		result = this.getDs().find(this.getEntityClass()).filter("follower_id", aUserID).order("-lastUpdated").asList();
+		result = this.getDatastore().find(this.getEntityClass()).filter("follower_id", aUserID).order("-lastUpdated").asList();
 		return result;
 	}
 	
 	public TwitterFriend findNewestFriendByExactUserID(String aUserID) {
 		//List<TwitterFriend> result = new ArrayList<TwitterFriend>();
 		TwitterFriend result = null;
-		result = this.getDs().find(this.getEntityClass()).filter("follower_id", aUserID).order("-lastUpdated").get();
+		result = this.getDatastore().find(this.getEntityClass()).filter("follower_id", aUserID).order("-lastUpdated").get();
 		return result;
 	}	
 	
 	public TwitterFriend findOldestFriendByExactUserID(String aUserID) {
 		//List<TwitterFriend> result = new ArrayList<TwitterFriend>();
 		TwitterFriend result = null;
-		result = this.getDs().find(this.getEntityClass()).filter("follower_id", aUserID).order("lastUpdated").get();
+		result = this.getDatastore().find(this.getEntityClass()).filter("follower_id", aUserID).order("lastUpdated").get();
 		return result;
 	}	
 	
 	public TwitterFriend findFollowsByUserIDFollowsID(String aUserID, String aFollowsID) {
-		return this.getDs().find(this.getEntityClass()).filter("follower_id", aFollowsID).filter("friend_id", aUserID).get();
+		return this.getDatastore().find(this.getEntityClass()).filter("follower_id", aFollowsID).filter("friend_id", aUserID).get();
 	}
 		
 	
 	//TODO do we error check here?
 	public WriteResult deleteByFollowerID(String aFollowerID) {
-		Query<TwitterFriend> q = getDs().createQuery(this.getEntityClass()).field("follower_id").equal(aFollowerID);
-		WriteResult result = getDs().delete(q);
+		Query<TwitterFriend> q = getDatastore().createQuery(this.getEntityClass()).field("follower_id").equal(aFollowerID);
+		WriteResult result = getDatastore().delete(q);
 		return result;
 	}
 

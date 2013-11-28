@@ -29,7 +29,7 @@ public class TwitterStatusDAO extends BasicDAO<TwitterStatus, ObjectId> {
 	 */
 	public List<TwitterStatus> findByExactScreename( String screen_name ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("screen_name", screen_name).order("-created_at").asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("screen_name", screen_name).order("-created_at").asList();
 	}
 	/**
 	 * A list of status by user.id, most recent first
@@ -38,13 +38,13 @@ public class TwitterStatusDAO extends BasicDAO<TwitterStatus, ObjectId> {
 	 */
 	public List<TwitterStatus> findByExactUserID(String aUserID) {
 		//Pattern regExp = Pattern.compile(aUserID + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("user.id_str", aUserID).order("-created_at").asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("user.id_str", aUserID).order("-created_at").asList();
 
 	}
 
 	public TwitterStatus findMostRecentStatusByExactUserID(String aUserID) {
 		TwitterStatus result = null;
-		Query<TwitterStatus> q = this.getDs().find(this.getEntityClass()).filter("user.id_str", aUserID).order("-created_at").limit(1);
+		Query<TwitterStatus> q = this.getDatastore().find(this.getEntityClass()).filter("user.id_str", aUserID).order("-created_at").limit(1);
 		result = q.get();
 		return result;
 	}
@@ -56,7 +56,7 @@ public class TwitterStatusDAO extends BasicDAO<TwitterStatus, ObjectId> {
 	 */
 	public TwitterStatus findOldestStatusByExactUserID(String aUserID) {
 		TwitterStatus result = null;
-		Query<TwitterStatus> q = this.getDs().find(this.getEntityClass()).filter("user.id_str", aUserID).order("+created_at").limit(1);
+		Query<TwitterStatus> q = this.getDatastore().find(this.getEntityClass()).filter("user.id_str", aUserID).order("+created_at").limit(1);
 		result = q.get();
 		return result;
 		

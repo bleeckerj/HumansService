@@ -28,7 +28,7 @@ public class InstagramUserDAO extends BasicDAO<InstagramUser, ObjectId> {
 	 */
 	public InstagramUser findByExactUsername( String aUsername ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("username", aUsername).limit(1).get();
+		return this.getDatastore().find(this.getEntityClass()).filter("username", aUsername).limit(1).get();
 	}
 	/**
 	 * InstagramUser's key is the userid
@@ -36,12 +36,12 @@ public class InstagramUserDAO extends BasicDAO<InstagramUser, ObjectId> {
 	 * @return
 	 */
 	public InstagramUser findByExactUserID(String aUserID) {
-			return this.getDs().find(this.getEntityClass()).filter("_id", aUserID).limit(1).get();
+			return this.getDatastore().find(this.getEntityClass()).filter("_id", aUserID).limit(1).get();
 	}
 
 	public List<InstagramUser> findByUsername(String aUsername) {
 		Pattern regExp = Pattern.compile(".*"+aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("username",  aUsername).asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("username",  aUsername).asList();
 	}
 
 }

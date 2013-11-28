@@ -20,7 +20,6 @@ import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
 import com.nearfuturelaboratory.util.*;
 import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
-import com.sun.istack.internal.NotNull;
 
 import org.apache.log4j.Logger;
 
@@ -380,7 +379,7 @@ public class FoursquareService {
 		return st.getToken();
 	}
 	
-	public static Token deserializeToken(@NotNull FoursquareUser aUser) {
+	public static Token deserializeToken(FoursquareUser aUser) {
 		//Token result = null;
 		ServiceTokenDAO dao = new ServiceTokenDAO("foursquare");
 		ServiceToken serviceToken = dao.findByExactUserId( aUser.getId() );

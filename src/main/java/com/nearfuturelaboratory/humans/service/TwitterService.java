@@ -1,12 +1,5 @@
 package com.nearfuturelaboratory.humans.service;
 
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
-import org.scribe.model.*;
-import org.scribe.oauth.*;
-import org.json.simple.*;
-import org.mongodb.morphia.Key;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -15,26 +8,35 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.TwitterApi;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.mongodb.DB;
 import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.dao.TwitterFollowsDAO;
 import com.nearfuturelaboratory.humans.dao.TwitterStatusDAO;
 import com.nearfuturelaboratory.humans.dao.TwitterUserDAO;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
-import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
-import com.nearfuturelaboratory.util.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.sun.istack.internal.NotNull;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.log4j.Logger;
+import com.nearfuturelaboratory.util.Constants;
+import static com.google.common.collect.Lists.partition;
 
 public class TwitterService extends ServiceStatus {
 	final static Logger logger = Logger
@@ -84,7 +86,7 @@ public class TwitterService extends ServiceStatus {
 
 	// TODO Change this all ridiculous constructor. Should all be factory
 	// methods like above.
-	public TwitterService(@NotNull Token aAccessToken) {
+	public TwitterService(Token aAccessToken) {
 		this();
 		accessToken = aAccessToken;
 		service = new ServiceBuilder().provider(TwitterApi.class)
@@ -477,7 +479,7 @@ public class TwitterService extends ServiceStatus {
 			OAuthRequest postUserLookup = new OAuthRequest(Verb.POST, USER_LOOKUP_URL);
 			StringBuffer buf;// = new StringBuffer();
 
-			List<String> chunks = com.google.common.collect.Lists.partition(allFollowsIDs, 100);
+			List<String> chunks = partition(allFollowsIDs, 100);
 
 			Iterator iter = chunks.iterator();
 			while (iter.hasNext()) {
@@ -544,7 +546,7 @@ public class TwitterService extends ServiceStatus {
 		}
 		
 		// okay, because TwitterFriend is a weird data structure, we need to
-		// load the item by the the compound key (friend id and follower — or 'my' ID)
+		// load the item by the the compound key (friend id and follower or 'my' ID)
 		// but we also need that 'friend' as a TwitterUser so we have to take the friend's ID and either
 		// load that person from the DB or load them from the service
 		for(TwitterFriend is_a_friend : new_friends_to_save) {
@@ -553,39 +555,7 @@ public class TwitterService extends ServiceStatus {
 
 
 
-/*		if (list_of_friends != null) {
-			// really, the first thing we want to do is delete all the follows
-			// because
-			// the people we follows is dynanamic — we unfollow, too. so, we
-			// want this
-			// list to be up to date and not contain anyone we're now not
-			// following anymore
-			// best way? i think delete them all, then we'll add below
 
-
-
-
-			followsDAO.deleteByFollowerID(follower_id);
-			Iterator<JSONObject> iter = list_of_friends.iterator();
-			while (iter.hasNext()) {
-				String u = iter.next().toJSONString();
-				// save the user we're following into the user collection.
-				TwitterUser twitter_user = gson.fromJson(u, TwitterUser.class);
-				userDAO.save(twitter_user);
-				TwitterFriend twitter_follows = followsDAO.findFollowsByUserIDFollowsID(twitter_user.getId_str(), follower_id);
-				if (twitter_follows == null) {
-					twitter_follows = new TwitterFriend();
-				}
-				// save the user we're following into the userfollows collection
-				// we need this collection when we list users we follow as a way
-				// to find
-				// the humans we want to add into an aggregate human
-				twitter_follows.setFriend(twitter_user);
-				twitter_follows.setFollower_id(follower_id);
-				followsDAO.save(twitter_follows);
-			}
-		}
-*/		
 		
 		return followsDAO.findFollowsByExactUserID(this.getThisUser()
 				.getId_str());
@@ -622,7 +592,7 @@ public class TwitterService extends ServiceStatus {
 		dao.save(tokenToSave);
 	}
 
-	public static Token deserializeToken(@NotNull TwitterUser aUser) {
+	public static Token deserializeToken( TwitterUser aUser) {
 		// Token result = null;
 		ServiceTokenDAO dao = new ServiceTokenDAO("twitter");
 		ServiceToken serviceToken = dao.findByExactUserId(aUser.getId_str());

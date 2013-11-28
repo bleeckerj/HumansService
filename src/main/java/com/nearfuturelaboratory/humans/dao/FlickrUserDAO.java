@@ -19,7 +19,7 @@ public class FlickrUserDAO extends BasicDAO<FlickrUser, ObjectId> {
 	}
 	
 	public FlickrUser findByExactUserID( String aUserID ) {
-		return this.getDs().find(this.getEntityClass()).filter("id", aUserID).limit(1).get();
+		return this.getDatastore().find(this.getEntityClass()).filter("id", aUserID).limit(1).get();
 
 	}
 

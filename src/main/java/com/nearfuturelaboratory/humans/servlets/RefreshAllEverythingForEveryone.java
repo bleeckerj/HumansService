@@ -41,8 +41,8 @@ public class RefreshAllEverythingForEveryone extends HttpServlet {
 		JSONObject json_response = new JSONObject();
 		if(is_running == false) {
 			is_running = true;
-			TestHumanGson test = new TestHumanGson();
-			test.getAllEverythingForEveryone();
+//			TestHumanGson test = new TestHumanGson();
+//			test.getAllEverythingForEveryone();
 			is_running = false;
 			json_response.put("status", "success");
 			json_response.put("message", "finished");

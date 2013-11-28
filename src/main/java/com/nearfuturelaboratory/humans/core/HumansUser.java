@@ -1,40 +1,40 @@
 package com.nearfuturelaboratory.humans.core;
 
-import java.io.*;
-
-import com.nearfuturelaboratory.humans.core.*;
-
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.file.*;
-import java.nio.file.attribute.*;
-
-import org.apache.log4j.Logger;
-import org.json.simple.*;
-import org.jasypt.util.password.*;
-import org.json.simple.parser.*;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.nearfuturelaboratory.humans.service.FlickrService;
-import com.nearfuturelaboratory.humans.service.FoursquareService;
-import com.nearfuturelaboratory.humans.service.InstagramService;
-import com.nearfuturelaboratory.humans.service.TwitterService;
-import com.nearfuturelaboratory.util.Constants;
-import com.nearfuturelaboratory.util.Pair;
-import com.nearfuturelaboratory.util.file.*;
-import com.sun.corba.se.spi.orbutil.fsm.Guard.Result;
-
-import java.sql.Connection;
-import java.sql.Statement;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.*;
-
 import org.apache.log4j.Logger;
+import org.jasypt.util.password.StrongPasswordEncryptor;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import com.google.gson.Gson;
+import com.nearfuturelaboratory.util.Constants;
+import com.nearfuturelaboratory.util.Pair;
+import com.nearfuturelaboratory.util.file.FileUtils;
+import com.nearfuturelaboratory.util.file.Finder;
 
 /**
  * Basically a wrapper around the attributes and facets of a "user" in the

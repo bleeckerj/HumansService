@@ -24,7 +24,7 @@ public class FoursquareUserDAO extends BasicDAO<FoursquareUser, ObjectId> {
 	 */
 	public FoursquareUser findByExactUserID( String aUserID ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("id", aUserID).limit(1).get();
+		return this.getDatastore().find(this.getEntityClass()).filter("id", aUserID).limit(1).get();
 	}
 
 }

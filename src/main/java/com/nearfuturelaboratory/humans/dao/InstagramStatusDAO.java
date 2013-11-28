@@ -36,7 +36,7 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 	 */
 	public List<InstagramStatus> findByExactUsername( String aUsername ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("user.username", aUsername).order("-created_time").asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("user.username", aUsername).order("-created_time").asList();
 	}
 	/**
 	 * A list of status by user.id, most recent first
@@ -45,13 +45,13 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 	 */
 	public List<InstagramStatus> findByExactUserID(String aUserID) {
 		//Pattern regExp = Pattern.compile(aUserID + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("user.id", aUserID).order("-created_time").asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).order("-created_time").asList();
 
 	}
 
 	public InstagramStatus findMostRecentStatusByExactUserID(String aUserID) {
 		InstagramStatus result = null;
-		Query<InstagramStatus> q = this.getDs().find(this.getEntityClass()).filter("user.id", aUserID).order("-created_time").limit(1);
+		Query<InstagramStatus> q = this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).order("-created_time").limit(1);
 		result = q.get();
 		return result;
 	}

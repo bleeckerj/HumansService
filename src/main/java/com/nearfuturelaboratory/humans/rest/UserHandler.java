@@ -220,7 +220,31 @@ public class UserHandler {
 		return array_of_humans.toString();
 	}
 
+	@GET @Path("/friends/get/")
+	@Produces({"application/json"})
+	public String getFriends(
+			@QueryParam("name-like") String aHumanId, 
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response
+			) 
+	{
+		HttpSession session = request.getSession();
+		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
+		//HumansUserDAO dao = new HumansUserDAO();
+		//HumansUser h = dao.findByHumanID(aHumanId);
 
+		if(isValidUser(request, user) == false) {
+			return invalid_user_error_response.toString();
+		}
+
+
+		JsonArray result = user.getFriendsAsJson();
+
+		return result.toString();
+	}
+
+
+	
 	protected boolean isValidUser(HttpServletRequest request, HumansUser h) {
 		HumansUser user = getSessionUser(request);
 		boolean result = false;

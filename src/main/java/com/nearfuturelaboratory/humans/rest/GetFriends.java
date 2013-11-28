@@ -32,6 +32,7 @@ public class GetFriends {
 		gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 	}
 
+	
 	@GET @Path("/get")
 	@Produces({"application/json"})
 	public String getFriends(

@@ -7,12 +7,9 @@ import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
-import org.mongodb.morphia.query.Query;
 
 import com.mongodb.Mongo;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
-import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
-import com.nearfuturelaboratory.humans.instagram.entities.InstagramUserBriefly;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 
 public class InstagramFriendsDAO extends BasicDAO<InstagramFriend, ObjectId> {
@@ -29,24 +26,24 @@ public class InstagramFriendsDAO extends BasicDAO<InstagramFriend, ObjectId> {
 	
 	public List<InstagramFriend> findFollowsByExactUserID(String aUserID) {
 		List<InstagramFriend> result = new ArrayList<InstagramFriend>();
-		result = this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("friend_username").asList();
+		result = this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("friend_username").asList();
 		return result;
 	}
 	
 	public InstagramFriend findFollowsByFriendIDForUserID(String aFriendID, String aUserID) {
-		InstagramFriend result = this.getDs().find(this.getEntityClass()).filter("friend_id", aFriendID).filter("user_id", aUserID).get();
+		InstagramFriend result = this.getDatastore().find(this.getEntityClass()).filter("friend_id", aFriendID).filter("user_id", aUserID).get();
 		return result;
 		
 	}
 
 	public InstagramFriend findMostRecentFriendsForUserID(String aUserID) {
-		InstagramFriend result = this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("-lastUpdated").get();
+		InstagramFriend result = this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("-lastUpdated").get();
 		return result;
 
 	}
 	
 	public InstagramFriend findOldestFriendsForUserID(String aUserID) {
-		InstagramFriend result = this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("lastUpdated").get();
+		InstagramFriend result = this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("lastUpdated").get();
 		return result;
 
 	}

@@ -28,7 +28,7 @@ public class TwitterUserDAO extends BasicDAO<TwitterUser, ObjectId> {
 	 */
 	public TwitterUser findByExactUsername( String screen_name ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("screen_name", screen_name).limit(1).get();
+		return this.getDatastore().find(this.getEntityClass()).filter("screen_name", screen_name).limit(1).get();
 	}
 	/**
 	 * TwitterUser's key is the userid
@@ -36,12 +36,12 @@ public class TwitterUserDAO extends BasicDAO<TwitterUser, ObjectId> {
 	 * @return
 	 */
 	public TwitterUser findByExactUserID(String user_id) {
-			return this.getDs().find(this.getEntityClass()).filter("_id", user_id).limit(1).get();
+			return this.getDatastore().find(this.getEntityClass()).filter("_id", user_id).limit(1).get();
 	}
 
 	public List<TwitterUser> findByUsername(String screen_name) {
 		Pattern regExp = Pattern.compile(".*"+screen_name + ".*", Pattern.CASE_INSENSITIVE);
-		return this.getDs().find(this.getEntityClass()).filter("screen_name",  screen_name).asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("screen_name",  screen_name).asList();
 	}
 
 }

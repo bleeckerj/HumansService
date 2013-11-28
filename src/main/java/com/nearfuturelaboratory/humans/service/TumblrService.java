@@ -1,25 +1,29 @@
 package com.nearfuturelaboratory.humans.service;
 
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
-import org.scribe.model.*;
-import org.scribe.oauth.*;
-import org.json.simple.*;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
-import java.io.*;
-import java.nio.file.*;
 
-import com.nearfuturelaboratory.util.*;
-import com.nearfuturelaboratory.util.file.*;
-import com.google.common.collect.*;
-import com.nearfuturelaboratory.util.file.Find.Finder;
-
-import org.apache.commons.io.filefilter.*;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.TumblrApi;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
+
+import com.nearfuturelaboratory.util.Constants;
 
 
 public class TumblrService {
@@ -74,7 +78,7 @@ public class TumblrService {
 		File f = new File(String.format(USERS_DB_PATH, user.get("name")));
 		String p =  (String)user.get("user")+".json";
 
-		writeJSONToFile(user, f, p);
+		//writeJSONToFile(user, f, p);
 	
 	}
 	
@@ -83,14 +87,14 @@ public class TumblrService {
 	}
 	
 	
-	//TODO This is ridiculous
+/*	//TODO This is ridiculous
 	protected void createDirectoryHierarchyFromRoot(File aDir)
 	{
 		try {
 			if(!aDir.exists()) {
 				String[] subDirs = aDir.getPath().split(Pattern.quote(File.separator));
 				List<String> dirs = Arrays.asList(subDirs);
-				TwitterService.mkDirs(new File("/"), dirs, dirs.size());
+				//TwitterService.mkDirs(new File("/"), dirs, dirs.size());
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -146,6 +150,6 @@ public class TumblrService {
 		}
 		return result;
 	}
-
+*/
 	
 }

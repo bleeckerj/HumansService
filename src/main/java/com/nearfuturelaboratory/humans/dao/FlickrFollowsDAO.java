@@ -22,11 +22,11 @@ public class FlickrFollowsDAO extends BasicDAO<FlickrFriend, ObjectId> {
 	}
 	
 	public FlickrFriend findByFriendIDUserID(String aFriendID, String aUserID) {
-		return this.getDs().find(this.getEntityClass()).filter("friend_id", aFriendID).filter("user_id", aUserID).get();
+		return this.getDatastore().find(this.getEntityClass()).filter("friend_id", aFriendID).filter("user_id", aUserID).get();
 	}
 
 	public List<FlickrFriend> findByUserID(String aUserID) {
-		return this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("username").asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("username").asList();
 	}
 
 	/**
@@ -35,7 +35,7 @@ public class FlickrFollowsDAO extends BasicDAO<FlickrFriend, ObjectId> {
 	 * @return
 	 */
 	public FlickrFriend findNewestFriendByExactUserID(String aUserID) {
-		return this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("lastUpdated").get();
+		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("lastUpdated").get();
 
 	}
 	
@@ -45,7 +45,7 @@ public class FlickrFollowsDAO extends BasicDAO<FlickrFriend, ObjectId> {
 	 * @return
 	 */
 	public FlickrFriend findOldestFriendByExactUserID(String aUserID) {
-		FlickrFriend friend= this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("-lastUpdated").get();
+		FlickrFriend friend= this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("-lastUpdated").get();
 		return friend;
 	}
 

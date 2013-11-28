@@ -27,7 +27,7 @@ public class ServiceTokenDAO extends BasicDAO<ServiceToken, ObjectId> {
 	 */
 	public ServiceToken findByExactUserId( String aUserId ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		ServiceToken result =  this.getDs().find(this.getEntityClass()).filter("user_id", aUserId).limit(1).get();
+		ServiceToken result =  this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserId).limit(1).get();
 //		if(result == null) {
 //			result = new ServiceToken();
 //		}
@@ -36,7 +36,7 @@ public class ServiceTokenDAO extends BasicDAO<ServiceToken, ObjectId> {
  
 	public ServiceToken findByExactUsername( String aUsername ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
-		ServiceToken result =  this.getDs().find(this.getEntityClass()).filter("username", aUsername).limit(1).get();
+		ServiceToken result =  this.getDatastore().find(this.getEntityClass()).filter("username", aUsername).limit(1).get();
 //		if(result == null) {
 //			result = new ServiceToken();
 //		}
@@ -45,7 +45,7 @@ public class ServiceTokenDAO extends BasicDAO<ServiceToken, ObjectId> {
 	}
 
 	public ServiceToken findByExactUserID(String aUserID) {
-		ServiceToken result =  this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).limit(1).get();
+		ServiceToken result =  this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).limit(1).get();
 //		if(result == null) {
 //			result = new ServiceToken();
 //		}

@@ -53,12 +53,12 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 	    Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
 	    //ds.find(entityClazz).filter("username", regExp);
 	    
-	    return this.getDs().find(getEntityClazz()).filter("username", regExp).order("username").asList();// .sort("username").asList();
+	    return this.getDatastore().find(getEntityClass()).filter("username", regExp).order("username").asList();// .sort("username").asList();
 	}
 	
 	
 	public List<HumansUser> getAllHumansUsers() {
-		return getDs().find(getEntityClazz()).order("username").asList();
+		return getDatastore().find(this.getEntityClass()).order("username").asList();
 	}
 	
 	public List<String>getAllHumansUsers_Usernames() {
@@ -76,7 +76,7 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 	 * @return
 	 */
 	public HumansUser findByHumanID(String aHumanID) {
-		Query<HumansUser> q = this.getDs().createQuery(HumansUser.class).
+		Query<HumansUser> q = this.getDatastore().createQuery(HumansUser.class).
 				filter("humans._id", new ObjectId(aHumanID));
 		return findOne(q);
 	}

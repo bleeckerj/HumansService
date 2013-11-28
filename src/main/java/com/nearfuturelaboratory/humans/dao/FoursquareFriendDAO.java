@@ -26,12 +26,12 @@ public class FoursquareFriendDAO extends BasicDAO<FoursquareFriend, ObjectId> {
 	}
 
 	public FoursquareFriend findForUserIDFriendID(String aUserID, String aFriendID) {
-		return this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).filter("friend_id", aFriendID).get();
+		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).filter("friend_id", aFriendID).get();
 
 	}
 	
 	public List<FoursquareFriend> findForUserID(String aUserID) {
-		return this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).asList();
+		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).asList();
 
 	}
 	/**
@@ -41,7 +41,7 @@ public class FoursquareFriendDAO extends BasicDAO<FoursquareFriend, ObjectId> {
 	 */
 	public FoursquareFriend findNewestFriendByExactUserID(String aUserID) {
 		FoursquareFriend result = null;
-		result = this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("-lastUpdated").get();
+		result = this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("-lastUpdated").get();
 		return result;
 	}
 	
@@ -53,7 +53,7 @@ public class FoursquareFriendDAO extends BasicDAO<FoursquareFriend, ObjectId> {
 	
 	public FoursquareFriend findOldestFriendByExactUserID(String aUserID) {
 		FoursquareFriend result = null;
-		result = this.getDs().find(this.getEntityClass()).filter("user_id", aUserID).order("lastUpdated").get();
+		result = this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("lastUpdated").get();
 		return result;
 	}
 	
@@ -64,10 +64,10 @@ public class FoursquareFriendDAO extends BasicDAO<FoursquareFriend, ObjectId> {
 	 * @param aFriend
 	 */
 	public void updateLastUpdated(FoursquareFriend aFriend) {
-		Query<FoursquareFriend> query = getDs().createQuery(this.getEntityClass()).field("_id").equal(aFriend.getId());
-		UpdateOperations<FoursquareFriend> ops = getDs().createUpdateOperations(this.getEntityClass()).set("lastUpdated", new Date());
+		Query<FoursquareFriend> query = getDatastore().createQuery(this.getEntityClass()).field("_id").equal(aFriend.getId());
+		UpdateOperations<FoursquareFriend> ops = getDatastore().createUpdateOperations(this.getEntityClass()).set("lastUpdated", new Date());
 
-		UpdateResults<FoursquareFriend> results = getDs().update(query, ops);
+		UpdateResults<FoursquareFriend> results = getDatastore().update(query, ops);
 		//TODO check for errors from results??
 	}
 	

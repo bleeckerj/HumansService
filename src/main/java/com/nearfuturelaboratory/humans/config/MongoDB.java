@@ -2,10 +2,7 @@ package com.nearfuturelaboratory.humans.config;
 
 //import java.util.logging.Logger;
 import org.apache.log4j.Logger;
-import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.Nullable;
 //import at.ac.tuwien.ec.mongouk2011.entities.BaseEntity;
-
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -42,8 +39,7 @@ public class MongoDB {
 		return INSTANCE;
 	}
 
-	@Nullable 
-	public Datastore getDatastore(@NonNull String dbName) 
+	public Datastore getDatastore(String dbName) 
 	{ 
 		Datastore ds; // with authentication? 
 		ds = new Morphia(). createDatastore(mongoClient,dbName);

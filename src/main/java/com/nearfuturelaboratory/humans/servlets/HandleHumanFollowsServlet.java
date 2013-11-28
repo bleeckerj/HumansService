@@ -136,8 +136,8 @@ public class HandleHumanFollowsServlet extends HttpServlet {
 				}
 				ServiceEntry onbehalfof = new ServiceEntry(onbehalfof_userid, onbehalfof_username, service);
 
-				ServiceUser service_user = new ServiceUser(service_id, username, service, onbehalfof);
-				service_user.setImageURL(image_url);
+				ServiceUser service_user = new ServiceUser(service_id, username, service, image_url, onbehalfof);
+				//service_user.setImageURL(image_url);
 				logger.debug(service_user);
 				logger.debug(onbehalfof);
 				

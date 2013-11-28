@@ -30,7 +30,6 @@ import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
-import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
@@ -39,10 +38,6 @@ import com.nearfuturelaboratory.humans.instagram.entities.InstagramUserBriefly;
 import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.util.Constants;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class InstagramService /*implements AbstractService*/ {
 

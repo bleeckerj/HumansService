@@ -38,7 +38,7 @@ import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrStatus;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.util.Constants;
-import com.sun.istack.internal.NotNull;
+//import com.sun.istack.internal.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -692,7 +692,7 @@ public class FlickrService {
 	}
 
 
-	public static Token deserializeToken(@NotNull FlickrUser aUser) {
+	public static Token deserializeToken(FlickrUser aUser) {
 		//Token result = null;
 		ServiceTokenDAO dao = new ServiceTokenDAO("flickr");
 		ServiceToken serviceToken = dao.findByExactUserId( aUser.getId() );
