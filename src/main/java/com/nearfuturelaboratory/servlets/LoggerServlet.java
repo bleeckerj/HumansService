@@ -9,11 +9,16 @@ import java.io.File;
 
 
 
+import java.io.IOException;
+
 // import servlet packages
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+
 
 
 
@@ -42,7 +47,7 @@ import java.util.*;
  */
 
 @SuppressWarnings("unused")
-public class LoggerServlet extends HttpServlet{
+public class LoggerServlet implements org.springframework.web.HttpRequestHandler/*extends HttpServlet */ {
 
 	/**
 	 * 
@@ -51,7 +56,7 @@ public class LoggerServlet extends HttpServlet{
 
 
 	public void init(ServletConfig config) throws ServletException {
-		super.init(config);
+		/////////////////////////////super.init(config);
 		// next load up the properties
 		ServletContext context = config.getServletContext();
 		String foo = context.getRealPath("/");
@@ -100,18 +105,26 @@ public class LoggerServlet extends HttpServlet{
 		}
 		// once configured, we can start using the Looger now
 
-		Logger log = Logger.getLogger("com.nearfuturelaboratory.winners.servlets.LoggerServlet");
+/*		Logger log = Logger.getLogger("com.nearfuturelaboratory.winners.servlets.LoggerServlet");
 
 		Logger root = Logger.getRootLogger();
 		root.setLevel(Level.OFF);
 		root.error("--> "+root.getLevel());
 		root.error("--> "+root.getLoggerRepository());
-
+*/
 	} 
 
 
-	public void destroy(){
-		super.destroy();
+//	public void destroy(){
+//		super.destroy();
+//	}
+
+
+	@Override
+	public void handleRequest(HttpServletRequest aArg0,
+			HttpServletResponse aArg1) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		
 	}
 }
 
