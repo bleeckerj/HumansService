@@ -32,7 +32,7 @@ public class HumanTest {
 	}
 
 	@Test
-	public void getServicUserById() {
+	public void getServiceUserById() {
 		ServiceEntry service_entry = new ServiceEntry("id_", "username_", "service_");
 		ServiceUser service_user = new ServiceUser("id__", "username__", "name__", "image_url__", service_entry);
 		ObjectId aId = new ObjectId(new Date(), 1);

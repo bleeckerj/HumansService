@@ -59,7 +59,7 @@ public class Constants /*extends PropertiesConfiguration*/ {
   }
   
   public static String getString(String aKey) {
-    logger.info("Getting a constant string for key "+aKey);
+    //logger.info("Getting a constant string for key "+aKey);
 	 return get(aKey);
   }
   

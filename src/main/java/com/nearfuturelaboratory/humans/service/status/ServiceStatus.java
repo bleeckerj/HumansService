@@ -3,12 +3,15 @@ package com.nearfuturelaboratory.humans.service.status;
 import java.util.Date;
 
 import com.google.gson.JsonObject;
+import com.mongodb.DBObject;
 
 public abstract class ServiceStatus implements Comparable<ServiceStatus> {
 	
 	public abstract JsonObject getStatusJSON();
 	
 	public abstract long getCreated();
+	
+	public ServiceStatus() {}
 	
 	public Date getCreatedDate() {
 		return new Date(getCreated());

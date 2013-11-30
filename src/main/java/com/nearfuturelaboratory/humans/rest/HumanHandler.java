@@ -120,7 +120,11 @@ public class HumanHandler {
 		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
 		HumansUserDAO dao = new HumansUserDAO();
 		HumansUser h = dao.findByHumanID(aHumanId);
+		if(h ==  null) {
+			return no_such_human_for_user.toString();
+		}
 
+		
 		if(isValidUser(request, user) == false) {
 			return invalid_user_error_response.toString();
 		}
@@ -155,7 +159,7 @@ public class HumanHandler {
 		HumansUser h = dao.findByHumanID(aHumanId);
 		
 		if(h == null) {
-			fail_response.addProperty("message", "none such found for humanid="+aHumanId);
+			fail_response.addProperty("message", "none such user found for humanid="+aHumanId);
 			return fail_response.toString();
 		}
 		
@@ -165,13 +169,16 @@ public class HumanHandler {
 
 		Human human = h.getHumanByID(aHumanId);
 		
-	
-		
-		List<ServiceStatus> status = user.getStatusForHuman(human, false);
-		JsonArray result = new JsonArray();
-		for(ServiceStatus s : status) {
-			result.add(s.getStatusJSON());
+		if(human == null) {
+			fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
+			return fail_response.toString();
 		}
+		
+		JsonArray result = user.getJsonStatusForHuman(human);
+//		JsonArray result = new JsonArray();
+//		for(ServiceStatus s : status) {
+//			result.add(s.getStatusJSON());
+//		}
 		//logger.debug(status);
 		return result.toString();
 	}

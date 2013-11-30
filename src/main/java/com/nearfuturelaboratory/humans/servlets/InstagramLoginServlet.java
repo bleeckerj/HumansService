@@ -27,6 +27,9 @@ import org.apache.log4j.Logger;
 
 
 
+
+
+@SuppressWarnings("serial")
 @WebServlet(name = "InstagramLoginServlet", urlPatterns = {"/login-instagram", "/InstagramLogin"}
 		)
 public class InstagramLoginServlet extends HttpServlet {
@@ -43,7 +46,7 @@ public class InstagramLoginServlet extends HttpServlet {
 	protected JSONObject user;
 
 
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.servlets.InstagramLoginServlet.class);
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		service = new ServiceBuilder()

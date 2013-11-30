@@ -4,13 +4,8 @@ package com.nearfuturelaboratory.servlets;
  *  $Id: LoggerServlet.java,v 1.2 2006/05/16 00:36:48 julian Exp $ 
  */
 import java.io.File;
-
-
-
-
-
 import java.io.IOException;
-
+import javax.servlet.annotation.WebServlet;
 // import servlet packages
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -18,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+
 
 
 
@@ -47,7 +43,12 @@ import java.util.*;
  */
 
 @SuppressWarnings("unused")
-public class LoggerServlet implements org.springframework.web.HttpRequestHandler/*extends HttpServlet */ {
+
+//@WebServlet(
+//		name="logger", 
+//		urlPatterns={"/logger"}
+//		)
+public class LoggerServlet extends HttpServlet {
 
 	/**
 	 * 
@@ -120,11 +121,11 @@ public class LoggerServlet implements org.springframework.web.HttpRequestHandler
 //	}
 
 
-	@Override
-	public void handleRequest(HttpServletRequest aArg0,
-			HttpServletResponse aArg1) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	public void handleRequest(HttpServletRequest aArg0,
+//			HttpServletResponse aArg1) throws ServletException, IOException {
+//		// TODO Auto-generated method stub
+//		
+//	}
 }
 

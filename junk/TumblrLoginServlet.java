@@ -12,8 +12,8 @@ import org.scribe.builder.api.*;
 import org.scribe.model.*;
 import org.scribe.oauth.*;
 
-import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
-import com.nearfuturelaboratory.humans.service.*;
+//import com.nearfuturelaboratory.humans.serviceapi.TumblrApi;
+import com.nearfuturelaboratory.humans.service.TumblrService;
 import com.nearfuturelaboratory.util.*;
 import com.nearfuturelaboratory.humans.core.*;
 
@@ -36,7 +36,7 @@ public class TumblrLoginServlet extends HttpServlet {
 
 	private Token accessToken;
 	protected JSONObject user;
-	protected TumblrService tumblr;
+	protected com.nearfuturelaboratory.humans.service.TumblService tumblr;
 
 
 	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");

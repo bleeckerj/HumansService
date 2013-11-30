@@ -8,9 +8,13 @@ import static ch.lambdaj.Lambda.selectUnique;
 import static ch.lambdaj.function.matcher.AndMatcher.and;
 import static org.hamcrest.CoreMatchers.equalTo;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -24,8 +28,15 @@ import org.mongodb.morphia.utils.IndexDirection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
@@ -39,7 +50,9 @@ import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus;
+import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
+import com.nearfuturelaboratory.util.Constants;
 
 
 @Entity(value="users",noClassnameStored = true)
@@ -290,19 +303,6 @@ public class HumansUser extends BaseEntity {
 		return result;
 	}
 
-	public boolean addService(ServiceEntry aService) {
-		boolean result = false;
-
-		if(services.contains(aService)) {
-			logger.info(this+" already contains "+aService);
-			result = false;
-		} else {
-			result = services.add(aService);
-		}
-		return result;
-	}
-
-
 	public List<Human> getAllHumans() {
 		return this.humans;
 
@@ -525,6 +525,72 @@ public class HumansUser extends BaseEntity {
 	}
 
 
+	// Fri Nov 29 23:48:16 PST 2013 "EE MMM dd HH:mm:ss z YYYY"
+	 private static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd hh:mm:ss").create();
+	 private static DateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	
+	
+	protected boolean isCachedStatusStale(Human aHuman) {
+		boolean result = true;
+		DB cache_db = MongoUtil.getStatusCacheDB();
+		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+		DBObject first = cache.findOne();
+		if(first != null) {
+			logger.debug(first.get("lastUpdated").getClass());
+			Date d = (Date)first.get("lastUpdated");//HumansUser.format.parse( first.get("lastUpdated").toString() );
+			long then = d.getTime();
+			long now = new Date().getTime();
+			long diff = now - then;
+			logger.debug(d+" "+diff+" "+Constants.getLong("STATUS_STALE_TIME"));
+			if (diff < Constants.getLong("STATUS_STALE_TIME")) {
+				result = false;
+			}
+			
+		}
+		
+		return result;
+	}
+	
+/*	public JsonArray getStatusForAllHumansAsJson() {
+		
+		if(this.isCachedStatusStale(aHuman) == false) {
+			List<DBObject> raw = new ArrayList<DBObject>();
+			//JsonArray array = new JsonArray();
+			DB cache_db = MongoUtil.getStatusCacheDB();
+			DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+			DBCursor cursor = cache.find(  );
+			// skip the first row - it's meta data..
+			if(cursor.hasNext()) cursor.next();
+			 while (cursor.hasNext() ) {
+			     DBObject obj = cursor.next();	
+			     raw.add(obj);
+			     //ServiceStatus foo = new ServiceStatus();
+			     //ServiceStatus elem = gson.fromJson( JSON.serialize(obj), ServiceStatus.class);
+			     //result.add(elem);
+			     //array.add( JSON.parse(obj.toString())  );
+			     JsonElement elem = parser.parse( gson.toJson(obj) );
+			     result_array.add(elem);
+			 }
+			 logger.info("Returning cached status "+result_array.size());
+			 result_array = null;
+			 //return result;
+			 //cache.drop();
+		}
+
+		
+		for(ServiceStatus s : result) {
+			JsonElement elem = parser.parse( gson.toJson(s) );
+		     result_array.add(elem);
+		}
+
+	}
+*/	
+	public List<ServiceStatus> getStatusForAllHumans() {
+		
+		return getStatusForAllHumans(false);
+	}
+
+	
 	public List<ServiceStatus> getStatusForAllHumans(boolean loadIfStale) {
 		List<ServiceStatus> allStatus = new ArrayList<ServiceStatus>();
 		List<Human> humans = getAllHumans();
@@ -534,14 +600,73 @@ public class HumansUser extends BaseEntity {
 		return allStatus;
 
 	}
+	
+	public JsonArray getJsonStatusForHuman(Human aHuman) {
+		JsonArray result_array = new JsonArray();
+		JsonParser parser = new JsonParser();
 
-	public List<ServiceStatus> getStatusForAllHumans() {
-		return getStatusForAllHumans(false);
+		if(this.isCachedStatusStale(aHuman) == false) {
+			List<DBObject> raw = new ArrayList<DBObject>();
+			//JsonArray array = new JsonArray();
+			DB cache_db = MongoUtil.getStatusCacheDB();
+			DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+			DBCursor cursor = cache.find(  );
+			// skip the first row - it's meta data..
+			if(cursor.hasNext()) cursor.next();
+			 while (cursor.hasNext() ) {
+			     DBObject obj = cursor.next();	
+			     raw.add(obj);
+			     //ServiceStatus foo = new ServiceStatus();
+			     //ServiceStatus elem = gson.fromJson( JSON.serialize(obj), ServiceStatus.class);
+			     //result.add(elem);
+			     //array.add( JSON.parse(obj.toString())  );
+			     JsonElement elem = parser.parse( gson.toJson(obj) );
+			     result_array.add(elem);
+			 }
+			 logger.info("Returning cached status "+result_array.size());
+			 //return result;
+			 //cache.drop();
+		} else {
+			List<ServiceStatus> statuses = getStatusForHuman(aHuman, false);
+			for(ServiceStatus s : statuses) {
+				JsonElement elem = parser.parse( gson.toJson(s) );
+			     result_array.add(elem);
+			}
+		}
+		 return result_array;
+
 	}
-
-	public List<ServiceStatus> getStatusForHuman(Human aHuman, boolean loadIfStale) {
+	
+	
+	protected List<ServiceStatus> getStatusForHuman(Human aHuman, boolean loadIfStale) {
 		List<ServiceStatus> result = new ArrayList<ServiceStatus>();
+/*		JsonArray result_array = new JsonArray();
+		JsonParser parser = new JsonParser();
 
+		if(this.isCachedStatusStale(aHuman) == false) {
+			List<DBObject> raw = new ArrayList<DBObject>();
+			//JsonArray array = new JsonArray();
+			DB cache_db = MongoUtil.getStatusCacheDB();
+			DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+			DBCursor cursor = cache.find(  );
+			// skip the first row - it's meta data..
+			if(cursor.hasNext()) cursor.next();
+			 while (cursor.hasNext() ) {
+			     DBObject obj = cursor.next();	
+			     raw.add(obj);
+			     //ServiceStatus foo = new ServiceStatus();
+			     //ServiceStatus elem = gson.fromJson( JSON.serialize(obj), ServiceStatus.class);
+			     //result.add(elem);
+			     //array.add( JSON.parse(obj.toString())  );
+			     JsonElement elem = parser.parse( gson.toJson(obj) );
+			     result_array.add(elem);
+			 }
+			 logger.info("Returning cached status "+result_array.size());
+			 result_array = null;
+			 //return result;
+			 //cache.drop();
+		}
+*/
 		List<ServiceUser> service_users = aHuman.getServiceUsers();
 		for(ServiceUser service_user : service_users) {
 			String service_name = service_user.getService();
@@ -551,6 +676,7 @@ public class HumansUser extends BaseEntity {
 				if(loadIfStale && twitter.localServiceStatusIsFreshFor(service_user.getUserID()) == false) {
 					List<TwitterStatus> status = twitter.serviceRequestStatusForUserID(service_user.getUserID());
 					result.addAll(status);
+					
 				} else {
 					result.addAll(twitter.getStatusForUserID(service_user.getUserID()));
 				}
@@ -607,6 +733,7 @@ public class HumansUser extends BaseEntity {
 		//		}
 
 		Collections.sort(result);
+		
 
 		//		logger.debug("AFTER");
 		//		for(int i=0; i< result.size(); i++) {
@@ -614,6 +741,23 @@ public class HumansUser extends BaseEntity {
 		//			
 		//		}
 
+		DB cache_db = MongoUtil.getStatusCacheDB();
+		
+		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+		cache.drop();
+		cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+		//Gson gson = new Gson();
+		BasicDBObject doc = new BasicDBObject
+				("user", this.toString()).
+				append("human", aHuman.toString()).
+				append("lastUpdated", new Date());
+		cache.insert(doc);
+		for(ServiceStatus status : result) {
+			DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
+			cache.save(obj);
+			
+		}
+		
 		return result;
 	}
 
@@ -669,7 +813,14 @@ public class HumansUser extends BaseEntity {
 		return result;
 	}
 
+	public void removeServiceUser(ServiceUser aServiceUser) {
+		List<Human> allHumans = this.getAllHumans();
+		for(Human human : allHumans) {
+			human.removeServiceUser(aServiceUser);
+		}
+	}
 
+	
 	public List<ServiceUser> getServiceUsersForAllHumans() {
 		List<ServiceUser> result = new ArrayList<ServiceUser>();
 		List<Human> allHumans = this.getAllHumans();
@@ -681,6 +832,23 @@ public class HumansUser extends BaseEntity {
 		return result;
 	}
 
+	
+	
+	public boolean addService(ServiceEntry aService) {
+		boolean result = false;
+
+		if(services.contains(aService)) {
+			logger.debug(this+" already contains "+aService);
+			result = false;
+		} else {
+			result = services.add(aService);
+		}
+		return result;
+	}
+
+
+
+	
 	/**
 	 * 
 	 * @param aServiceUserID
@@ -693,7 +861,9 @@ public class HumansUser extends BaseEntity {
 		boolean result = services.remove(service_entry);
 		logger.debug("removing service entry "+service_entry);
 		logger.debug("Removing service_entry "+service_entry.hashCode()+" from "+this+" result="+result);
-
+		if(result) {
+			removeServiceUsersRelyingOn(service_entry);
+		}
 		// delete service token??
 		//		ServiceTokenDAO st_dao = new ServiceTokenDAO(aServiceTypeName);
 		//		ServiceToken st = st_dao.findByExactUserId(aServiceUserID);
@@ -714,16 +884,15 @@ public class HumansUser extends BaseEntity {
 				and(having(on(ServiceEntry.class).getServiceName(), equalTo(aServiceName)),
 						having(on(ServiceEntry.class).getServiceUserID(), equalTo(aServiceUserID))));
 		result = services.remove(service_entry);
+		if(result) {
+			removeServiceUsersRelyingOn(service_entry);
+		}
+		
+		
 		return result;
 	}
 
 
-	public void removeServiceUser(ServiceUser aServiceUser) {
-		List<Human> allHumans = this.getAllHumans();
-		for(Human human : allHumans) {
-			human.removeServiceUser(aServiceUser);
-		}
-	}
 
 	/**
 	 * 
@@ -744,6 +913,33 @@ public class HumansUser extends BaseEntity {
 		services.add(service_entry);
 	}
 
+	/**
+	 * This you'll want to call when you remove a service because the "onBehalfOf" component will no longer exist
+	 * 
+	 * @param aServiceEntry
+	 */
+	protected void removeServiceUsersRelyingOn(ServiceEntry aServiceEntry) {
+		if(aServiceEntry == null) {
+			return;
+		}
+		
+		List<ServiceUser> services_to_remove = new ArrayList<ServiceUser>();
+		
+		List<Human> humans = this.getAllHumans();
+		for(Human human : humans) {
+			for(ServiceUser service_user :  human.getServiceUsers()) {
+				if( service_user.getOnBehalfOf().equals(aServiceEntry) ) {
+					services_to_remove.add(service_user);
+					//human.removeServiceUser(service_user);
+				}
+			}
+		}
+		for(int i=0; i<services_to_remove.size(); i++) {
+			logger.debug("Remove "+services_to_remove.get(i));
+			this.removeServiceUser(services_to_remove.get(i));
+		}
+	}
+	
 	public List<ServiceEntry> getServicesForServiceName(String aServiceName) {
 		List<ServiceEntry> result = select(this.getServices(), having(on(ServiceEntry.class).getServiceName(), equalTo(aServiceName)));
 

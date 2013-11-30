@@ -82,6 +82,7 @@ public class FoursquareService {
 
 	public FoursquareService(Token aAccessToken) {
 		this();
+		try {
 		this.accessToken = aAccessToken;
 		service = new ServiceBuilder()
 		.provider(Foursquare2Api.class)
@@ -89,6 +90,13 @@ public class FoursquareService {
 		.apiSecret(apiSecret)
 		.callback(callbackURL)
 		.build();
+		} catch(Exception e) {
+			logger.warn("Uh Oh..", e);
+			logger.warn(apiKey);
+			logger.warn(apiSecret);
+			logger.warn(callbackURL);
+
+		}
 
 	}
 

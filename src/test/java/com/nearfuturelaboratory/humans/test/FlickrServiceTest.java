@@ -16,8 +16,8 @@ public class FlickrServiceTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
-			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/static-logger.properties");
+			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			flickr = FlickrService.createFlickrServiceOnBehalfOfUserID("66854529@N00");
 
 			//logger.debug("Hey Ho!");

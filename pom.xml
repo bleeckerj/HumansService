@@ -1,148 +1,321 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>com.nearfuturelaboratory.humans</groupId>
-        <artifactId>humans</artifactId>
-        <packaging>war</packaging>
-        <version>0.1.0</version>
-        <name>Humans</name>
-        <description>I had an idea to make a service that lets me focus on my normal human friends rather than internet friends</description>
-        <inceptionYear>2011</inceptionYear>
-        <url>http://humans.nearfuturelaboratory.com</url>
-        <organization>
-            <name>Near Future Laboratory</name>
-            <url>http://nearfuturelaboratory.com</url>
-        </organization>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <version>3.1.4.RELEASE</version>
-        </dependency>
-        <dependency>
-    <groupId>com.googlecode.lambdaj</groupId>
-    <artifactId>lambdaj</artifactId>
-    <version>2.3.3</version>
-</dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-    <artifactId>collections4</artifactId>
-    <version>4.0a</version>
-</dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>3.1.4.RELEASE</version>
-        </dependency>
-            <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.2.4</version>
-        </dependency>
-               <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.11</version>
-    </dependency> 
-<dependency>
-    <groupId>org.mongodb.morphia</groupId>
-    <artifactId>morphia-parent</artifactId>
-    <version>0.106-SNAPSHOT</version>
-</dependency>
-<dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-all</artifactId>
-        <version>1.3</version>
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.nearfuturelaboratory.humans</groupId>
+  <artifactId>humans</artifactId>
+  <packaging>war</packaging>
+  <version>0.1.0</version>
+  <name>Humans</name>
+  <description>I had an idea to make a service that lets me focus on my normal human friends rather than internet friends</description>
+  <inceptionYear>2011</inceptionYear>
+  <url>http://humans.nearfuturelaboratory.com</url>
+  <organization>
+    <name>Near Future Laboratory</name>
+    <url>http://nearfuturelaboratory.com</url>
+  </organization>
+  <dependencies>
+    <dependency>
+      <groupId>com.googlecode.lambdaj</groupId>
+      <artifactId>lambdaj</artifactId>
+      <version>2.3.3</version>
     </dependency>
     <dependency>
-    <groupId>com.jayway.jsonpath</groupId>
-    <artifactId>json-path</artifactId>
-    <version>0.9.1</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>collections4</artifactId>
+      <version>4.0a</version>
+    </dependency>
+<dependency>
+	<groupId>org.quartz-scheduler</groupId>
+	<artifactId>quartz</artifactId>
+	<version>2.2.1</version>
 </dependency>
-    <dependency>
-        <groupId>org.mongodb</groupId>
-        <artifactId>mongo-java-driver</artifactId>
-        <version>2.11.3</version>
-    </dependency> 
-    <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>1.2.17</version>
-    </dependency>   
         <dependency>
-        <groupId>com.googlecode.json-simple</groupId>
-        <artifactId>json-simple</artifactId>
-        <version>1.1.1</version>
-    </dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz-jobs</artifactId>
+            <version>2.2.1</version>
+        </dependency>
         <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>3.0.1</version>
-        <scope>provided</scope>
-    </dependency>
-       <dependency>
-    <groupId>javax.ws.rs</groupId>
-    <artifactId>javax.ws.rs-api</artifactId>
-    <version>2.0</version>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>1.1</version>
+        </dependency>
+<dependency>
+	<groupId>org.glassfish.jersey.containers</groupId>
+	<artifactId>jersey-container-servlet-core</artifactId>
+	<version>2.4.1</version>
 </dependency>
 <dependency>
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>15.0</version>
+	<groupId>org.glassfish.jersey.containers</groupId>
+	<artifactId>jersey-container-servlet</artifactId>
+	<version>2.4.1</version>
 </dependency>
-<dependency>
-    <groupId>org.jasypt</groupId>
-    <artifactId>jasypt</artifactId>
-    <version>1.9.1</version>
+    
+
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb.morphia</groupId>
+      <artifactId>morphia-parent</artifactId>
+      <version>0.106-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <version>0.9.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongo-java-driver</artifactId>
+      <version>2.11.3</version>
+    </dependency>
+    <dependency>
+	<groupId>commons-logging</groupId>
+	<artifactId>commons-logging</artifactId>
+	<version>1.1.3</version>
 </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>15.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jasypt</groupId>
+      <artifactId>jasypt</artifactId>
+      <version>1.9.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scribe</groupId>
+      <artifactId>scribe</artifactId>
+      <version>1.3.5</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>1.10</version>
+    </dependency>
+    <dependency>
+    	<groupId>javax.servlet</groupId>
+    	<artifactId>javax.servlet-api</artifactId>
+    	<version>3.1.0</version>
+    	<scope>provided</scope>
+    </dependency>
      <dependency>
-        <groupId>org.scribe</groupId>
-        <artifactId>scribe</artifactId>
-        <version>1.3.5</version>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${tomcat.version}</version>
     </dependency>
     <dependency>
-    <groupId>commons-configuration</groupId>
-    <artifactId>commons-configuration</artifactId>
-    <version>1.10</version>
-</dependency>
-    </dependencies>
-    <build>
-      <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.0</version>
-                    <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                    <excludes> 
-                        <exclude>com/nearfuturelaboratory/humans/test/TestHumanGson.java</exclude>
-<exclude>com/nearfuturelaboratory/humans/test/TestHumanGsonWithMongo.java</exclude>
-<exclude>com/nearfuturelaboratory/humans/test/ApacheCommonsCollectionsTest.java</exclude>
-<exclude>com/nearfuturelaboratory/humans/service/TumblrService.java</exclude>
-<exclude>com/nearfuturelaboratory/humans/test/TestMongo.java</exclude>
-<exclude>com/nearfuturelaboratory/humans/test/TestHumansDAO.java</exclude>
-<exclude>com/nearfuturelaboratory/humans/test/TestInstagramUserBriefly.java</exclude> 
-                    </excludes>
-                </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.12.4</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    </project>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-logging-juli</artifactId>
+        <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-jasper</artifactId>
+        <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-jasper</artifactId>
+        <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-jasper-el</artifactId>
+        <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-jsp-api</artifactId>
+        <version>${tomcat.version}</version>
+    </dependency>
+  </dependencies>
+  
+  <properties>
+        <!-- start-class>com.nearfuturelaboratory.humans.hello.Application</start-class-->
+            <tomcat.version>7.0.42</tomcat.version>
+        
+  </properties>
+  
+  <build>
+    <pluginManagement>
+      <plugins>
+      <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>appassembler-maven-plugin</artifactId>
+            <version>1.1.1</version>
+            <configuration>
+                <assembleDirectory>target</assembleDirectory>
+                <programs>
+                    <program>
+                        <mainClass>com.nearfuturelaboratory.humans.launcher.Launcher</mainClass>
+                        <name>webapp</name>
+                    </program>
+                </programs>
+            </configuration>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>assemble</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.tomcat.maven</groupId>
+          <artifactId>tomcat6-maven-plugin</artifactId>
+          <version>2.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.tomcat.maven</groupId>
+          <artifactId>tomcat7-maven-plugin</artifactId>
+          <version>2.2</version>
+        </plugin>
+      <!-- plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin-->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.0</version>
+          <configuration>
+            <source>1.7</source>
+            <target>1.7</target>
+            <excludes>
+              <exclude>com/nearfuturelaboratory/humans/test/TestHumanGson.java</exclude>
+              <exclude>com/nearfuturelaboratory/humans/test/TestHumanGsonWithMongo.java</exclude>
+              <exclude>com/nearfuturelaboratory/humans/test/ApacheCommonsCollectionsTest.java</exclude>
+              <exclude>com/nearfuturelaboratory/humans/test/TestMongo.java</exclude>
+              <exclude>com/nearfuturelaboratory/humans/test/TestHumansDAO.java</exclude>
+              <exclude>com/nearfuturelaboratory/humans/test/TestInstagramUserBriefly.java</exclude>
+              <exclude>com/nearfuturelaboratory/humans/servlets/RefreshAllEverythingForEveryone.java</exclude>
+              <exclude>com/nearfuturelaboratory/humans/hello/Application.java</exclude>
+            <exclude>com/nearfuturelaboratory/humans/hello/Greeting.java</exclude>
+            <exclude>com/nearfuturelaboratory/humans/hello/HelloController.java</exclude>
+            <exclude>src/test/java/com/nearfuturelaboratory/humans/test/HelloControllerTests.java</exclude>
+            
+            <exclude>com/nearfuturelaboratory/humans/hello/MessagePrinter.java</exclude>
+            <exclude>com/nearfuturelaboratory/humans/hello/MessageService.java</exclude>  
+ <exclude>com/nearfuturelaboratory/humans/rest/GreetingController.java</exclude>  
+             </excludes>
+            <resource>
+            <directory>src/java/test/java</directory>
+            <includes>
+            <include>**/*.java</include>
+            </includes>
+            </resource>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.14</version>
+          <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+        </plugin>
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-toolchains-plugin</artifactId>
+    <version>1.0</version>
+    <executions>
+      <execution>
+        <phase>validate</phase>
+        <goals>
+          <goal>toolchain</goal>
+        </goals>
+      </execution>
+    </executions>
+    <configuration>
+      <toolchains>
+        <jdk>
+          <version>1.7</version>
+          <vendor>oracle</vendor>
+        </jdk>
+      </toolchains>
+    </configuration>
+  </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-source-plugin</artifactId>
+  <executions>
+    <execution>
+      <id>attach-sources</id>
+      <goals>
+        <goal>jar</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-javadoc-plugin</artifactId>
+  <executions>
+    <execution>
+      <id>attach-javadocs</id>
+      <goals>
+        <goal>jar</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+    </plugins>
+  </build>
+  <repositories>
+        <!-- repository>
+            <id>spring-snapshots</id>
+            <url>http://repo.spring.io/libs-snapshot</url>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository-->
+    </repositories>
+    <!-- pluginRepositories>
+        <pluginRepository>
+            <id>spring-snapshots</id>
+            <url>http://repo.spring.io/libs-snapshot</url>
+            <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
+    </pluginRepositories-->
+</project>

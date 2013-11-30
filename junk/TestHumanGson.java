@@ -76,8 +76,8 @@ public class TestHumanGson {
 			
 			List<Human> humans = user.getAllHumans();
 			for(Human human : humans) {
-				//test.serviceRequestStatusForHuman(human);
-				x=5;
+				test.serviceRequestStatusForHuman(human);
+				//x=5;
 			}
 			test.makeHumansForUser(user);
 		}

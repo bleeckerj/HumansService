@@ -1,8 +1,6 @@
 package com.nearfuturelaboratory.humans.rest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import static com.google.common.collect.Lists.partition;
+
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -11,22 +9,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -40,9 +28,8 @@ import com.google.gson.JsonParser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
-import com.nearfuturelaboratory.humans.entities.ServiceUser;
-import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
+import static com.google.common.collect.Lists.partition;
 
 
 @Path("/user")
@@ -207,14 +194,21 @@ public class UserHandler {
 			return invalid_user_error_response.toString();
 		}
 
+
+		
 		Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 
 		List<Human> humans = user.getAllHumans();
 		JsonArray array_of_humans = new JsonArray();
 
+//		List chunks = partition(humans, 100);
+//
+		
 		for(Human human : humans) {
 			array_of_humans.add(gson.toJsonTree(human, Human.class));
 		}
+
+		
 
 
 		return array_of_humans.toString();

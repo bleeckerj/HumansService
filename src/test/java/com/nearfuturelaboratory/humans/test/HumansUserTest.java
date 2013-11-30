@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.types.ObjectId;
@@ -28,13 +29,13 @@ import com.nearfuturelaboratory.humans.entities.HumansUser;
 import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.util.Constants;
 
+
 //import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsNot.not;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.equalTo;
@@ -47,9 +48,11 @@ public class HumansUserTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		Logger.getRootLogger().setLevel(Level.OFF);
+
 		try {
-			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/static-logger.properties");
+			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			test_dao = new HumansUserDAO("humans-test");
 			test_dao.getCollection().drop();
 			//logger.debug("Hey Ho!");
@@ -84,6 +87,41 @@ public class HumansUserTest {
 		assertThat(human.getServiceUsers(), hasSize(0));
 
 	}
+	
+	
+	
+	
+	/**
+	 * This should also remove any human that relies on a specific OnBehalfOf service
+	 */
+	@Test
+	public void removeServiceFromUser() {
+		ServiceEntry on_behalf_of = new ServiceEntry("1", "me", "twitter");
+		ServiceUser service_user = new ServiceUser("101", "a_username", "Bill Bullox", "http://blah.com", on_behalf_of);
+		Human human = new Human();
+		human.setName("removeServiceFromUser-test");
+		human.addServiceUser(service_user);
+	
+		HumansUser user = new HumansUser();
+		user.setUsername("darthjulian");
+		user.addHuman(human);
+		
+		user.addService(on_behalf_of);
+		test_dao.save(user);
+		
+		HumansUser load_user = test_dao.findOneByUsername("darthjulian");
+		assertThat(load_user, notNullValue());
+		
+		assertThat(load_user.getServicesForServiceName("twitter"), hasSize(1));
+		
+		load_user.removeServiceBy("twitter", "1");
+		
+		assertThat(load_user.getServicesForServiceName("twitter"), hasSize(0));
+		
+		test_dao.save(load_user);
+		
+	}
+	
 	
 	@Test
 	public void removeHumanById() {
@@ -333,7 +371,7 @@ public class HumansUserTest {
 	}
 	
 	@Test
-	public void test_getStatus() {
+	public void getStatus() {
 		try {
 			HumansUserDAO dao = new HumansUserDAO();
 		HumansUser user = dao.findOneByUsername("darthjulian");
