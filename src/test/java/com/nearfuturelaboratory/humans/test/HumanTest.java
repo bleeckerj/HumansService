@@ -5,6 +5,7 @@ package com.nearfuturelaboratory.humans.test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.junit.BeforeClass;
@@ -16,6 +17,8 @@ import com.nearfuturelaboratory.humans.entities.ServiceUser;
 
 
 
+
+
 //import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -24,6 +27,7 @@ import static org.hamcrest.core.IsCollectionContaining.hasItem;
 
 //import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.fail;
 
 public class HumanTest {
 
@@ -105,5 +109,126 @@ public class HumanTest {
 //		assertThat(collection, is(empty()));
 //        assertThat("i like cheese", containsString("cheese"));
 		
+	}
+	
+	@Test
+	public void testRemoveServiceUserByServiceEntry()
+	{
+		ServiceEntry service_entry = new ServiceEntry("10901090", "coolguy", "klonkr");
+		ServiceUser service_user = new ServiceUser("1", "one", "kate", "http://foo", service_entry);
+
+		ServiceEntry service_entry_2 = new ServiceEntry("8483938", "badguy", "swiffer");
+		ServiceUser service_user_2 = new ServiceUser("2", "two", "bill", "http://goo", service_entry_2);
+
+		//ServiceUser dummy = new ServiceUser("foo", "username__", "name__", "image_url__", service_entry);
+		ObjectId aId = new ObjectId(new Date(), 1);
+		service_user.setId(aId);
+		
+		Human human = new Human();
+		human.setName("testGetServiceUsersByServiceEntry");
+		human.addServiceUser(service_user);
+		human.addServiceUser(service_user_2);
+		
+		assertThat(human.getServiceUsers(), hasItem(service_user));
+		assertThat(human.getServiceUsers(), hasItem(service_user_2));
+		assertThat(human.getServiceUsers(), hasSize(2));
+
+		ServiceEntry service;	
+		
+		///////
+		service = new ServiceEntry("10901090", "coolguy", "klonkr");
+		
+		boolean result = human.removeServiceUsersByServiceEntry(service);
+		
+		assertThat(result, equalTo(Boolean.TRUE));
+		assertThat(human.getServiceUsers(), not(hasItem(service_user)));
+		assertThat(human.getServiceUsers(), hasItem(service_user_2));
+		assertThat(human.getServiceUsers(), hasSize(1));
+
+		// add it back for the next test
+		human.addServiceUser(service_user);
+		
+		///////
+		service = new ServiceEntry("8483938", "badguy", "swiffer");
+		
+		result = human.removeServiceUsersByServiceEntry(service);
+		
+		assertThat(result, equalTo(Boolean.TRUE));
+		assertThat(human.getServiceUsers(), not(hasItem(service_user_2)));
+		assertThat(human.getServiceUsers(), hasItem(service_user));
+		assertThat(human.getServiceUsers(), hasSize(1));
+
+		
+		// add them both back for the last test
+		human.addServiceUser(service_user);
+		human.addServiceUser(service_user_2);
+		
+		assertThat(human.getServiceUsers(), hasItem(service_user_2));
+		assertThat(human.getServiceUsers(), hasItem(service_user));
+		assertThat(human.getServiceUsers(), hasSize(2));
+
+		
+		service = new ServiceEntry(null, null, "swiffer");
+		result = human.removeServiceUsersByServiceEntry(service);
+
+		assertThat(result, equalTo(Boolean.FALSE));
+		assertThat(human.getServiceUsers(), hasItem(service_user_2));
+		assertThat(human.getServiceUsers(), hasItem(service_user));
+
+		assertThat(human.getServiceUsers(), hasSize(2));
+	}
+	
+	@Test
+	public void testGetServiceUsersByServiceEntry()
+	{
+		ServiceEntry service_entry = new ServiceEntry("10901090", "coolguy", "klonkr");
+		ServiceUser service_user = new ServiceUser("1", "one", "kate", "http://foo", service_entry);
+
+		ServiceEntry service_entry_2 = new ServiceEntry("8483938", "badguy", "swiffer");
+		ServiceUser service_user_2 = new ServiceUser("2", "two", "bill", "http://goo", service_entry_2);
+
+		//ServiceUser dummy = new ServiceUser("foo", "username__", "name__", "image_url__", service_entry);
+		ObjectId aId = new ObjectId(new Date(), 1);
+		service_user.setId(aId);
+		
+		Human human = new Human();
+		human.setName("testGetServiceUsersByServiceEntry");
+		human.addServiceUser(service_user);
+		human.addServiceUser(service_user_2);
+		
+		ServiceEntry service;
+		
+		///////
+		service = new ServiceEntry("10901090", "coolguy", "klonkr");
+		
+		List<ServiceUser> service_users = human.getServiceUsersByServiceEntry(service);
+		
+		assertThat(service_users, contains(service_user));
+		assertThat(service_users, not(contains(service_user_2)));
+
+		///////
+		service = new ServiceEntry("8483938", "gnarlyguy", "swiffer");
+		
+		service_users = human.getServiceUsersByServiceEntry(service);
+		
+		assertThat(service_users, not(contains(service_user)));
+		assertThat(service_users, not(contains(service_user_2)));
+
+		///////
+		service = new ServiceEntry(null, null, "swiffer");
+		
+		service_users = human.getServiceUsersByServiceEntry(service);
+		
+		assertThat(service_users, not(contains(service_user)));
+		assertThat(service_users, not(contains(service_user_2)));
+
+		///////
+		service = new ServiceEntry("8483938", "badguy", "swiffer");
+		
+		service_users = human.getServiceUsersByServiceEntry(service);
+		
+		assertThat(service_users, contains(service_user_2));
+		assertThat(service_users, not(contains(service_user)));
+	
 	}
 }

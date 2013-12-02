@@ -1,13 +1,31 @@
 package com.nearfuturelaboratory.humans.test;
 
 import org.apache.log4j.Logger;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.junit.Assert.fail;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.nearfuturelaboratory.humans.dao.FlickrUserDAO;
+import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
+import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.humans.service.FlickrService;
 import com.nearfuturelaboratory.util.Constants;
+
+import org.junit.FixMethodOrder;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 
 public class FlickrServiceTest {
 	static FlickrService flickr;
@@ -28,6 +46,24 @@ public class FlickrServiceTest {
 	}
 
 	@Test
+	public void testServiceRequestUserBasic()
+	{
+		try {
+			FlickrUser user = flickr.serviceRequestUserBasic();
+//			FlickrUserDAO dao = new FlickrUserDAO();
+//			dao.save(user);
+			assertThat("user ids do not match", user.getId(), equalTo(flickr.getThisUser().getId()));
+		} catch(BadAccessTokenException bate) {
+			logger.error(bate);
+			bate.printStackTrace();
+			fail(bate.getMessage());
+		}
+
+	}
+
+	
+	
+	@Ignore
 	public void test_serviceRequestFriends() {
 		try {
 			flickr.serviceRequestFriends();
@@ -36,7 +72,7 @@ public class FlickrServiceTest {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Ignore
 	public void test_serviceRequestStatus() {
 		try {
