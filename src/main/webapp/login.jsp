@@ -1,35 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 
-<%@ page import="com.nearfuturelaboratory.util.file.*"%>
-<%@ page import="com.nearfuturelaboratory.util.*"%>
-<%@ page import="java.nio.file.*"%>
-<%@ page import="java.nio.file.attribute.*"%>
-<%@ page import="java.util.*"%>
-<%@ page import="org.json.simple.JSONObject"%>
-<%@ page import="org.jasypt.util.password.*"%>
-<%@ page import="java.io.*"%>
-<%@ page import="org.json.simple.parser.*"%>
 
-<%@ page import="com.nearfuturelaboratory.humans.entities.HumansUser"%>
-<%@ page import="com.nearfuturelaboratory.humans.dao.HumansUserDAO" %>
-<%
-//out.println(request.getContextPath());
 
-	if (request.getParameter("username") != null
-			&& request.getParameter("password") != null) {
-
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser user = dao.findOneByUsername(request.getParameter("username"));
-		System.out.println(request.getParameter("username"));
-		if(user != null /*&& user.verifyPassword(request.getParameter("password"))*/) {
-			session.setAttribute("logged-in-user", user);
-			//System.err.println("Okay.."+request.getContextPath());
-			response.sendRedirect(request.getContextPath()+"/user.jsp");
-			user.serviceRequestFriends();
-		}
-	}
-%>
 
 
 <!DOCTYPE html>
@@ -62,6 +35,61 @@
 	href="assets/css/bootstrap-select.css" />
 <script src="assets/js/bootstrap-select.js"></script>
 
+<script type="text/javascript">
+
+$.ajaxSetup({
+	  beforeSend: function(xhr) {
+	    xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'));
+	  }
+	}); 
+
+/* $(document).ready(function() {
+// 	$("#human_name_form").hide();
+ 
+	
+});
+ */
+function getParameterByName(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+$('#login').on('click', function(e) {
+	alert('whoho!');
+});
+
+function login(obj) {
+	console.log(obj);
+	var username = $(obj.parentElement).find("#username").val();
+	var password = $(obj.parentElement).find("#password").val();
+	var params = {
+        username : username,
+        password : password
+    };
+	
+$.ajax({
+	async:false,
+	type : "GET",
+	traditonal : true,
+	//url : "/rest/login?username="+getParameterByName('username')+"&password="+getParameterByName('password'),
+	url : "<%=request.getContextPath()%>/rest/login?"+$.param(params),
+	data : {
+//			human_json : JSON.stringify( human ),
+//			human_name : $('#human_name').val(),
+//			add_service_user : 'yes',
+		
+		},
+	}).success(function(data) {
+		console.log(data);
+		window.location.replace("user.jsp");
+	}).error(function(xhr, ajaxOptions, thrownError) {
+		console.log(thrownError + " "+ xhr.status+" "+ajaxOptions);
+//		$("#response").html(thrownError + " " + xhr.status + " " + ajaxOptions)
+	});
+}
+
+</script>
+
 <meta charset="utf-8">
 <title>Insert title here</title>
 </head>
@@ -73,19 +101,19 @@
 					<fieldset style="border: 0">
 						<legend style="line-height: 50px">Sign In To Humans</legend>
 
-						<form method="POST" action="<%=request.getContextPath() %>/login.jsp"
-							accept-charset="UTF-8">
+						<form action="javascript:void(0)">
+			
 							<div class="alert alert-error">
 								<a class="close" data-dismiss="alert" href="#">x</a>Incorrect
 								Username or Password!
 							</div>
 							<input class="span3" placeholder="Username" type="text"
-								name="username"> <input class="span3"
-								placeholder="Password" type="password" name="password">
+								id="username"> <input class="span3"
+								placeholder="Password" type="password" id="password">
 							<label class="checkbox"> <input type="checkbox"
 								name="remember" value="1"> Remember Me
 							</label>
-							<button class="btn-info btn" type="submit">Login</button>
+							<button type='button' onClick='login(this)' class="btn-info btn">Login</button>
 						</form>
 					</fieldset>
 				</div>

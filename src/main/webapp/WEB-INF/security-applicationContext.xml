@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+ xmlns:sec="http://www.springframework.org/schema/security"
+ xsi:schemaLocation="
+http://www.springframework.org/schema/security
+http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+ 
+ <!-- http://javakart.blogspot.com/2012/12/spring-security-tutorial-form-login-example.html -->
+ 
+ <http use-expressions="true" entry-point-ref="loginUrlAuthenticationEntryPoint">
+  <intercept-url pattern="/login.jsp" access="permitAll" />
+  <intercept-url pattern="/rest/*" access="isAuthenticated()"/>
+  <form-login/>
+ </http>
+  
+ <beans:bean id="loginUrlAuthenticationEntryPoint"
+  class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+  <beans:property name="loginFormUrl" value="/login.jsp" />
+ </beans:bean>
+  
+ <beans:bean id="securityFilter"
+  class="org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter">
+  <beans:property name="authenticationManager" ref="authenticationManager" />
+  <!--  When user provides correct username/password and authentication is successful -->
+  <beans:property name="authenticationSuccessHandler"
+   ref="authenticationSuccessHandler" />
+ </beans:bean>
+ <authentication-manager alias="authenticationManager">
+  <authentication-provider>
+   <user-service>
+    <user name="chuck.norris" password="cnorris" authorities="ROLE_ADMIN" />
+    <user name="user" password="user" authorities="ROLE_USER" />
+   </user-service>
+  </authentication-provider>
+ </authentication-manager>
+ 
+ <beans:bean id="authenticationSuccessHandler"
+  class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
+  <beans:property name="defaultTargetUrl" value="/home.do" />
+ </beans:bean>
+</beans:beans>

@@ -1,9 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql"%>
+
 <%@ page import="com.nearfuturelaboratory.util.file.*"%>
 <%@ page import="com.nearfuturelaboratory.util.*"%>
 
@@ -46,10 +43,15 @@ function deleteServiceUser(obj)
 	
 	var panel = parent.parent();
 	
+	var service = {
+		serviceUserId : ('#service_user_id').text();
+	
+	}
 	
 	$.ajax({
-		type : "POST",
-		url : '<%=request.getContextPath()%>/removeServiceUser.jsp',
+		type : 'POST',
+		dataType : 'json',
+		url : '<%=request.getContextPath()%>/removeServiceFromUser.jsp',
 			data : {
 				service_name : service_name,
 				service_user_id : service_user_id,
