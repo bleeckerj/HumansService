@@ -521,31 +521,6 @@ public class HumansUser {
 		}
 	}
 
-	/**
-	 * This just breaks apart a service "code" (e.g. 1739934-darthjulian) into
-	 * separate userid (1739934) and username (darthjulian)
-	 * 
-	 * @param aServiceName
-	 * @param aServiceCode
-	 *            basically userid-username for a service
-	 */
-	public void removeServiceUser(String aServiceName, String aServiceCode) {
-		if (aServiceName == null || aServiceCode == null) {
-			return;
-		}
-		aServiceName = aServiceName.toLowerCase();
-
-		logger.debug("removeServiceUser " + aServiceName + " " + aServiceCode);
-		Pattern p = Pattern.compile("-");
-		String[] toks = p.split(aServiceCode);
-		if (toks == null || toks.length != 2) {
-			logger.warn("Attempt to remove service user for " + aServiceName
-					+ " but service code is weird (" + aServiceCode + ")");
-			return;
-		} else {
-			removeServiceUser(aServiceName, toks[1], toks[0]);
-		}
-	}
 
 	public void removeServiceUsersOnBehalfOf(String aOnBehalfOf) {
 		JSONObject serviceUsersObj  =null;

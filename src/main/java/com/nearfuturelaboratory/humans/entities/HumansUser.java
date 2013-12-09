@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -25,6 +26,8 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.utils.IndexDirection;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -64,6 +67,8 @@ public class HumansUser extends BaseEntity {
 	private String username;
 	private String password;
 	protected String email;
+	@Indexed(name="access_token", unique = true, sparse = true)
+	protected String access_token;
 
 	@Embedded("humans")
 	protected List<Human> humans = new ArrayList<Human>();
@@ -79,7 +84,17 @@ public class HumansUser extends BaseEntity {
 	protected List<ServiceEntry> services = new ArrayList<ServiceEntry>();
 	//protected List<Map<String,List<ServiceEntry>>> services;
 
+	public HumansUser() {
+		super();
+	}
 
+	//	public HumansUser(String aUsername, String aPassword) throws InvalidUserException {
+	//		setUsername(aUsername);
+	//		setPassword(aPassword);
+	//		if(isValidUser() == false) {
+	//			throw new InvalidUserException("Invalid username and/or password");
+	//		}
+	//	}
 	//	public static HumansUser(String aUsername, String aPassword) {
 	//		setUsername(aUsername);
 	//		setPassword(aPassword);
@@ -96,8 +111,6 @@ public class HumansUser extends BaseEntity {
 		return result;
 	}
 
-
-
 	public String getUsername() {
 		return username;
 	}
@@ -109,6 +122,10 @@ public class HumansUser extends BaseEntity {
 		return password;
 	}
 
+	/**
+	 * This will encrypt the clear password and set the property with that encrypted password
+	 * @param aClearPassword
+	 */
 	public void setPassword(String aClearPassword) {
 		StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
 		String encryptedPassword = passwordEncryptor
@@ -116,6 +133,7 @@ public class HumansUser extends BaseEntity {
 
 		password = encryptedPassword;
 	}
+
 
 	public boolean verifyPassword(String aPassword) {
 		StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
@@ -132,6 +150,10 @@ public class HumansUser extends BaseEntity {
 		return result;
 	}
 
+
+	public void setAccessToken(String aToken) {
+		this.access_token = aToken;
+	}
 
 	public String getEmail() {
 		return email;
@@ -235,17 +257,26 @@ public class HumansUser extends BaseEntity {
 		boolean result = false;
 		Human container;
 		ServiceUser service_user;
+		List<Human> empty_humans = new ArrayList<Human>();
 
 		for(Human human : getHumans()) {
 			service_user = human.getServiceUserById(aServiceUserId);
 			if(service_user != null) {
 				container = human;
 				result = container.removeServiceUserById(aServiceUserId);
+				if(container.getServiceUsers().size() < 1) {
+					empty_humans.add(container);
+				}
 				break;
 			} else {
 				continue;
 			}
 		}
+
+		for(Human human : empty_humans) {
+			this.removeHuman(human);
+		}
+
 		return result;
 		//		ServiceUser service_user = selectFirst(
 		//											flatten(
@@ -326,7 +357,7 @@ public class HumansUser extends BaseEntity {
 	}
 
 
-	public List<ServiceUser> getServiceUsersForAllHumansByService(String aService) {
+	public List<ServiceUser> getServiceUsersForAllHumansByServiceName(String aService) {
 		List<ServiceUser> result = new ArrayList<ServiceUser>();
 		List<ServiceUser> all = getServiceUsersForAllHumans();
 		for(int i=0; i<all.size(); i++) {
@@ -526,71 +557,40 @@ public class HumansUser extends BaseEntity {
 
 
 	// Fri Nov 29 23:48:16 PST 2013 "EE MMM dd HH:mm:ss z YYYY"
-	 private static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd hh:mm:ss").create();
-	 private static DateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-	
-	
+	private static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd hh:mm:ss")
+			.registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer())
+			.addSerializationExclusionStrategy(new StatusCacheJsonExclusionStrategy())
+			.create();
+	//private static DateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
+
 	protected boolean isCachedStatusStale(Human aHuman) {
 		boolean result = true;
 		DB cache_db = MongoUtil.getStatusCacheDB();
 		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
 		DBObject first = cache.findOne();
 		if(first != null) {
-			logger.debug(first.get("lastUpdated").getClass());
+			//logger.debug(first.get("lastUpdated").getClass());
 			Date d = (Date)first.get("lastUpdated");//HumansUser.format.parse( first.get("lastUpdated").toString() );
 			long then = d.getTime();
 			long now = new Date().getTime();
 			long diff = now - then;
-			logger.debug(d+" "+diff+" "+Constants.getLong("STATUS_STALE_TIME"));
+			//logger.debug(d+" "+diff+" "+Constants.getLong("STATUS_STALE_TIME"));
 			if (diff < Constants.getLong("STATUS_STALE_TIME")) {
 				result = false;
 			}
-			
+
 		}
-		
+
 		return result;
 	}
-	
-/*	public JsonArray getStatusForAllHumansAsJson() {
-		
-		if(this.isCachedStatusStale(aHuman) == false) {
-			List<DBObject> raw = new ArrayList<DBObject>();
-			//JsonArray array = new JsonArray();
-			DB cache_db = MongoUtil.getStatusCacheDB();
-			DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
-			DBCursor cursor = cache.find(  );
-			// skip the first row - it's meta data..
-			if(cursor.hasNext()) cursor.next();
-			 while (cursor.hasNext() ) {
-			     DBObject obj = cursor.next();	
-			     raw.add(obj);
-			     //ServiceStatus foo = new ServiceStatus();
-			     //ServiceStatus elem = gson.fromJson( JSON.serialize(obj), ServiceStatus.class);
-			     //result.add(elem);
-			     //array.add( JSON.parse(obj.toString())  );
-			     JsonElement elem = parser.parse( gson.toJson(obj) );
-			     result_array.add(elem);
-			 }
-			 logger.info("Returning cached status "+result_array.size());
-			 result_array = null;
-			 //return result;
-			 //cache.drop();
-		}
 
-		
-		for(ServiceStatus s : result) {
-			JsonElement elem = parser.parse( gson.toJson(s) );
-		     result_array.add(elem);
-		}
-
-	}
-*/	
 	public List<ServiceStatus> getStatusForAllHumans() {
-		
+
 		return getStatusForAllHumans(false);
 	}
 
-	
+
 	public List<ServiceStatus> getStatusForAllHumans(boolean loadIfStale) {
 		List<ServiceStatus> allStatus = new ArrayList<ServiceStatus>();
 		List<Human> humans = getAllHumans();
@@ -601,82 +601,73 @@ public class HumansUser extends BaseEntity {
 
 	}
 	
+	//TODO Need better strategy for pre-fetching status. Or..basically need a strategy..
+	/**
+	 * This is called by the endpoint handler. It gets status from a database "cache"
+	 * The freshness of the status is checked. If it's stale, the cache is deleted
+	 * and reloaded. But, like..
+	 * Right now? The call to getStatusForHuman will not refresh from the services cause that'd
+	 * hang the request up for awhile.
+	 * Need better strategy for pre-fetching status..
+	 * @param aHuman
+	 * @return
+	 */
 	public JsonArray getJsonStatusForHuman(Human aHuman) {
 		JsonArray result_array = new JsonArray();
 		JsonParser parser = new JsonParser();
-
+		DB cache_db = MongoUtil.getStatusCacheDB();
+		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+		DBCursor cursor = cache.find(  );
+		logger.debug("cache="+cache);
 		if(this.isCachedStatusStale(aHuman) == false) {
 			List<DBObject> raw = new ArrayList<DBObject>();
 			//JsonArray array = new JsonArray();
-			DB cache_db = MongoUtil.getStatusCacheDB();
-			DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
-			DBCursor cursor = cache.find(  );
 			// skip the first row - it's meta data..
 			if(cursor.hasNext()) cursor.next();
-			 while (cursor.hasNext() ) {
-			     DBObject obj = cursor.next();	
-			     raw.add(obj);
-			     //ServiceStatus foo = new ServiceStatus();
-			     //ServiceStatus elem = gson.fromJson( JSON.serialize(obj), ServiceStatus.class);
-			     //result.add(elem);
-			     //array.add( JSON.parse(obj.toString())  );
-			     JsonElement elem = parser.parse( gson.toJson(obj) );
-			     result_array.add(elem);
-			 }
-			 logger.info("Returning cached status "+result_array.size());
-			 //return result;
-			 //cache.drop();
+			while (cursor.hasNext() ) {
+				DBObject obj = cursor.next();	
+				raw.add(obj);
+
+				JsonElement elem = parser.parse( gson.toJson(obj) );
+				logger.debug(elem.getAsJsonObject().get("service"));
+				result_array.add(elem);
+			}
+			logger.info("Returning cached status "+result_array.size());
+			//return result;
+			//cache.drop();
 		} else {
+			if(cache.count() > 0) {
+				cache.drop();
+				logger.info("dropping cached status status_cache_"+this.getId()+"_"+aHuman.getId());
+			}
 			List<ServiceStatus> statuses = getStatusForHuman(aHuman, false);
 			for(ServiceStatus s : statuses) {
 				JsonElement elem = parser.parse( gson.toJson(s) );
-			     result_array.add(elem);
+				result_array.add(elem);
 			}
 		}
-		 return result_array;
+		return result_array;
 
 	}
+
 	
 	
 	protected List<ServiceStatus> getStatusForHuman(Human aHuman, boolean loadIfStale) {
 		List<ServiceStatus> result = new ArrayList<ServiceStatus>();
-/*		JsonArray result_array = new JsonArray();
-		JsonParser parser = new JsonParser();
 
-		if(this.isCachedStatusStale(aHuman) == false) {
-			List<DBObject> raw = new ArrayList<DBObject>();
-			//JsonArray array = new JsonArray();
-			DB cache_db = MongoUtil.getStatusCacheDB();
-			DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
-			DBCursor cursor = cache.find(  );
-			// skip the first row - it's meta data..
-			if(cursor.hasNext()) cursor.next();
-			 while (cursor.hasNext() ) {
-			     DBObject obj = cursor.next();	
-			     raw.add(obj);
-			     //ServiceStatus foo = new ServiceStatus();
-			     //ServiceStatus elem = gson.fromJson( JSON.serialize(obj), ServiceStatus.class);
-			     //result.add(elem);
-			     //array.add( JSON.parse(obj.toString())  );
-			     JsonElement elem = parser.parse( gson.toJson(obj) );
-			     result_array.add(elem);
-			 }
-			 logger.info("Returning cached status "+result_array.size());
-			 result_array = null;
-			 //return result;
-			 //cache.drop();
-		}
-*/
 		List<ServiceUser> service_users = aHuman.getServiceUsers();
 		for(ServiceUser service_user : service_users) {
 			String service_name = service_user.getService();
-			logger.debug(service_user);
+			//logger.debug(service_user);
 			if(service_name.equalsIgnoreCase("twitter")) {
 				TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
 				if(loadIfStale && twitter.localServiceStatusIsFreshFor(service_user.getUserID()) == false) {
 					List<TwitterStatus> status = twitter.serviceRequestStatusForUserID(service_user.getUserID());
+//					for(TwitterStatus stat : status) {
+//						result.add(stat.getStatusJSON());
+//					}
 					result.addAll(status);
-					
+
 				} else {
 					result.addAll(twitter.getStatusForUserID(service_user.getUserID()));
 				}
@@ -726,23 +717,11 @@ public class HumansUser extends BaseEntity {
 			}
 
 		}
-		//		logger.debug("BEFORE");
-		//		for(int i=0; i< result.size(); i++) {
-		//			logger.debug(result.get(i).getClass()+" "+ result.get(i).getCreatedDate());
-		//			
-		//		}
 
 		Collections.sort(result);
-		
-
-		//		logger.debug("AFTER");
-		//		for(int i=0; i< result.size(); i++) {
-		//			logger.debug(result.get(i).getClass()+" "+ result.get(i).getCreatedDate());
-		//			
-		//		}
 
 		DB cache_db = MongoUtil.getStatusCacheDB();
-		
+
 		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
 		cache.drop();
 		cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
@@ -755,9 +734,9 @@ public class HumansUser extends BaseEntity {
 		for(ServiceStatus status : result) {
 			DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
 			cache.save(obj);
-			
+
 		}
-		
+
 		return result;
 	}
 
@@ -820,7 +799,7 @@ public class HumansUser extends BaseEntity {
 		}
 	}
 
-	
+
 	public List<ServiceUser> getServiceUsersForAllHumans() {
 		List<ServiceUser> result = new ArrayList<ServiceUser>();
 		List<Human> allHumans = this.getAllHumans();
@@ -832,8 +811,8 @@ public class HumansUser extends BaseEntity {
 		return result;
 	}
 
-	
-	
+
+
 	public boolean addService(ServiceEntry aService) {
 		boolean result = false;
 
@@ -848,35 +827,29 @@ public class HumansUser extends BaseEntity {
 
 
 
-	
+
 	/**
 	 * 
 	 * @param aServiceUserID
 	 * @param aServiceUsername
 	 * @param aServiceTypeName
-	 * @return
+	 * @return whether it succeded
 	 */
 	public boolean removeService(String aServiceUserID, String aServiceUsername, String aServiceTypeName) {
 		ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceTypeName);
 		boolean result = services.remove(service_entry);
-		logger.debug("removing service entry "+service_entry);
+		//logger.debug("removing service entry "+service_entry);
 		logger.debug("Removing service_entry "+service_entry.hashCode()+" from "+this+" result="+result);
 		if(result) {
+			// delete friends
+			// go through all thus users humans?
 			removeServiceUsersRelyingOn(service_entry);
 		}
-		// delete service token??
-		//		ServiceTokenDAO st_dao = new ServiceTokenDAO(aServiceTypeName);
-		//		ServiceToken st = st_dao.findByExactUserId(aServiceUserID);
-		//		st_dao.delete(st);
-
-		// delete friends
-
-
-		// delete status
 
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	public boolean removeServiceBy(String aServiceName, String aServiceUserID) 
 	{
 		boolean result = false;
@@ -887,8 +860,8 @@ public class HumansUser extends BaseEntity {
 		if(result) {
 			removeServiceUsersRelyingOn(service_entry);
 		}
-		
-		
+
+
 		return result;
 	}
 
@@ -913,33 +886,41 @@ public class HumansUser extends BaseEntity {
 		services.add(service_entry);
 	}
 
+	public List<ServiceUser> getServiceUsersRelyingOn(ServiceEntry onBehalfOf) 
+	{
+		List<ServiceUser> results = new ArrayList<ServiceUser>();
+		for(Human human : getAllHumans()) {
+			results.addAll( human.getServiceUsersRelyingOn(onBehalfOf) );
+		}
+		return results;
+	}
+
 	/**
 	 * This you'll want to call when you remove a service because the "onBehalfOf" component will no longer exist
 	 * 
 	 * @param aServiceEntry
 	 */
-	protected void removeServiceUsersRelyingOn(ServiceEntry aServiceEntry) {
-		if(aServiceEntry == null) {
+	protected void removeServiceUsersRelyingOn(ServiceEntry onBehalfOf) {
+		if(onBehalfOf == null) {
 			return;
 		}
-		
+
 		List<ServiceUser> services_to_remove = new ArrayList<ServiceUser>();
-		
+
 		List<Human> humans = this.getAllHumans();
 		for(Human human : humans) {
-			for(ServiceUser service_user :  human.getServiceUsers()) {
-				if( service_user.getOnBehalfOf().equals(aServiceEntry) ) {
-					services_to_remove.add(service_user);
-					//human.removeServiceUser(service_user);
-				}
+			human.removeServiceUsersByServiceEntry(onBehalfOf);
+		}
+
+		Iterator<Human> iter = this.getAllHumans().iterator();
+		while(iter.hasNext()) {
+			Human human = iter.next();
+			if(human.getServiceUsers().size() < 1) {
+				iter.remove();
 			}
 		}
-		for(int i=0; i<services_to_remove.size(); i++) {
-			logger.debug("Remove "+services_to_remove.get(i));
-			this.removeServiceUser(services_to_remove.get(i));
-		}
 	}
-	
+
 	public List<ServiceEntry> getServicesForServiceName(String aServiceName) {
 		List<ServiceEntry> result = select(this.getServices(), having(on(ServiceEntry.class).getServiceName(), equalTo(aServiceName)));
 
@@ -971,6 +952,68 @@ public class HumansUser extends BaseEntity {
 	}
 
 	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((email == null) ? 0 : email.hashCode());
+		result = prime * result + ((humans == null) ? 0 : humans.hashCode());
+		result = prime * result
+				+ ((password == null) ? 0 : password.hashCode());
+		result = prime * result
+				+ ((services == null) ? 0 : services.hashCode());
+		result = prime * result
+				+ ((username == null) ? 0 : username.hashCode());
+		return result;
+	}
+
+
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		HumansUser other = (HumansUser) obj;
+		if (email == null) {
+			if (other.email != null)
+				return false;
+		} else if (!email.equals(other.email))
+			return false;
+		if (humans == null) {
+			if (other.humans != null)
+				return false;
+		} else if (!humans.equals(other.humans))
+			return false;
+		if (password == null) {
+			if (other.password != null)
+				return false;
+		} else if (!password.equals(other.password))
+			return false;
+		if (services == null) {
+			if (other.services != null)
+				return false;
+		} else if (!services.equals(other.services))
+			return false;
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
+			return false;
+		return true;
+	}
+
+
+
+	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -979,5 +1022,32 @@ public class HumansUser extends BaseEntity {
 				+ ", email=" + email + ", humans=" + humans + ", services="
 				+ services + "]";
 	}
+
+
+}
+
+class StatusCacheJsonExclusionStrategy implements ExclusionStrategy
+{
+
+	@Override
+	public boolean shouldSkipField(FieldAttributes aField) {
+		if ( (aField.getName().equals("_id"))) {
+			return true;
+		} else {
+			return false;
+		}
+
+
+	}
+
+	@Override
+	public boolean shouldSkipClass(Class<?> aClazz) {
+		if(aClazz.equals(ObjectId.class)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 
 }

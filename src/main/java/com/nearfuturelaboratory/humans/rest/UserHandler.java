@@ -1,5 +1,4 @@
 package com.nearfuturelaboratory.humans.rest;
-import static com.google.common.collect.Lists.partition;
 
 import java.util.List;
 
@@ -9,14 +8,21 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.log4j.Logger;
+import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.apache.oltu.oauth2.common.message.types.ParameterStyle;
+import org.apache.oltu.oauth2.rs.request.OAuthAccessResourceRequest;
 import org.bson.types.ObjectId;
 
 import com.google.gson.Gson;
@@ -25,11 +31,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
+import com.nearfuturelaboratory.humans.entities.ServiceEntry;
+import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
-import static com.google.common.collect.Lists.partition;
+//import static com.google.common.collect.Lists.partition;
+import com.nearfuturelaboratory.util.Constants;
 
 
 @Path("/user")
@@ -44,6 +54,7 @@ public class UserHandler {
 	static JsonObject no_such_serviceuser_for_user;
 
 	static {
+
 		invalid_user_error_response = new JsonObject();
 		invalid_user_error_response.addProperty("result", "error");
 		invalid_user_error_response.addProperty("message", "invalid user");
@@ -65,31 +76,119 @@ public class UserHandler {
 	}
 
 	@Context ServletContext context;
-	Gson gson;
+	Gson in_gson;
+	Gson out_gson;
 
 	public UserHandler() {
-		logger.debug("Constructor " + context);  // null here   
-		gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+		//logger.debug("Constructor " + context);  // null here   
+		in_gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+		out_gson = new GsonBuilder().
+				setExclusionStrategies(new UserJsonExclusionStrategy()).
+				registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 	}
 
+	@GET @Path("/update/{humanid}")
+	public Response updateStatusForHuman(
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response)
+	{
+		//Response response = ResponseBuilder;
+		String access_token = request.getParameter("access_token");
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response).type(MediaType.APPLICATION_JSON).build();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+		
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "no such user. invalid access token");
+			return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response).type(MediaType.APPLICATION_JSON).build();
+		}
+
+		// take the user and put it off somewhre to update?
+		
+		return Response.ok("{}", MediaType.APPLICATION_JSON).build();
+	}
+	
+	
 	@GET @Path("/get")
 	@Produces({"application/json"})
 	public String getUser(
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		HttpSession session = request.getSession();
-		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
+//		HttpSession session = request.getSession();
+//		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
+//
+//		if(isValidUser(request, user) == false) {
+//			return invalid_user_error_response.toString();
+//		}
 
-		if(isValidUser(request, user) == false) {
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
 			return invalid_user_error_response.toString();
 		}
 
-		JsonElement human_elem = new JsonParser().parse(gson.toJson(user));
-		return human_elem.toString();
+		
+		// don't send the encrypted password
+		//user.setPassword(null);
+		JsonElement user_elem = new JsonParser().parse(out_gson.toJson(user));
+		return user_elem.toString();
 
 
 	}
+
+	@POST @Path("/rm/service")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String removeService(
+			String aServiceJson,
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response)
+	{
+//		HumansUser  user = this.getSessionUser(request);
+//		if(user == null) {
+//			return no_such_human_for_user.toString();
+//		}
+
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
+			return invalid_user_error_response.toString();
+		}
+
+		try {
+			ServiceEntry service = in_gson.fromJson(aServiceJson, ServiceEntry.class);
+			boolean result = user.removeService(service.getServiceUserID(), service.getServiceUsername(), service.getServiceName());
+			if(result == true) {
+				return success_response.toString();
+			} else {
+				return fail_response.toString();
+			}
+		}catch(Exception e) {
+			logger.error("", e);
+			fail_response.addProperty("message", e.getMessage());
+			return fail_response.toString();
+		}
+	}
+
 
 	@GET @Path("/rm/{humanid}/human")
 	@Produces({"application/json"})
@@ -99,22 +198,40 @@ public class UserHandler {
 			@Context HttpServletResponse response)
 	{
 		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser user = dao.findByHumanID(aHumanId);
-		//HttpSession session = request.getSession();
-		if(user == null) {
-			return no_such_human_for_user.toString();
+		//HumansUser user = dao.findByHumanID(aHumanId);
+		
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
 		}
-		if(isValidUser(request, user) == false) {
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
 			return invalid_user_error_response.toString();
 		}
 
+		
+		//HttpSession session = request.getSession();
+//		if(user == null) {
+//			return no_such_human_for_user.toString();
+//		}
+//		if(isValidUser(request, user) == false) {
+//			return invalid_user_error_response.toString();
+//		}
+
 		boolean result = user.removeHumanById(aHumanId);
 		user.save();
-		setSessionUser(request, user);
+		this.clearContextOfUser(context, access_token);
+//		setSessionUser(request, user);
 
 		if(result) {
 			return success_response.toString();
 		} else {
+			fail_response.addProperty("message", "failed to remove human by id "+aHumanId);
 			return fail_response.toString();
 		}
 	}
@@ -127,12 +244,24 @@ public class UserHandler {
 			@Context HttpServletResponse response)
 	{
 		//HumansUserDAO dao = new HumansUserDAO();
-		HumansUser user = this.getSessionUser(request);
-		//HttpSession session = request.getSession();
-		if(isValidUser(request, user) == false) {
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
 			return invalid_user_error_response.toString();
 		}
-
+		//HttpSession session = request.getSession();
+//		if(isValidUser(request, user) == false) {
+//			return invalid_user_error_response.toString();
+//		}
+//
 		try {
 			ObjectId o = new ObjectId(aServiceUserId);
 		} catch(IllegalArgumentException iae) {
@@ -140,16 +269,17 @@ public class UserHandler {
 			return fail_response.toString();
 		}
 
-		if(user == null) {
-			return invalid_user_error_response.toString();
-		}
+//		if(user == null) {
+//			return invalid_user_error_response.toString();
+//		}
 		//		if(aServiceUserId == null) {
 		//			
 		//		}
 
 		boolean result = user.removeServiceUserById(aServiceUserId);
 		user.save();
-		setSessionUser(request, user);
+		this.clearContextOfUser(context, access_token);
+//		setSessionUser(request, user);
 
 		if(result) {
 			return success_response.toString();
@@ -158,22 +288,45 @@ public class UserHandler {
 		}
 	}
 
-	@GET @Path("/add/human/")
+	// TODO if you add a human and it contains a service that does not yet exist..
+	// what do you do? Should fail? Need to add a service first before adding humans that
+	// use that service??
+	@POST @Path("/add/human/")
 	@Produces({"application/json"})
 	public String addNewHuman(
 			String aHumanJson,
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		HumansUser user = this.getSessionUser(request);
-		Human human = gson.fromJson(aHumanJson, Human.class);
-		boolean result = user.addHuman(human);
-		if(isValidUser(request, user) == false) {
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
 			return invalid_user_error_response.toString();
 		}
+		Human human = in_gson.fromJson(aHumanJson, Human.class);
+//		if(isValidUser(request, user) == false) {
+//			return invalid_user_error_response.toString();
+//		}
+
+		// TODO Finish this - need to check if the human we're adding has a
+		// service user that shouldn't be there because the User doesn't have
+		// the onBehalfOf component?
+		List<ServiceEntry> x = human.getServicesThisHumanReliesUpon();
+		human.getServiceUsers();
+
+		boolean result = user.addHuman(human);
 
 		if(result) {
 			user.save();
+			this.clearContextOfUser(context, access_token);
 			return success_response.toString();
 		} else {
 			return fail_response.toString();
@@ -188,30 +341,203 @@ public class UserHandler {
 			@Context HttpServletResponse response
 			)
 	{
-		HumansUser user = this.getSessionUser(request);
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
 
-		if(isValidUser(request, user) == false) {
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
 			return invalid_user_error_response.toString();
 		}
 
 
-		
 		Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 
 		List<Human> humans = user.getAllHumans();
 		JsonArray array_of_humans = new JsonArray();
-
-//		List chunks = partition(humans, 100);
-//
-		
 		for(Human human : humans) {
 			array_of_humans.add(gson.toJsonTree(human, Human.class));
 		}
-
-		
-
-
 		return array_of_humans.toString();
+	}
+
+	protected boolean doesUsernameExist(String aUsername) {
+		HumansUserDAO dao = new HumansUserDAO();
+		HumansUser h = dao.findOneByUsername(aUsername);
+		if(h != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 *  [{"check_username" : "foo"}]
+	 *  
+	 *  [{"result" : "success"}, {"exists" : false}];
+	 * 
+	 */
+	@POST @Path("/username/exists")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String usernameExists(
+			String usernameJson,
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response
+			)
+	{
+		JsonElement elem = in_gson.fromJson(usernameJson, JsonElement.class);
+		if(elem.isJsonObject()) {
+			JsonObject obj = elem.getAsJsonObject();
+			String check_username = obj.get("check_username").getAsString();
+
+			if(doesUsernameExist(check_username)) {
+				success_response.addProperty("exists", Boolean.TRUE);
+				return success_response.toString();
+			} else {
+				success_response.addProperty("exists", Boolean.FALSE);
+				return success_response.toString();
+			}
+		} else {
+			fail_response.addProperty("message", "invalid request");
+			fail_response.add("parameter", elem);
+			return fail_response.toString();
+		}
+	}
+
+	@POST @Path("/new")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String createNewUser(
+			String minimalUserJson,
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response
+			)
+	{
+		// TODO Should be checking for new administrative user??
+		// Validate the json?
+		HumansUser new_user;
+
+		try {
+			new_user = in_gson.fromJson(minimalUserJson, HumansUser.class);
+			if(new_user.getUsername() == null || new_user.getUsername().length() < 1) {
+				fail_response.addProperty("message", "username missing.");
+				fail_response.addProperty("received", minimalUserJson);
+				return fail_response.toString();
+			}
+			if(new_user.getPassword() == null || new_user.getPassword().length() < 5) {
+				fail_response.addProperty("message", "password missing or too short.");
+				fail_response.addProperty("received", minimalUserJson);
+				return fail_response.toString();
+			}
+			if(doesUsernameExist(new_user.getUsername())) {
+				fail_response.addProperty("message", "username already exists.");
+				fail_response.addProperty("received", minimalUserJson);
+				return fail_response.toString();
+			}
+			// need to do this to get the password encrypted
+			// TODO 
+			new_user.setPassword(new_user.getPassword());
+			new_user.save();
+			//this.clearContextOfUser(context, access_token);
+		} catch(JsonSyntaxException jse) {
+			logger.warn("Received bad json for createNewUser", jse);
+			logger.warn(minimalUserJson);
+			fail_response.addProperty("message", "Received bad json for createNewUser");
+			fail_response.addProperty("received", minimalUserJson);
+			return fail_response.toString();
+		}
+		return out_gson.toJson(new_user);
+
+	}
+
+	/**
+	 * Only updates email address or password
+	 * 
+	 * @param minimalUserJsonOnlyPasswordAndEmail
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@POST @Path("/update")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String updateUser(
+			String minimalUserJsonOnlyPasswordAndEmail,
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response			
+			)
+	{
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
+			return invalid_user_error_response.toString();
+		}
+		JsonElement elem = new JsonParser().parse(minimalUserJsonOnlyPasswordAndEmail);
+		JsonObject obj = elem.getAsJsonObject();
+
+		if(obj.has("password")) {
+			String pw = obj.get("password").getAsString();
+			if(pw != null && pw.length() < Constants.getInt("MINIMUM_PASSWORD_LENGTH", 5)) {
+				fail_response.addProperty("message", "Password missing or too short");
+				fail_response.addProperty("received", minimalUserJsonOnlyPasswordAndEmail);
+				return fail_response.toString();
+			}
+			user.setPassword(pw);
+		}
+		if(obj.has("email")) {
+			String email = obj.get("email").getAsString();
+			// can't delete an email address?
+			if(email.length() > 0) {
+				user.setEmail(email);
+			}
+
+		}
+		user.save();
+		this.clearContextOfUser(context, access_token);
+		// don't send the encrypted password
+		//user.setPassword(null);
+		JsonElement user_elem = new JsonParser().parse(out_gson.toJson(user));
+		return user_elem.toString();
+	}
+
+	protected void clearContextOfUser(ServletContext context, String access_token)
+	{
+		context.removeAttribute(access_token+"_user");
+	}
+	
+	protected HumansUser getUserForAccessToken(ServletContext context, String access_token)
+	{
+
+		HumansUser user;
+		
+		user = (HumansUser)context.getAttribute(access_token+"_user");
+		//logger.debug("context="+context);
+		HumansUserDAO dao = (HumansUserDAO)context.getAttribute("dao");
+		if(dao == null) {
+			dao = new HumansUserDAO();
+			context.setAttribute("dao", dao);
+			
+		}
+		//		HttpSession session = request.getSession();
+		//		logger.debug(session.getId());
+		//		HumansUser user = (HumansUser)session.getAttribute(access_token);
+		//		if(user == null) {
+		user = dao.findOneByAccessToken(access_token);
+		//MongoUtil.getMongo().getConnector().close();
+		//logger.debug("dao = "+dao);
+		
+		return user;
 	}
 
 	@GET @Path("/friends/get/")
@@ -219,17 +545,31 @@ public class UserHandler {
 	public String getFriends(
 			@QueryParam("name-like") String aHumanId, 
 			@Context HttpServletRequest request,
-			@Context HttpServletResponse response
+			@Context HttpServletResponse response,
+			@Context ServletContext context
 			) 
 	{
-		HttpSession session = request.getSession();
-		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
+		String access_token = request.getParameter("access_token");
+		
+		if(access_token == null) {
+			fail_response.addProperty("message", "invalid or missing access token");
+			return fail_response.toString();
+		}
+		
+		HumansUser user = getUserForAccessToken(context, access_token);
+
+		if(user == null) {
+			invalid_user_error_response.addProperty("message", "invalid access token");
+			return invalid_user_error_response.toString();
+		}
+		//logger.debug("SESSION ID IS="+session.getId());
 		//HumansUserDAO dao = new HumansUserDAO();
 		//HumansUser h = dao.findByHumanID(aHumanId);
 
-		if(isValidUser(request, user) == false) {
-			return invalid_user_error_response.toString();
-		}
+
+		//		if(isValidUser(request, user) == false) {
+		//			return invalid_user_error_response.toString();
+		//		}
 
 
 		JsonArray result = user.getFriendsAsJson();
@@ -238,25 +578,25 @@ public class UserHandler {
 	}
 
 
-	
-	protected boolean isValidUser(HttpServletRequest request, HumansUser h) {
-		HumansUser user = getSessionUser(request);
-		boolean result = false;
-		logger.debug(user.getId());
-		logger.debug(h.getId());
-		if(user == null || h == null || h.getId().equals(user.getId()) == false) {
-			result = false;
-		} else {
-			result = true;
-		}
-		return result;
-	}
 
-	protected HumansUser getSessionUser(HttpServletRequest request) {
-		return (HumansUser)request.getSession().getAttribute("logged-in-user");
-	}
-
-	protected void setSessionUser(HttpServletRequest request, HumansUser user) {
-		request.getSession().setAttribute("logged-in-user", user);
-	}
+//	protected boolean isValidUser(HttpServletRequest request, HumansUser h) {
+//		HumansUser user = getSessionUser(request);
+//		boolean result = false;
+//		logger.debug(user.getId());
+//		logger.debug(h.getId());
+//		if(user == null || h == null || h.getId().equals(user.getId()) == false) {
+//			result = false;
+//		} else {
+//			result = true;
+//		}
+//		return result;
+//	}
+//
+//	protected HumansUser getSessionUser(HttpServletRequest request) {
+//		return (HumansUser)request.getSession().getAttribute("logged-in-user");
+//	}
+//
+//	protected void setSessionUser(HttpServletRequest request, HumansUser user) {
+//		request.getSession().setAttribute("logged-in-user", user);
+//	}
 }

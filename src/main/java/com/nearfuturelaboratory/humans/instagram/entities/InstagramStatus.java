@@ -34,6 +34,9 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 	@Property ("version")
 	private Long version;
 
+	@Transient
+	protected String service="instagram";
+
 	
 	@Id
 	protected String id;

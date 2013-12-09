@@ -20,12 +20,14 @@ import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.authentication.CertificateAuthSettings;
 import com.jayway.restassured.builder.RequestSpecBuilder;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
@@ -54,15 +56,19 @@ public class UserHandlerTest {
 
 	static RequestSpecification spec;
 	HumansUserDAO test_dao = new HumansUserDAO("test_dao");
+	String access_token;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		RestAssured.baseURI  = "http://localhost";
-		RestAssured.port     = 8080;
+		RestAssured.baseURI  = "https://localhost";
+		RestAssured.port     = 8443;
 		RestAssured.basePath = "/rest";
-		String sessionId = get("/login?username=darthjulian&password=darthjulian").sessionId();
-		RestAssured.sessionId = sessionId;
-		spec = new RequestSpecBuilder().setSessionId(sessionId).build();
+		RestAssured.keystore("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit");
+//		String sessionId = get("/login?username=darthjulian&password=darthjulian").sessionId();
+//		RestAssured.sessionId = sessionId;
+		spec = new RequestSpecBuilder().addQueryParam("access_token", "aa9c6f8ae7341c0380007062280b4b7a").build();
+//				
+//				setSessionId(sessionId).build();
 	}
 	
 	@Test
@@ -312,11 +318,22 @@ public class UserHandlerTest {
 	@Test
 	public void testGetAllHumans() {
 		//Gson gson = new Gson();
-		Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+		Gson in_gson = new GsonBuilder().
+				setExclusionStrategies(new HumanJsonExclusionStrategy()).registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+
+				
 
 		Type htype = new TypeToken<List<Human>>() {}.getType();
+//		CertificateAuthSettings cert = new CertificateAuthSettings();   //java.security.KeyStore.getDefaultType(), 443, null, false);
+//		cert.checkServerHostname(false);
+//		cert.port(8443);
+		//spec.auth().certificate("file:///Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit", cert);
+		
 		JsonPath json = given().spec(spec).get("/user/get/humans").jsonPath();
-
+		
+		String json_str = given().spec(spec).get("/user/get/humans").asString();
+		
+		List<Human> foo = in_gson.fromJson(json_str, htype);
 		//		List<HashMap> humans_2 = json.getList("", HashMap.class);
 		//		System.out.println(humans_2);
 		//		System.out.println(humans_2.size());
@@ -324,12 +341,26 @@ public class UserHandlerTest {
 		//		System.out.println(humans_2.get(0).get("serviceUsers"));
 		//		Type type = new TypeToken<List<ServiceUser>>() {}.getType();
 
-		List<Human> hu = json.getList("");
-		List<Human> obj_list = json.getList("");
-//		System.out.println(json.get("$[0]"));
+//		List<Human> hu = json.getList("");
+//		List<Human> obj_list = json.getList("");
+		
+//		Gson out_gson = new GsonBuilder().
+//				setExclusionStrategies(new HumanJsonExclusionStrategy()).
+//				registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+		
+		//String elem = gson.toJson(obj_list.get(0));
+		
 
-		assertThat(obj_list, is(is(is(notNullValue()))));
-		assertThat(obj_list.get(0), instanceOf(Human.class));
+		
+		//String s = json.get("[0]").toString();
+		//Human h = gson.fromJson(obj_list.get(0).toString(), Human.class);
+		//Human h = gson.fromJson(json., classOfT)
+		//System.out.println(h);
+		
+		assertThat(foo, is(is(is(notNullValue()))));
+		//assertThat(h, instanceOf(Human.class));
+		//assertThat(obj_list.get(0), is(htype));
+		//assertThat(obj_list.get(0), instanceOf(Human.class));
 //		System.out.println("hu="+hu);
 //		System.out.println("obj="+obj_list.get(0));
 //
@@ -342,6 +373,7 @@ public class UserHandlerTest {
 		 *///		assertThat(humans_2, hasSize(1));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetFriends() {
 

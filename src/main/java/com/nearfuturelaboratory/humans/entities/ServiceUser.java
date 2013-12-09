@@ -10,6 +10,8 @@ import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Version;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.Gson;
 import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 
@@ -19,6 +21,7 @@ import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
  * @author julian
  *
  */
+@JsonIgnoreProperties(ignoreUnknown=true)
 @Entity(value="serviceUsers",noClassnameStored = true)
 public class ServiceUser extends MinimalSocialServiceUser {
 
@@ -64,7 +67,7 @@ public class ServiceUser extends MinimalSocialServiceUser {
 	/**
 	 * @return the id
 	 */
-	protected ObjectId getId() {
+	public ObjectId getId() {
 		return id;
 	}
 

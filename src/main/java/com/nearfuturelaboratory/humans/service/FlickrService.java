@@ -383,6 +383,8 @@ public class FlickrService {
 	//		//serviceRequestUserBasicByUserID(id);
 	//	}
 
+	
+	
 	/**
 	 * Get basic user info on a user
 	 * @param aUserID
@@ -425,6 +427,11 @@ public class FlickrService {
 			logger.error(e);
 		}
 		return result;
+	}
+	
+	public FlickrUser serviceRequestUserBasic() throws BadAccessTokenException
+	{
+		return serviceRequestUserBasicForUserID(this.user.getId());
 	}
 
 	public FlickrUser serviceRequestUserBasicForUserID(String aUserID) throws BadAccessTokenException
@@ -476,10 +483,10 @@ public class FlickrService {
 		Response response = request.send();
 		String s = response.getBody();
 		JSONObject obj = (JSONObject)JSONValue.parse(s);
-		logger.debug("got "+s+" "+obj);
+		//logger.debug("got "+s+" "+obj);
 		JSONObject user = (JSONObject)obj.get("user");
 		String id = user.get("id").toString();
-		logger.debug("id="+id);
+		//logger.debug("id="+id);
 		serviceRequestUserBasicByUserID(id);
 	}
 
@@ -678,19 +685,19 @@ public class FlickrService {
 
 	}
 
-	public static void serializeToken(Token aToken, FlickrUser aUser) {
-		ServiceTokenDAO dao = new ServiceTokenDAO("flickr");
-		ServiceToken tokenToSave = dao.findByExactUserId(aUser.getId());//new ServiceToken();
-		if(tokenToSave == null) {
-			tokenToSave = new ServiceToken();
-		}
-		tokenToSave.setToken(aToken);
-		tokenToSave.setUser_id(aUser.getId());
-		tokenToSave.setUsername(aUser.getUsername());
-		tokenToSave.setServicename("flickr");
-		dao.save(tokenToSave);
-	}
-
+//	public static void serializeToken(Token aToken, FlickrUser aUser) {
+//		ServiceTokenDAO dao = new ServiceTokenDAO("flickr");
+//		ServiceToken tokenToSave = dao.findByExactUserId(aUser.getId());//new ServiceToken();
+//		if(tokenToSave == null) {
+//			tokenToSave = new ServiceToken();
+//		}
+//		tokenToSave.setToken(aToken);
+//		tokenToSave.setUser_id(aUser.getId());
+//		tokenToSave.setUsername(aUser.getUsername());
+//		tokenToSave.setServicename("flickr");
+//		dao.save(tokenToSave);
+//	}
+//
 
 	public static Token deserializeToken(FlickrUser aUser) {
 		//Token result = null;

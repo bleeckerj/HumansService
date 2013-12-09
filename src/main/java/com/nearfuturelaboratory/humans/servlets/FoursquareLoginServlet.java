@@ -1,25 +1,24 @@
 package com.nearfuturelaboratory.humans.servlets;
-import javax.servlet.annotation.*;
+import java.io.IOException;
+
+import javax.servlet.annotation.WebInitParam;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.json.simple.JSONObject;
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
-import org.scribe.model.*;
-import org.scribe.oauth.*;
-
-import com.nearfuturelaboratory.humans.core.HumansUser;
-import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
-import com.nearfuturelaboratory.humans.service.*;
-import com.nearfuturelaboratory.util.*;
-
-import java.io.*;
-import java.util.Scanner;
-
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.Foursquare2Api;
+import org.scribe.model.Token;
+import org.scribe.model.Verifier;
+import org.scribe.oauth.OAuthService;
+
+import com.nearfuturelaboratory.humans.entities.HumansUser;
+import com.nearfuturelaboratory.humans.service.FoursquareService;
+import com.nearfuturelaboratory.util.Constants;
 
 @WebServlet(name = "FoursquareLoginServlet", urlPatterns = {"/login-foursquare", "/FoursquareLogin", "/scrumpy-foursquare"},
 initParams = {@WebInitParam(name="tokens-file-root", value="/Volumes/Slippy/Users/julian/Documents/workspace/HumansService")}
@@ -70,7 +69,7 @@ public class FoursquareLoginServlet extends HttpServlet {
 			foursquareService.serviceRequestFriends();
 			//logger.debug("User is "+Flickr.getThisUser());
 			logger.debug("FoursquareUser is "+foursquareService.getThisUser());
-			user.addServiceForHuman("foursquare", (String)foursquareService.getDerivedUsername(), (String)foursquareService.getThisUser().getId());
+			user.addService("foursquare", (String)foursquareService.getDerivedUsername(), (String)foursquareService.getThisUser().getId());
 
 
 			FoursquareService.serializeToken(accessToken, foursquareService.getThisUser());

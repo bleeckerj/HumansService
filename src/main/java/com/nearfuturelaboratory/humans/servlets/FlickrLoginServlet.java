@@ -14,7 +14,7 @@ import org.scribe.oauth.*;
 
 import com.nearfuturelaboratory.humans.service.*;
 import com.nearfuturelaboratory.util.*;
-import com.nearfuturelaboratory.humans.core.*;
+import com.nearfuturelaboratory.humans.entities.HumansUser;
 
 import java.io.*;
 
@@ -72,7 +72,7 @@ public class FlickrLoginServlet extends HttpServlet {
 			//logger.debug("User is "+Flickr.getThisUser());
 			logger.debug("username is "+flickr.getThisUser().getUsername()+" "+flickr.getThisUser().getId());
 			
-			user.addServiceForHuman("Flickr", (String)flickr.getThisUser().getUsername(), (String)flickr.getThisUser().getId());
+			user.addService("Flickr", (String)flickr.getThisUser().getUsername(), (String)flickr.getThisUser().getId());
 			
 			flickr.serializeToken(accessToken);
 			session.setAttribute("logged-in-user", user);

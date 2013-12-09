@@ -14,6 +14,7 @@ import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.Indexes;
 import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.annotations.Version;
 import org.mongodb.morphia.utils.IndexDirection;
 
@@ -31,6 +32,10 @@ public class FoursquareCheckin extends ServiceStatus {
 	private Long version;
 	protected Date lastUpdated;
 
+	@Transient
+	protected String service="instagram";
+
+	
 	@Id
 	protected String id;
 	@Indexed(value=IndexDirection.ASC, name="user_id", unique=false, dropDups=false)

@@ -1,12 +1,18 @@
-package com.nearfuturelaboratory.humans.test;
+package com.nearfuturelaboratory.humans.entities;
 
 //import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.*;
+
+import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,9 +42,10 @@ import com.nearfuturelaboratory.util.Constants;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class HumansUserTest {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.test.HumansUserTest.class);
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.entities.HumanTest.class);
 	static HumansUserDAO test_dao;
 
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Logger.getRootLogger().setLevel(Level.OFF);
@@ -54,7 +61,20 @@ public class HumansUserTest {
 		}
 
 	}
+	
+//	@Test
+//	public void testHumansUser() {
+//		try {
+//		HumansUser user = new HumansUser("darthjulian", "darthjulian");
+//		assertThat(user.isValidUser(), is(true));
+//		} catch(InvalidUserException iue) {
+//			fail(iue.toString());
+//			
+//		}
+//	}
 
+	
+	
 	//	protected Human getTestHuman()
 	//	{
 	//		return human;
@@ -88,7 +108,7 @@ public class HumansUserTest {
 	 * This should also remove any human that relies on a specific OnBehalfOf service
 	 */
 	@Test
-	public void removeServiceFromUser() {
+	public void testRemoveServiceBy() {
 		ServiceEntry on_behalf_of = new ServiceEntry("1", "me", "twitter");
 		ServiceUser service_user = new ServiceUser("101", "a_username", "Bill Bullox", "http://blah.com", on_behalf_of);
 		Human human = new Human();
@@ -165,7 +185,7 @@ public class HumansUserTest {
 
 		assertThat(user.getServiceUsersForAllHumans(), hasSize(1));
 		assertThat(user.getServiceUsersForAllHumans(), hasItem(service_user));
-		assertThat(user.getServiceUsersForAllHumansByService("faafaa"), hasItem(service_user));
+		assertThat(user.getServiceUsersForAllHumansByServiceName("faafaa"), hasItem(service_user));
 		assertThat(user.getServiceUsersForServiceName("faafaa"), hasItem(service_user));
 		assertThat(user.getServiceUserById(aId.toString()), notNullValue());
 		assertThat(user.getServiceUserById(aId.toString()).getService(), equalTo("faafaa"));
@@ -242,6 +262,49 @@ public class HumansUserTest {
 	}
 
 	@Test
+	public void testRemoveService()
+	{
+		HumansUserDAO dao = new HumansUserDAO();
+		HumansUser user = dao.findOneByUsername("darthjulian");
+		
+		Human h = new Human();
+		ServiceEntry service = new ServiceEntry("faa", "foo", "fam"); //services.get(0);
+		
+		user.addService(service);
+		
+		h.addServiceUser(new ServiceUser("bing", "bang", "fam", "furl", service));
+
+		user.addHuman(h);
+		// make sure we have some services to remove
+		assertThat(user.getServices().isEmpty(), is(false));
+
+		user.save();
+
+		
+		//List<ServiceEntry> services = user.getServicesForServiceName(service.getServiceName());
+		
+
+		List<ServiceUser> service_users = user.getServiceUsersForAllHumansByServiceName(service.getServiceName());
+		int count = service_users.size();
+		System.out.println(service_users);
+		assertThat(service_users.isEmpty(), is(false));
+		assertThat(count, greaterThan(1));
+		
+		boolean result = user.removeServiceBy(service.getServiceName(), service.getServiceUserID());
+		assertThat(result, equalTo(true));
+//
+//		
+		service_users = user.getServiceUsersForAllHumansByServiceName(service.getServiceName());
+		
+		assertThat(service_users.size(), lessThan(count));
+		
+		//HumansUserDAO foo = new HumansUserDAO("test");
+		user.save();
+		
+		//fail("Not implemented yet");
+	}
+	
+	@Test
 	public void removeServiceBy()
 	{
 		HumansUser user = new HumansUser();
@@ -263,6 +326,13 @@ public class HumansUserTest {
 		assertThat(loaded_user, notNullValue());
 		assertThat(loaded_user.getServices(), hasSize(0));
 
+	}
+	
+	
+	
+	@Test
+	public void testGetStatusForHuman() {
+		fail("Unimplemnted. Get to it.");
 	}
 
 	@Ignore
@@ -298,17 +368,62 @@ public class HumansUserTest {
 		logger.debug(k);
 
 	}
+	
+	@Test
+	public void testGetServiceUsersRelyingOn() {
+		
+		fail("Not yet implemented");
+	}
 
-	@Ignore
-	public void test_removeService() {
+	@Test
+	public void testRemoveServiceUsersRelyingOn() {
 		HumansUserDAO dao = new HumansUserDAO();
 		HumansUser user = dao.findOneByUsername("darthjulian");
+		
+		Human h = new Human();
+		ServiceEntry service = new ServiceEntry("faaalalalal", "foo", "fam"); //services.get(0);
+		
+		user.addService(service);
+		
+		ServiceUser dependent_service_user_1 = new ServiceUser("bing", "bang", "fam", "furl", service);
+		h.addServiceUser(dependent_service_user_1);
 
-		user.removeService("11062822", "nearfuturelab", "twitter");
-		Key k = dao.save(user);
-		logger.debug(k);
+		ServiceUser dependent_service_user_2 = new ServiceUser("989881a9@", "jango", "fam", "http://foo.fab.com/989881a9@", service);
+		h.addServiceUser(dependent_service_user_2);
+		
+		user.addHuman(h);
+		// make sure we have some services to remove
+		assertThat(user.getServices().isEmpty(), is(false));
+		assertThat(user.getServices(), hasItem(service));
+
+		assertThat(user.getServiceUsersRelyingOn(service), hasSize(2));
+		assertThat(user.getServiceUsersRelyingOn(service), hasItems(dependent_service_user_1, dependent_service_user_2));
+
+		user.removeServiceUsersRelyingOn(service);
+		
+		
+		user.removeServiceBy(service.getServiceName(), service.getServiceUserID());
+		
+		assertThat(user.getServiceUsersRelyingOn(service), hasSize(0));
+		
+		assertThat(user.getServicesForServiceName(service.getServiceName()), hasSize(0));
+		
+		assertThat(user.getServices(), not(hasItem(service)));
 
 	}
+	
+//	@Test
+//	public void test_removeService() {
+//		HumansUserDAO dao = new HumansUserDAO();
+//		HumansUser user = dao.findOneByUsername("darthjulian");
+//
+//		user.removeService("11062822", "nearfuturelab", "twitter");
+//		Key k = dao.save(user);
+//		logger.debug(k);
+//		
+//		fail("Not implemented");
+//
+//	}
 
 	@Ignore
 	public void test_C_getFriends() {
@@ -380,7 +495,7 @@ public class HumansUserTest {
 		}
 	}
 
-	@Test
+	@Ignore
 	public void test_fixImageUrls() {
 		try {
 			HumansUserDAO dao = new HumansUserDAO();

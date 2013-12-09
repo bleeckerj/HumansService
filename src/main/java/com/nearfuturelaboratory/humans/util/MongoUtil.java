@@ -7,7 +7,9 @@ import org.apache.log4j.Logger;
 import com.mongodb.DB;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
 
 public class MongoUtil {
 
@@ -21,9 +23,16 @@ public class MongoUtil {
 	public static MongoClient getMongo() {
 		if (mongo == null) {
 			try {
-				mongo = new MongoClient(host, port);
+				
+				MongoClientOptions mco = new MongoClientOptions.Builder()
+			    .connectionsPerHost(10)
+			    .threadsAllowedToBlockForConnectionMultiplier(10)
+			    .build();
+			//MongoClient client = new MongoClient(addresses, mco);
+				ServerAddress address = new ServerAddress(host, port);
+				mongo = new MongoClient(address, mco);
 				logger.debug("New Mongo created with [" + host + "] and ["
-						+ port + "]");
+						+ port + "] and ["+mco.toString()+"]");
 			} catch (UnknownHostException | MongoException e) {
 				logger.error(e.getMessage());
 			}

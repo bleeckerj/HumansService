@@ -1,4 +1,4 @@
-package com.nearfuturelaboratory.humans.test;
+package com.nearfuturelaboratory.humans.entities;
 
 //import static org.junit.Assert.*;
 
@@ -110,6 +110,31 @@ public class HumanTest {
 //        assertThat("i like cheese", containsString("cheese"));
 		
 	}
+		
+	@Test
+	public void testGetServicesThisHumanReliesUpon()
+	{
+		ServiceEntry service_entry = new ServiceEntry("10901090", "coolguy", "klonkr");
+		ServiceUser service_user = new ServiceUser("1", "one", "kate", "http://foo", service_entry);
+
+		ServiceEntry service_entry_2 = new ServiceEntry("8483938", "badguy", "swiffer");
+		ServiceUser service_user_2 = new ServiceUser("2", "two", "bill", "http://goo", service_entry_2);
+
+		Human human = new Human();
+		human.addServiceUser(service_user);
+		human.addServiceUser(service_user_2);
+		
+		human.getServicesThisHumanReliesUpon();
+		
+		fail("Not yet implemented");
+	}
+	
+	@Test
+	public void testRemoveServiceUserById()
+	{
+		
+		fail("Not yet implmented");
+	}
 	
 	@Test
 	public void testRemoveServiceUserByServiceEntry()
@@ -179,7 +204,7 @@ public class HumanTest {
 	}
 	
 	@Test
-	public void testGetServiceUsersByServiceEntry()
+	public void testGetServiceUsersRelyingOn()
 	{
 		ServiceEntry service_entry = new ServiceEntry("10901090", "coolguy", "klonkr");
 		ServiceUser service_user = new ServiceUser("1", "one", "kate", "http://foo", service_entry);
@@ -201,7 +226,7 @@ public class HumanTest {
 		///////
 		service = new ServiceEntry("10901090", "coolguy", "klonkr");
 		
-		List<ServiceUser> service_users = human.getServiceUsersByServiceEntry(service);
+		List<ServiceUser> service_users = human.getServiceUsersRelyingOn(service);
 		
 		assertThat(service_users, contains(service_user));
 		assertThat(service_users, not(contains(service_user_2)));
@@ -209,7 +234,7 @@ public class HumanTest {
 		///////
 		service = new ServiceEntry("8483938", "gnarlyguy", "swiffer");
 		
-		service_users = human.getServiceUsersByServiceEntry(service);
+		service_users = human.getServiceUsersRelyingOn(service);
 		
 		assertThat(service_users, not(contains(service_user)));
 		assertThat(service_users, not(contains(service_user_2)));
@@ -217,7 +242,7 @@ public class HumanTest {
 		///////
 		service = new ServiceEntry(null, null, "swiffer");
 		
-		service_users = human.getServiceUsersByServiceEntry(service);
+		service_users = human.getServiceUsersRelyingOn(service);
 		
 		assertThat(service_users, not(contains(service_user)));
 		assertThat(service_users, not(contains(service_user_2)));
@@ -225,7 +250,7 @@ public class HumanTest {
 		///////
 		service = new ServiceEntry("8483938", "badguy", "swiffer");
 		
-		service_users = human.getServiceUsersByServiceEntry(service);
+		service_users = human.getServiceUsersRelyingOn(service);
 		
 		assertThat(service_users, contains(service_user_2));
 		assertThat(service_users, not(contains(service_user)));

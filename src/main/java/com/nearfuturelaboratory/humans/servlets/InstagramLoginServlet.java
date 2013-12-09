@@ -1,29 +1,30 @@
 package com.nearfuturelaboratory.humans.servlets;
 
-import javax.servlet.annotation.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.json.simple.*;
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
-import org.scribe.model.*;
-import org.scribe.oauth.*;
-
-import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
-import com.nearfuturelaboratory.humans.service.*;
-import com.nearfuturelaboratory.util.*;
-import com.nearfuturelaboratory.humans.core.*;
-import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
-
-import java.io.*;
-import java.util.*;
-import java.nio.file.*;
-import java.nio.file.attribute.*;
-
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.model.Token;
+import org.scribe.model.Verifier;
+import org.scribe.oauth.OAuthService;
+
+import com.nearfuturelaboratory.humans.entities.HumansUser;
+import com.nearfuturelaboratory.humans.service.InstagramService;
+import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
+import com.nearfuturelaboratory.util.Constants;
 
 
 
@@ -80,10 +81,10 @@ public class InstagramLoginServlet extends HttpServlet {
 				resp.sendRedirect(req.getContextPath()+"/login.jsp");
 				return;
 			}
-			InstagramUser instagramUser = instagramService.getThisUser();
+			//InstagramUser instagramUser = instagramService.getThisUser();
 			
 			logger.debug("screen_name is "+instagramService.getThisUser().getUsername()+" "+instagramService.getThisUser().getId());
-			user.addServiceForHuman("instagram", (String)instagramService.getThisUser().getUsername(), (String)instagramService.getThisUser().getId());
+			user.addService("instagram", (String)instagramService.getThisUser().getUsername(), (String)instagramService.getThisUser().getId());
 			
 			session.setAttribute("logged-in-user", user);
 			// save the user?

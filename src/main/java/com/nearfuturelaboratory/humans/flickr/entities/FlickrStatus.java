@@ -8,6 +8,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.annotations.Version;
 
 import com.google.gson.Gson;
@@ -22,6 +23,10 @@ public class FlickrStatus extends ServiceStatus {
 	private Long version;
 	protected Date lastUpdated;
 
+	@Transient
+	protected String service="flickr";
+
+	
 	@Id
 	protected String id;
 	protected String owner;

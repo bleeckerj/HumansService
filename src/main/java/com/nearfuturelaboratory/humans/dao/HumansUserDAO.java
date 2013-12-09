@@ -37,22 +37,26 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 
 	public HumansUserDAO() {
 		super(MongoUtil.getMongo(), new Morphia(), "humans");
+		this.ensureIndexes();
 	}
 	
 	public HumansUserDAO(String dbname) {
 		super(MongoUtil.getMongo(), new Morphia(), dbname);
+		this.ensureIndexes();
+
 	}
 	
-	public HumansUserDAO(Mongo mongo, Morphia morphia, String dbname) {
-		super(mongo, morphia, dbname);
-		//initiate();
-	}
+//	public HumansUserDAO(Mongo mongo, Morphia morphia, String dbname) {
+//		super(mongo, morphia, dbname);
+//		this.ensureIndexes();
+//
+//		//initiate();
+//	}
 	
 	
 	public List<HumansUser> findByUsername( String aUsername ) {
 	    Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
 	    //ds.find(entityClazz).filter("username", regExp);
-	    
 	    return this.getDatastore().find(getEntityClass()).filter("username", regExp).order("username").asList();// .sort("username").asList();
 	}
 	
@@ -91,6 +95,18 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 		Query<HumansUser> q = this.createQuery().field("username").equal(aUsername);
 		return this.findOne(q);
 	}
+	
+	public HumansUser findOneByUsernameAndAccessToken(String aUsername, String aAccessToken) {
+		Query<HumansUser> q = this.createQuery().field("username").equal(aUsername).field("access_token").equal(aAccessToken);
+		return this.findOne(q);
+	}
+	
+	public HumansUser findOneByAccessToken(String aAccessToken) {
+		Query<HumansUser> q = this.createQuery().field("access_token").equal(aAccessToken);
+		return this.findOne(q);
+	}
+	
+
 
 	public HumansUser getHumansUser(String aUsername, String aPassword) {
 		HumansUser h = null;

@@ -61,7 +61,8 @@ public class TwitterService extends ServiceStatus {
 	private static final String VERIFY_URL = "https://api.twitter.com/1.1/account/verify_credentials.json";
 	private static final String SHOW_USER_BY_ID_URL = "https://api.twitter.com/1.1/users/show.json?user_id=%s&include_entities=true";
 	private static final String USER_LOOKUP_URL = "https://api.twitter.com/1.1/users/lookup.json";
-	private static final String STATUS_URL = "https://api.twitter.com/1.1/statuses/user_timeline.json?user_id=%s&trim_user=true";
+	private static final String STATUS_URL_TRIM_USER = "https://api.twitter.com/1.1/statuses/user_timeline.json?user_id=%s&trim_user=true";
+	private static final String STATUS_URL = "https://api.twitter.com/1.1/statuses/user_timeline.json?user_id=%s";
 
 	protected Gson gson;
 

@@ -1,6 +1,7 @@
 package com.nearfuturelaboratory.humans.flickr.entities;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -10,8 +11,10 @@ import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Version;
 
+import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
+
 @Entity(value="user", noClassnameStored = true)
-public class FlickrUser {
+public class FlickrUser extends MinimalSocialServiceUser {
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -59,7 +62,27 @@ public class FlickrUser {
 	protected Map<String, String> realname;
 	protected Map<String, String> location;
 	protected Map<String, String> timezone;
-
+	protected String nsid;
+	protected int iconserver;
+	protected int iconfarm;
+	protected String path_alias;
+	/**
+	 * firstdatetaken: {
+	 *  _content: "1904-01-01 00:00:00:
+	 *  },
+	 *  firstdate : {
+	 *  _content: "1104731550"
+	 *  },
+	 *  count : {
+	 *  _content: "11529"
+	 *  },
+	 *  views: {
+	 *  _content: "196451"
+	 *  }
+	 */
+	protected Map<String, Map<String, String>> photos;
+//	protected Map<String, String> photosurl;
+	
 	
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
@@ -92,6 +115,46 @@ public class FlickrUser {
 			result = username.get("_content");
 		}
 		return result;
+	}
+
+
+	@Override
+	public String getImageURL() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public String getUserID() {
+		return this.getId();
+	}
+
+
+	@Override
+	public String getFirstName() {
+		return this.realname.get("_content");
+	}
+
+
+	@Override
+	public String getLastName() {
+		return this.realname.get("_content");
+	}
+
+
+	@Override
+	public String getServiceName() {
+		return "flickr";
+	}
+
+
+	@Override
+	public String getLargeImageURL() {
+		String str = "http://farm%s.staticflickr.com/%s/buddyicons/%s.jpg";
+		String urlStr = String.format(str, iconfarm, iconserver, nsid);
+		logger.debug("url string for buddy icon is "+urlStr);
+		return null;
 	}
 
 

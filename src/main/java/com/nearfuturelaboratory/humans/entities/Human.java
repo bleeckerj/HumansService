@@ -3,6 +3,9 @@ package com.nearfuturelaboratory.humans.entities;
 import static ch.lambdaj.Lambda.having;
 import static ch.lambdaj.Lambda.on;
 import static ch.lambdaj.Lambda.selectUnique;
+import static ch.lambdaj.Lambda.select;
+import static ch.lambdaj.Lambda.forEach;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 
 import java.util.ArrayList;
@@ -22,36 +25,42 @@ import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.utils.IndexDirection;
 
 import com.nearfuturelaboratory.humans.entities.ServiceUser;
+import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
+import com.nearfuturelaboratory.humans.service.FlickrService;
+import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.InstagramService;
+import com.nearfuturelaboratory.humans.service.TwitterService;
+import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 
 
 @Entity(value="humans",noClassnameStored = true)
 // compound index
 //@Indexes(@Index(name = "nameAndID", value = "name, id", unique = true))
 public class Human  /*extends BaseEntity*/ {
-	
+
 	// uniqueness applies across the collection, even in an embedded document
 	// would need a compound index otherwise, cf http://joegornick.com/2012/10/25/mongodb-unique-indexes-on-single-embedded-documents/
 	//@Indexed(value = IndexDirection.ASC, name="name"/*, unique = true*/)
 	protected String name;
-	
+
 	//@Indexed(value = IndexDirection.ASC, name = "humanid", unique = true/*, sparse = true, dropDups = true*/)
 
 	@Id 
 	@Property("humanid")
 	protected ObjectId humanid;
-	
+
 	@Embedded("serviceUsers")
 	protected List<ServiceUser> serviceUsers = new ArrayList<ServiceUser>();
-	
+
 	@PrePersist void prePersist() {
 		if(humanid == null) {
 			humanid = new ObjectId();
 		}
 	}
 
-	
+
 	public String getName() {
 		return name;
 	}
@@ -61,12 +70,12 @@ public class Human  /*extends BaseEntity*/ {
 	public List<ServiceUser> getServiceUsers() {
 		return serviceUsers;
 	}
-	
+
 	@Deprecated
 	public void setServiceUsers(List<ServiceUser> aServiceUsers) {
 		serviceUsers = aServiceUsers;
 	}
-	
+
 	public boolean addServiceUser(ServiceUser aServiceUser) {
 		boolean result;
 		if(serviceUsers.contains(aServiceUser)) {
@@ -76,29 +85,70 @@ public class Human  /*extends BaseEntity*/ {
 		}
 		return result;
 	}
-	
+
 	public boolean removeServiceUser(ServiceUser aServiceUser) {
 		boolean result;
 		result = serviceUsers.remove(aServiceUser);
 		return result;
 	}
 
+	
+	public List<ServiceEntry> getServicesThisHumanReliesUpon()
+	{
+		List<ServiceEntry> results = new ArrayList<ServiceEntry>();
+		
+		//List<ServiceUser> service_users = this.getServiceUsers();
+		// lambdaj syntax..whatever..
+		results.add(forEach(getServiceUsers()).getOnBehalfOf());
+		
+		return results;
+	}
+	
+	public List<ServiceUser> getServiceUsersRelyingOn(ServiceEntry onBehalfOf)
+	{
+		List<ServiceUser> service_users = 
+				select(this.getServiceUsers(),
+						having(on(ServiceUser.class).getOnBehalfOf(), equalTo(onBehalfOf)));
+				
+		return service_users;
+	}
+	
+	public boolean removeServiceUsersByServiceEntry(ServiceEntry onBehalfOf)
+	{
+		boolean result = false;
+		List<ServiceUser> service_users = 
+				select(serviceUsers,
+						having(on(ServiceUser.class).getOnBehalfOf(), equalTo(onBehalfOf)));
+				
+				
+		for(ServiceUser service_user : service_users) {
+			boolean b = this.removeServiceUser(service_user);
+			if(b == true) {
+				result = true;
+			} else {
+				result = false;
+				break;
+			}
+		}
+		return result;
+	}
+	
 	public boolean removeServiceUserById(String aServiceUserId) {
 		boolean result;
 		ServiceUser serviceUser = selectUnique(serviceUsers, having(on(ServiceUser.class).getId(), equalTo(new ObjectId(aServiceUserId))));
 		result = serviceUsers.remove(serviceUser);
 		return result;
 	}
-	
+
 	public ServiceUser getServiceUserById(String aServiceUserId) {
 		ServiceUser serviceUser = selectUnique(serviceUsers, having(on(ServiceUser.class).getId(), equalTo(new ObjectId(aServiceUserId))));
 		return serviceUser;
 	}
-	
+
 	public String getId() {
 		return humanid.toString();
 	}
-	
+
 	/**
 	 * Really only for testing
 	 * @param aId
@@ -106,7 +156,7 @@ public class Human  /*extends BaseEntity*/ {
 	public void setId(String aId) {
 		humanid = new ObjectId(aId);
 	}
-	
+
 	protected ObjectId getHumanid() {
 		return humanid;
 	}
@@ -146,22 +196,53 @@ public class Human  /*extends BaseEntity*/ {
 			return false;
 		return true;
 	}
-	
+
 
 	public ServiceUser fixImageUrls(ServiceUser aServiceUser) {
 		ServiceUser result = aServiceUser;
 		ServiceEntry se = aServiceUser.getOnBehalfOf();
 		if(aServiceUser.getService().equalsIgnoreCase("instagram")) {
 			try {
-			InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(se.getServiceUsername());
-			InstagramUser u = instagram.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
-			aServiceUser.setImageURL(u.getImageURL());
-			result = aServiceUser;
+				InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(se.getServiceUsername());
+				InstagramUser u = instagram.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				aServiceUser.setImageURL(u.getImageURL());
+				result = aServiceUser;
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
+		if(aServiceUser.getService().equalsIgnoreCase("twitter")) {
+			try {
+				TwitterService service = TwitterService.createTwitterServiceOnBehalfOfUsername(se.getServiceUsername());
+				TwitterUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				aServiceUser.setImageURL(u.getImageURL());
+				result = aServiceUser;
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if(aServiceUser.getService().equalsIgnoreCase("foursquare")) {
+			try {
+				FoursquareService service = FoursquareService.createFoursquareServiceOnBehalfOfUserID(se.getServiceUserID());
+				FoursquareUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				aServiceUser.setImageURL(u.getImageURL());
+				result = aServiceUser;
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if(aServiceUser.getService().equalsIgnoreCase("flickr")) {
+			try {
+				FlickrService service = FlickrService.createFlickrServiceOnBehalfOfUserID(se.getServiceUserID());
+				FlickrUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				aServiceUser.setImageURL(u.getImageURL());
+				result = aServiceUser;
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+
 		return result;
 	}
-	
+
 }

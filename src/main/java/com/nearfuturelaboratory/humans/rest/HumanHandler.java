@@ -1,9 +1,9 @@
 package com.nearfuturelaboratory.humans.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import static com.google.common.collect.Lists.partition;
+
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -15,18 +15,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -40,9 +32,10 @@ import com.google.gson.JsonParser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
+import com.nearfuturelaboratory.humans.entities.InvalidUserException;
 import com.nearfuturelaboratory.humans.entities.ServiceUser;
-import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
+import com.nearfuturelaboratory.util.Constants;
 
 
 @Path("/human")
@@ -66,7 +59,7 @@ public class HumanHandler {
 
 		fail_response = new JsonObject();
 		fail_response.addProperty("result", "fail");
-		
+
 		no_such_human_for_user = new JsonObject();
 		no_such_human_for_user.addProperty("result", "fail");
 		no_such_human_for_user.addProperty("message", "no such human for user");
@@ -82,33 +75,55 @@ public class HumanHandler {
 	}
 
 
+	/**
+	 * Get a human by id for the currently logged in User
+	 * @param aHumanId
+	 * @param request
+	 * @param response
+	 * @return json representation of the logged in Human
+	 */
 	@GET @Path("/get")
 	@Produces({"application/json"})
 	public String getHumanByID(@QueryParam("id") String aHumanId, 
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		HttpSession session = request.getSession();
-		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
-		HumansUserDAO dao = new HumansUserDAO();
-		
-		HumansUser h = dao.findByHumanID(aHumanId);
-		
-		if(h ==  null) {
+		RestCommon common = new RestCommon();
+		//		HttpSession session = request.getSession();
+		//		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
+		//		HumansUserDAO dao = new HumansUserDAO();
+		//
+		//		HumansUser h = dao.findByHumanID(aHumanId);
+
+		HumansUser user;
+		try {
+			user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+		} catch (InvalidAccessTokenException e) {
+			logger.warn("invalid or missing access token", e);
+			fail_response.addProperty("message", "invalid access token");
+			return fail_response.toString();
+			//			e.printStackTrace();
+		} 
+
+		Human human = user.getHumanByID(aHumanId);
+
+		if(human ==  null) {
 			return no_such_human_for_user.toString();
 		}
-		
-		if(isValidUser(request, user) == false) {
-			return invalid_user_error_response.toString();
-		}
 
-		Human human = h.getHumanByID(aHumanId);
 		JsonElement human_elem = new JsonParser().parse(gson.toJson(human));
 
 		return human_elem.toString();
 	}
 
 
+	/**
+	 * Get a specific human by id from the logged in User
+	 * @param aHumanId
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@GET @Path("/get/{humanid}")
 	@Produces({"application/json"})
 	public String getHuman(
@@ -116,34 +131,28 @@ public class HumanHandler {
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response) 
 	{
-		HttpSession session = request.getSession();
-		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser h = dao.findByHumanID(aHumanId);
-		if(h ==  null) {
-			return no_such_human_for_user.toString();
-		}
-
-		
-		if(isValidUser(request, user) == false) {
-			return invalid_user_error_response.toString();
-		}
-
-		Human human = h.getHumanByID(aHumanId);
-		JsonElement human_elem = new JsonParser().parse(gson.toJson(human));
-
-		return human_elem.toString();
+		return this.getHumanByID(aHumanId, request, response);
 	}
 
-
+	/**
+	 * Return status. This is the mother-mugger. You should page through this. If you pass no "page" parameter,
+	 * you'll simply get the first page of 100 items.
+	 * 
+	 * @param aHumanId query parameter
+	 * @param aPage query parameter
+	 * @param request comes from the context
+	 * @param response comes from the context
+	 * @return
+	 */
 	@GET @Path("/status")
 	@Produces({"application/json"})
 	public String getStatusByID(
-			@QueryParam("id") String aHumanId, 
+			@QueryParam("humanid") String aHumanId, 
+			@QueryParam("page") String aPage,
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		return this.getStatus(aHumanId, request, response);
+		return this.getStatus(aHumanId, aPage, request, response);
 	}
 
 	@GET @Path("/status/{humanid}")
@@ -151,40 +160,86 @@ public class HumanHandler {
 	public String getStatus(
 			@PathParam("humanid") String aHumanId, 
 			@Context HttpServletRequest request,
+			@Context HttpServletResponse response) 	
+	{
+		return this.getStatus(aHumanId, "1", request, response);
+	}
+
+	@GET @Path("/status/{humanid}/{page}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String getStatus(
+			@PathParam("humanid") String aHumanId, 
+			@PathParam("page") String aPage,
+			@Context HttpServletRequest request,
 			@Context HttpServletResponse response) 
 	{
 		HttpSession session = request.getSession();
-		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser h = dao.findByHumanID(aHumanId);
-		
-		if(h == null) {
-			fail_response.addProperty("message", "none such user found for humanid="+aHumanId);
+		logger.debug("session="+session.getId());
+		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
+		RestCommon common = new RestCommon();
+		HumansUser user;
+		try {
+			user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+		} catch (InvalidAccessTokenException e1) {
+			logger.warn("invalid or missing access token", e1);
+			fail_response.addProperty("message", "invalid access token");
 			return fail_response.toString();
+			//e1.printStackTrace();
 		}
 		
-		if(isValidUser(request, user) == false) {
-			return invalid_user_error_response.toString();
-		}
+		logger.debug("humanid="+aHumanId);
+		Human human = user.getHumanByID(aHumanId);
 
-		Human human = h.getHumanByID(aHumanId);
-		
-		if(human == null) {
+		if(human ==  null) {
 			fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
 			return fail_response.toString();
 		}
 		
-		JsonArray result = user.getJsonStatusForHuman(human);
-//		JsonArray result = new JsonArray();
-//		for(ServiceStatus s : status) {
-//			result.add(s.getStatusJSON());
-//		}
+		
+		String status_response;
+		StatusPagingHelper paging_helper = null;
+
+		logger.debug(session.getAttribute("status_"+aHumanId));
+		
+		if(session.getAttribute("status_"+aHumanId) == null) {
+			JsonArray result = user.getJsonStatusForHuman(human);
+			paging_helper = new StatusPagingHelper(result, human);
+			//paging_helper.getTotalPages();
+			session.setAttribute("status_"+aHumanId, paging_helper);	
+		}
+
+		paging_helper = (StatusPagingHelper)session.getAttribute("status_"+aHumanId);
+
+		if(paging_helper == null) {
+			fail_response.addProperty("message", "missing paging helper for humanid="+aHumanId);
+			return fail_response.toString();
+		}
+
+		int page = 1;
+		if(aPage != null) {
+			try {
+				page = Integer.parseInt(aPage);
+			} catch(NumberFormatException nfe) {
+				logger.warn("", nfe);
+			}
+		}
+		status_response = paging_helper.statusByPage(page-1);
+
+		logger.debug("status by page"+(page-1)+" status_response count="+status_response.length());
+
+		//		JsonArray result = new JsonArray();
+		//		for(ServiceStatus s : status) {
+		//			result.add(s.getStatusJSON());
+		//		}
 		//logger.debug(status);
-		return result.toString();
+		return status_response;
 	}
+
+	//	public StatusPagingHelper getStatusPagingHelper
 
 	@GET
 	@Path("{humanid}/update/serviceuser/{serviceuserid}")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String updateServiceUserFromHuman(
 			String aServiceUserJson,
@@ -307,8 +362,79 @@ public class HumanHandler {
 	protected HumansUser getSessionUser(HttpServletRequest request) {
 		return (HumansUser)request.getSession().getAttribute("logged-in-user");
 	}
+}
+
+/**
+ * This helps us page through status results in chunks of 50
+ * @author julian
+ *
+ */
+class StatusPagingHelper {
+
+	ArrayList<JsonElement> status_list;
+	Human human;
+	List<List<JsonElement>> status_chunks;
+	int pages;
+	long created_time;
+
+	public StatusPagingHelper(JsonArray aStatus, Human aHuman) {
+		status_list = getStatusAsList(aStatus);
+		human = aHuman;
+		//pages = aTotalPages;
+		status_chunks = partition(status_list, Constants.getInt("STATUS_CHUNK_SIZE", 50));
+		created_time = new Date().getTime();
+		pages = status_chunks.size();
+	}
+
+	public String statusByPage(int aPage) {
+		JsonObject json_result = new JsonObject();
+		if(aPage < 0) aPage = 0;
+
+		if(aPage < status_chunks.size()) {
+			List<JsonElement> chunk = status_chunks.get(aPage);
+			//			JsonElement first = chunk.get(0);
+			//			JsonElement last = chunk.get(0);
+			//			if(first.isJsonObject()) {
+			//				JsonObject obj = first.getAsJsonObject();
+			//				obj.get("");
+			//			}
+			JsonObject head = new JsonObject();
+			head.addProperty("pages", pages);
+			head.addProperty("page", aPage+1);
+			head.addProperty("total_status", status_list.size());
+			head.addProperty("count", chunk.size());
+			head.addProperty("human_name", human.getName());
+			head.addProperty("human_id", human.getId());
+			json_result.add("head", head);
+
+			JsonArray status = new JsonArray();
+
+			for(int i=0; i<chunk.size(); i++) {
+				status.add(chunk.get(i));
+			}
+			json_result.add("status", status);
+		}
+		return json_result.toString();
+	}
+
+	public int getTotalPages() {
+		return pages;
+	}
+
+	protected ArrayList<JsonElement> getStatusAsList(JsonArray status) {
+		//chunks = partition(status, 100);
+		ArrayList<JsonElement> status_list = new ArrayList<JsonElement>();     
+		//JsonArray jArray = (JsonArray)jsonObject; 
+		if (status != null) { 
+			for (int i=0; i<status.size(); i++){ 
+				status_list.add(status.get(i));
+			} 
+		} 
+		return status_list;		
+	}
 
 }
+
 /*@Provider
 class ServiceUserMessageBodyReader implements MessageBodyReader<ServiceUser> {
 

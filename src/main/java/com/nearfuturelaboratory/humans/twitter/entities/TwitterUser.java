@@ -55,21 +55,22 @@ public class TwitterUser extends MinimalSocialServiceUser
 	protected Integer listed_count;
 	protected String location;
 	protected String name;
-	protected String profile_background_color;
-	protected String profile_background_image_url;
-	protected String profile_background_image_url_https;
-	protected boolean profile_background_tile;
-	protected String profile_banner_url;
+//	protected String profile_background_color;
+//	protected String profile_background_image_url;
+//	protected String profile_background_image_url_https;
+//	protected boolean profile_background_tile;
+//	protected String profile_banner_url;
 	protected String profile_image_url;
 	protected String profile_image_url_https;
-	protected String profile_link_color;
-	protected String profile_sidebar_border_color;
-	protected String profile_sidebar_fill_color;
-	protected String profile_text_color;
-	protected boolean profile_use_background_image;
+//	protected String profile_link_color;
+//	protected String profile_sidebar_border_color;
+//	protected String profile_sidebar_fill_color;
+//	protected String profile_text_color;
+//	protected boolean profile_use_background_image;
 	@Property("protected")
 	protected boolean _protected;
 	protected String screen_name;
+//	protected String name;
 	protected boolean show_all_inline_media;
 //	@Embedded
 //	protected TwitterStatus status;
@@ -241,37 +242,37 @@ public class TwitterUser extends MinimalSocialServiceUser
 	public void setName(String aName) {
 		name = aName;
 	}
-	public String getProfile_background_color() {
-		return profile_background_color;
-	}
-	public void setProfile_background_color(String aProfile_background_color) {
-		profile_background_color = aProfile_background_color;
-	}
-	public String getProfile_background_image_url() {
-		return profile_background_image_url;
-	}
-	public void setProfile_background_image_url(String aProfile_background_image_url) {
-		profile_background_image_url = aProfile_background_image_url;
-	}
-	public String getProfile_background_image_url_https() {
-		return profile_background_image_url_https;
-	}
-	public void setProfile_background_image_url_https(
-			String aProfile_background_image_url_https) {
-		profile_background_image_url_https = aProfile_background_image_url_https;
-	}
-	public boolean isProfile_background_tile() {
-		return profile_background_tile;
-	}
-	public void setProfile_background_tile(boolean aProfile_background_tile) {
-		profile_background_tile = aProfile_background_tile;
-	}
-	public String getProfile_banner_url() {
-		return profile_banner_url;
-	}
-	public void setProfile_banner_url(String aProfile_banner_url) {
-		profile_banner_url = aProfile_banner_url;
-	}
+//	public String getProfile_background_color() {
+//		return profile_background_color;
+//	}
+//	public void setProfile_background_color(String aProfile_background_color) {
+//		profile_background_color = aProfile_background_color;
+//	}
+//	public String getProfile_background_image_url() {
+//		return profile_background_image_url;
+//	}
+//	public void setProfile_background_image_url(String aProfile_background_image_url) {
+//		profile_background_image_url = aProfile_background_image_url;
+//	}
+//	public String getProfile_background_image_url_https() {
+//		return profile_background_image_url_https;
+//	}
+//	public void setProfile_background_image_url_https(
+//			String aProfile_background_image_url_https) {
+//		profile_background_image_url_https = aProfile_background_image_url_https;
+//	}
+//	public boolean isProfile_background_tile() {
+//		return profile_background_tile;
+//	}
+//	public void setProfile_background_tile(boolean aProfile_background_tile) {
+//		profile_background_tile = aProfile_background_tile;
+//	}
+//	public String getProfile_banner_url() {
+//		return profile_banner_url;
+//	}
+//	public void setProfile_banner_url(String aProfile_banner_url) {
+//		profile_banner_url = aProfile_banner_url;
+//	}
 	public String getProfile_image_url() {
 		return profile_image_url;
 	}
@@ -284,37 +285,37 @@ public class TwitterUser extends MinimalSocialServiceUser
 	public void setProfile_image_url_https(String aProfile_image_url_https) {
 		profile_image_url_https = aProfile_image_url_https;
 	}
-	public String getProfile_link_color() {
-		return profile_link_color;
-	}
-	public void setProfile_link_color(String aProfile_link_color) {
-		profile_link_color = aProfile_link_color;
-	}
-	public String getProfile_sidebar_border_color() {
-		return profile_sidebar_border_color;
-	}
-	public void setProfile_sidebar_border_color(String aProfile_sidebar_border_color) {
-		profile_sidebar_border_color = aProfile_sidebar_border_color;
-	}
-	public String getProfile_sidebar_fill_color() {
-		return profile_sidebar_fill_color;
-	}
-	public void setProfile_sidebar_fill_color(String aProfile_sidebar_fill_color) {
-		profile_sidebar_fill_color = aProfile_sidebar_fill_color;
-	}
-	public String getProfile_text_color() {
-		return profile_text_color;
-	}
-	public void setProfile_text_color(String aProfile_text_color) {
-		profile_text_color = aProfile_text_color;
-	}
-	public boolean isProfile_use_background_image() {
-		return profile_use_background_image;
-	}
-	public void setProfile_use_background_image(
-			boolean aProfile_use_background_image) {
-		profile_use_background_image = aProfile_use_background_image;
-	}
+//	public String getProfile_link_color() {
+//		return profile_link_color;
+//	}
+//	public void setProfile_link_color(String aProfile_link_color) {
+//		profile_link_color = aProfile_link_color;
+//	}
+//	public String getProfile_sidebar_border_color() {
+//		return profile_sidebar_border_color;
+//	}
+//	public void setProfile_sidebar_border_color(String aProfile_sidebar_border_color) {
+//		profile_sidebar_border_color = aProfile_sidebar_border_color;
+//	}
+//	public String getProfile_sidebar_fill_color() {
+//		return profile_sidebar_fill_color;
+//	}
+//	public void setProfile_sidebar_fill_color(String aProfile_sidebar_fill_color) {
+//		profile_sidebar_fill_color = aProfile_sidebar_fill_color;
+//	}
+//	public String getProfile_text_color() {
+//		return profile_text_color;
+//	}
+//	public void setProfile_text_color(String aProfile_text_color) {
+//		profile_text_color = aProfile_text_color;
+//	}
+//	public boolean isProfile_use_background_image() {
+//		return profile_use_background_image;
+//	}
+//	public void setProfile_use_background_image(
+//			boolean aProfile_use_background_image) {
+//		profile_use_background_image = aProfile_use_background_image;
+//	}
 	public boolean is_protected() {
 		return _protected;
 	}

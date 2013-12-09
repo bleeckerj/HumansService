@@ -30,9 +30,31 @@ public class Login {
 	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.Login.class);
 
 	@Context ServletContext context;
+	static JsonObject invalid_user_error_response;
+	static JsonObject success_response;
+	static JsonObject fail_response;
+	static JsonObject no_such_human_for_user;
 
+	static {
+		invalid_user_error_response = new JsonObject();
+		invalid_user_error_response.addProperty("result", "error");
+		invalid_user_error_response.addProperty("message", "invalid user");
+
+		success_response = new JsonObject();
+		success_response.addProperty("result", "success");
+
+		fail_response = new JsonObject();
+		fail_response.addProperty("result", "fail");
+
+		no_such_human_for_user = new JsonObject();
+		no_such_human_for_user.addProperty("result", "fail");
+		no_such_human_for_user.addProperty("message", "no such human for user");
+
+	}
+
+	
     public Login() {
-         logger.debug("Constructor " + context);  // null here     
+         //logger.debug("Constructor " + context);  // null here     
     }
 	
 //    @GET
@@ -69,27 +91,42 @@ public class Login {
     	String a = request.getParameter("min-m");
     	String b = request.getParameter("defcon");
 		HumansUserDAO dao = new HumansUserDAO();
+		
+		if(aUsername == null || aPassword == null) {
+			fail_response.addProperty("message", "invalid username and password");
+			return fail_response.toString();
+		}
+			
+		
 		HumansUser user = dao.findOneByUsername(aUsername);
 		if(foo) {
 			HttpSession session = request.getSession();
 			session.setAttribute("logged-in-user", user);
 			logger.debug("Logged in user "+user);
-			Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+			
+			Gson gson = new GsonBuilder().
+			setExclusionStrategies(new UserJsonExclusionStrategy()).
+			registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+			//Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+			
+			
 			JsonElement user_elem = new JsonParser().parse(gson.toJson(user));
 			JsonObject user_obj = user_elem.getAsJsonObject();
-			user_obj.remove("password");
+			//user_obj.remove("password");
 			 
 			result = user_obj.toString();
 			return result;
-
 		}
 		
-		if( user != null && user.verifyPassword(aPassword))
+		if( user != null && aPassword != null && user.verifyPassword(aPassword))
 		{
 			HttpSession session = request.getSession();
 			session.setAttribute("logged-in-user", user);
 			logger.debug("Logged in user "+user);
-			Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+			/*Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();*/
+			Gson gson = new GsonBuilder().
+					setExclusionStrategies(new UserJsonExclusionStrategy()).
+					registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 			JsonElement user_elem = new JsonParser().parse(gson.toJson(user));
 			JsonObject user_obj = user_elem.getAsJsonObject();
 			user_obj.remove("password");

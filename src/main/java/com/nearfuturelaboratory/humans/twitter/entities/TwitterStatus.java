@@ -10,6 +10,7 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.annotations.Version;
 import org.mongodb.morphia.utils.IndexDirection;
 
@@ -46,6 +47,9 @@ public class TwitterStatus extends ServiceStatus {
 	@Embedded
 	protected Coordinates coordinates;
 
+	@Transient
+	protected String service="twitter";
+	
 //	@Embedded
 //	protected UserEntities entities;
 
