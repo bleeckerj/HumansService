@@ -226,7 +226,14 @@ public class FoursquareService {
 		JSONArray items = (JSONArray)checkins.get("items");
 		int items_count = items.size();
 
+		
 		checkinsAll = JsonPath.read(obj, "response.checkins.items");
+		Date last = new Date(); 
+		last.setTime(afterTimeStamp);
+		if(items_count < 250) {
+			logger.info("For user_id "+this.getThisUser().getId()+" found "+checkinsAll.size()+" checkins since " + last);
+			saveCheckins(checkinsAll);
+		} else {
 		//TODO only get latest checkins??
 		// this is good code - it just gets all a users checkins, so i need to think about how to use this/put it
 		int offset = 0;
@@ -253,9 +260,11 @@ public class FoursquareService {
 				break;
 			}
 		}
-		logger.debug("For user_id "+this.getThisUser().getId()+" found "+checkinsAll.size()+" checkins.");
+
+		logger.info("For user_id "+this.getThisUser().getId()+" found "+checkinsAll.size()+" checkins since " + last);
 		logger.warn("You probably only wan tto get latest checkins..");
 		saveCheckins(checkinsAll);
+		}
 	}
 
 

@@ -29,8 +29,8 @@ public class FoursquareServiceTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
-			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/static-logger.properties");
+			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID("41");
 
 			//logger.debug("Hey Ho!");
@@ -51,7 +51,7 @@ public class FoursquareServiceTest {
 //		fail("Not yet implemented");
 	}
 	
-	@Ignore
+	@Test
 	public void test_ServiceRequestCheckins() {
 		try {
 			foursquare.serviceRequestCheckins();
@@ -89,6 +89,7 @@ public class FoursquareServiceTest {
 		}
 	}
 	
+	// I don't know how you test these..
 	
 	@Ignore
 	public void test_GetLatestCheckin() {
