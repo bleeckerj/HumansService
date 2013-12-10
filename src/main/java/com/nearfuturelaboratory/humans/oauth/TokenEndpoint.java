@@ -149,18 +149,19 @@ public class TokenEndpoint {
 	}
 
 	@GET
-	@Consumes("application/x-www-form-urlencoded")
+	//@Consumes("application/x-www-form-urlencoded")
 	@Produces("application/json")
 	public Response authorizeGet(@Context HttpServletRequest request) throws OAuthSystemException {
-		OAuthIssuer oauthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
-
-		OAuthResponse response = OAuthASResponse
-				.tokenResponse(HttpServletResponse.SC_OK)
-				.setAccessToken(oauthIssuerImpl.accessToken())
-				.setExpiresIn("3600")
-				.buildJSONMessage();
-
-		return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
+		return this.authorize(request);
+//		OAuthIssuer oauthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
+//
+//		OAuthResponse response = OAuthASResponse
+//				.tokenResponse(HttpServletResponse.SC_OK)
+//				.setAccessToken(oauthIssuerImpl.accessToken())
+//				.setExpiresIn("3600")
+//				.buildJSONMessage();
+//
+//		return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
 	}
 
 }
