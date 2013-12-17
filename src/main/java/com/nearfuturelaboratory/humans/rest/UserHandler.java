@@ -43,8 +43,8 @@ import com.nearfuturelaboratory.util.Constants;
 
 
 @Path("/user")
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+//@Consumes(MediaType.APPLICATION_JSON)
+//@Produces(MediaType.APPLICATION_JSON)
 public class UserHandler {
 	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.UserHandler.class);
 	static JsonObject invalid_user_error_response;
@@ -383,6 +383,7 @@ public class UserHandler {
 	 * 
 	 */
 	@POST @Path("/username/exists")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String usernameExists(
 			String usernameJson,
@@ -542,7 +543,7 @@ public class UserHandler {
 
 	@GET @Path("/friends/get/")
 	@Produces({"application/json"})
-	public String getFriends(
+	public Response getFriends(
 			@QueryParam("name-like") String aHumanId, 
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response,
@@ -553,50 +554,21 @@ public class UserHandler {
 		
 		if(access_token == null) {
 			fail_response.addProperty("message", "invalid or missing access token");
-			return fail_response.toString();
+			return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
 		}
 		
 		HumansUser user = getUserForAccessToken(context, access_token);
 
 		if(user == null) {
 			invalid_user_error_response.addProperty("message", "invalid access token");
-			return invalid_user_error_response.toString();
+			
+			return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response.toString()).type(MediaType.APPLICATION_JSON).build();
 		}
-		//logger.debug("SESSION ID IS="+session.getId());
-		//HumansUserDAO dao = new HumansUserDAO();
-		//HumansUser h = dao.findByHumanID(aHumanId);
-
-
-		//		if(isValidUser(request, user) == false) {
-		//			return invalid_user_error_response.toString();
-		//		}
 
 
 		JsonArray result = user.getFriendsAsJson();
-
-		return result.toString();
+		return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
 	}
-
-
-
-//	protected boolean isValidUser(HttpServletRequest request, HumansUser h) {
-//		HumansUser user = getSessionUser(request);
-//		boolean result = false;
-//		logger.debug(user.getId());
-//		logger.debug(h.getId());
-//		if(user == null || h == null || h.getId().equals(user.getId()) == false) {
-//			result = false;
-//		} else {
-//			result = true;
-//		}
-//		return result;
-//	}
-//
-//	protected HumansUser getSessionUser(HttpServletRequest request) {
-//		return (HumansUser)request.getSession().getAttribute("logged-in-user");
-//	}
-//
-//	protected void setSessionUser(HttpServletRequest request, HumansUser user) {
-//		request.getSession().setAttribute("logged-in-user", user);
-//	}
 }
+
+
