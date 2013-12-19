@@ -25,6 +25,12 @@ public class FlickrStatus extends ServiceStatus {
 
 	@Transient
 	protected String service="flickr";
+	/**
+	 * @return the service
+	 */
+	public String getService() {
+		return service;
+	}
 
 	
 	@Id

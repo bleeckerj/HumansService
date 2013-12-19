@@ -50,8 +50,13 @@ public class TwitterStatus extends ServiceStatus {
 	@Transient
 	protected String service="twitter";
 	
-//	@Embedded
-//	protected UserEntities entities;
+
+	/**
+	 * @return the service
+	 */
+	public String getService() {
+		return service;
+	}
 
 	protected String favorite_count;
 	protected boolean favorited;

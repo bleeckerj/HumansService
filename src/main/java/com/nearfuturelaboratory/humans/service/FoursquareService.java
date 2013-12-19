@@ -262,7 +262,7 @@ public class FoursquareService {
 		}
 
 		logger.info("For user_id "+this.getThisUser().getId()+" found "+checkinsAll.size()+" checkins since " + last);
-		logger.warn("You probably only wan tto get latest checkins..");
+		logger.warn("You probably only want to get latest checkins..");
 		saveCheckins(checkinsAll);
 		}
 	}

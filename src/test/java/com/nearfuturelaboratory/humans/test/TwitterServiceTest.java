@@ -1,6 +1,6 @@
 package com.nearfuturelaboratory.humans.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
@@ -14,6 +14,7 @@ import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus;
 import com.nearfuturelaboratory.util.Constants;
+import static org.hamcrest.core.IsNull.notNullValue;
 
 public class TwitterServiceTest {
 	static TwitterService twitter;
@@ -30,8 +31,8 @@ public class TwitterServiceTest {
 	public static void setUpBeforeClass() throws Exception {
 	
 		try {
-			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/static-logger.properties");
+			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			logger.debug("Hey Ho!");
 			twitter = TwitterService.createTwitterServiceOnBehalfOfUsername("darthjulian");
 			logger.debug(twitter);
@@ -79,12 +80,10 @@ public class TwitterServiceTest {
 	
 	@Test
 	public void test_serviceRequestFollows() {
-		try {
-			twitter.serviceRequestFollows();
-		} catch(Exception e) {
-			e.printStackTrace();
-			logger.error("",e);
-		}
+		List<TwitterFriend> follows = twitter.serviceRequestFollows();
+	
+		assertThat(follows, notNullValue());
+		
 	}
 	
 	@Test

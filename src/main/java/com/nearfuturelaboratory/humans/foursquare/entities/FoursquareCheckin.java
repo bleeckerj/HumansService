@@ -33,7 +33,13 @@ public class FoursquareCheckin extends ServiceStatus {
 	protected Date lastUpdated;
 
 	@Transient
-	protected String service="instagram";
+	protected String service="foursquare";
+	/**
+	 * @return the service
+	 */
+	public String getService() {
+		return service;
+	}
 
 	
 	@Id

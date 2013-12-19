@@ -11,6 +11,8 @@ public abstract class ServiceStatus implements Comparable<ServiceStatus> {
 	
 	public abstract long getCreated();
 	
+	public abstract String getService();
+	
 	public ServiceStatus() {}
 	
 	public Date getCreatedDate() {

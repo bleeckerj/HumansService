@@ -114,7 +114,7 @@ public class UserHandler {
 	
 	@GET @Path("/get")
 	@Produces({"application/json"})
-	public String getUser(
+	public Response getUser(
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
@@ -129,21 +129,21 @@ public class UserHandler {
 		
 		if(access_token == null) {
 			fail_response.addProperty("message", "invalid or missing access token");
-			return fail_response.toString();
+			return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
 		}
 		
 		HumansUser user = getUserForAccessToken(context, access_token);
 
 		if(user == null) {
 			invalid_user_error_response.addProperty("message", "invalid access token");
-			return invalid_user_error_response.toString();
+			return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response.toString()).type(MediaType.APPLICATION_JSON).build();
 		}
 
 		
 		// don't send the encrypted password
 		//user.setPassword(null);
 		JsonElement user_elem = new JsonParser().parse(out_gson.toJson(user));
-		return user_elem.toString();
+		return Response.ok(user_elem.toString(), MediaType.APPLICATION_JSON).build();
 
 
 	}

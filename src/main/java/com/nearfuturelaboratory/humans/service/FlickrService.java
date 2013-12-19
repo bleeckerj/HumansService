@@ -637,19 +637,6 @@ public class FlickrService {
 			}
 		}
 
-		//		
-		//		
-		//		for(int i=0; i<aFriend.size(); i++) {
-		//			//result.add(data.get(i));
-		//			FlickrFriend friend = gson.fromJson(aFriend.get(i).toString(), FlickrFriend.class);
-		//			FlickrFriend existing = friendsDAO.findByFriendIDUserID(friend.getNsid(), getThisUser().getId());
-		//			if(existing != null) {
-		//				friend.setId(existing.getId());
-		//			}
-		//			friend.setUser(this.getThisUser());
-		//			//friend.setUser_id(this.getThisUser().getId());
-		//			friendsDAO.save(friend);
-		//		}
 
 	}
 

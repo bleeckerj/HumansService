@@ -1,5 +1,7 @@
 package com.nearfuturelaboratory.humans.dao;
 
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -20,11 +22,6 @@ public class ServiceTokenDAO extends BasicDAO<ServiceToken, ObjectId> {
 		super(aMongo, aMorphia, aDbName);
 	}
 
-	/**
-	 * A list of status by username, most recent first
-	 * @param aUsername
-	 * @return
-	 */
 	public ServiceToken findByExactUserId( String aUserId ) {
 		//Pattern regExp = Pattern.compile(aUsername + ".*", Pattern.CASE_INSENSITIVE);
 		ServiceToken result =  this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserId).limit(1).get();
@@ -51,6 +48,10 @@ public class ServiceTokenDAO extends BasicDAO<ServiceToken, ObjectId> {
 //		}
 		return result;
 
+	}
+	
+	public List<ServiceToken> findAll() {
+		return this.getDatastore().find(ServiceToken.class).asList();
 	}
  
 }

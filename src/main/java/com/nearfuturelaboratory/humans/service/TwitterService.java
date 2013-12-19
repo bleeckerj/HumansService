@@ -37,8 +37,9 @@ import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.util.Constants;
 import static com.google.common.collect.Lists.partition;
+import static org.hamcrest.core.IsNull.notNullValue;
 
-public class TwitterService extends ServiceStatus {
+public class TwitterService {
 	final static Logger logger = Logger
 			.getLogger(com.nearfuturelaboratory.humans.service.TwitterService.class);
 
@@ -403,15 +404,18 @@ public class TwitterService extends ServiceStatus {
 	}
 
 
-	public void serviceRequestFollows() {
-		serviceRequestFollowsForUserID((String) user.getId_str());
+	public List<TwitterFriend> serviceRequestFollows() {
+		return serviceRequestFollowsForUserID((String) user.getId_str());
 	}
 
 
 
 
 	@SuppressWarnings("unchecked")
-	public void serviceRequestFollowsForUserID(String aUserID) {
+	public List<TwitterFriend> serviceRequestFollowsForUserID(String aUserID) {
+		
+		List<TwitterFriend> follows = null;
+		
 		String id_str = (String) user.getId_str();
 		if (aUserID == null) {
 			aUserID = id_str;
@@ -443,6 +447,7 @@ public class TwitterService extends ServiceStatus {
 		//logger.info("From Headers for Twitter Request rate-limit="+h.get("x-rate-limit-limit")+" reset ms="+h.get("x-rate-limit-reset"));
 		Object obj = JSONValue.parse(s);
 		JSONObject map = (JSONObject) obj;
+		List<JSONObject> allFollowsHydrated = new ArrayList<JSONObject>();
 
 		// error check
 		if (map != null && map.get("errors") == null) {
@@ -451,7 +456,6 @@ public class TwitterService extends ServiceStatus {
 			// System.out.println("next_cursor="+next_cursor);
 			JSONArray allFollowsIDs = new JSONArray();
 			//JSONArray allFollowsHydrated = new JSONArray();
-			List<JSONObject> allFollowsHydrated = new ArrayList<JSONObject>();
 			int page_count = 1;
 			do {
 				// JSONArray users = (JSONArray)map.get("users");
@@ -506,13 +510,13 @@ public class TwitterService extends ServiceStatus {
 				allFollowsHydrated.addAll(usersArray);
 			}
 
-			saveFollows(allFollowsHydrated, aUserID);
+			follows = saveFollows(allFollowsHydrated, aUserID);
 		} else {
 
 			logger.warn("Do something about rate limit errors, etc."
 					+ map.toString());
 		}
-
+		return follows;
 	}
 	//TODO we should delete all the friends of follower_id first..
 	protected List<TwitterFriend> saveFollows(List<JSONObject> list_of_friends, String follower_id) {
@@ -607,9 +611,9 @@ public class TwitterService extends ServiceStatus {
 	}
 
 
-	public long getCreated() {
-		return this.getCreatedDate().getTime();
-	}
+//	public long getCreated() {
+//		return this.getCreatedDate().getTime();
+//	}
 
 
 

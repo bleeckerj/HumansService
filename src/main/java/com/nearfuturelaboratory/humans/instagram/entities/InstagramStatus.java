@@ -36,6 +36,12 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 
 	@Transient
 	protected String service="instagram";
+	/**
+	 * @return the service
+	 */
+	public String getService() {
+		return service;
+	}
 
 	
 	@Id

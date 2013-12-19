@@ -31,7 +31,7 @@ public class FoursquareServiceTest {
 		try {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
 			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
-			foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID("41");
+			foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID("91181");
 
 			//logger.debug("Hey Ho!");
 		} catch(Exception e) {
@@ -40,7 +40,7 @@ public class FoursquareServiceTest {
 
 	}
 
-	@Ignore
+	@Test
 	public void test_serviceRequestUserBasic() {
 		try {
 		foursquare.serviceRequestUserBasic();

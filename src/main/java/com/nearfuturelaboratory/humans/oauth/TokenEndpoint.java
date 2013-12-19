@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
 import org.apache.oltu.oauth2.as.issuer.MD5Generator;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuer;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuerImpl;
@@ -29,21 +30,25 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 
 
 
+
+
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
 import com.nearfuturelaboratory.humans.entities.InvalidUserException;
 //import com.bilyoner.api.demo.TestContent;
 import com.nearfuturelaboratory.humans.oauth.TestContent;
+import com.nearfuturelaboratory.util.Constants;
 
 /**
- *
- *
+ * Basically the endpoint to Login and get an access_token, which clients would use for all subsequent requests.
+ *	https://humans.nearfuturelaboratory.com:8443/oauth2/token?grant_type=password&username=darthjulian&password=darthjulian&client_id=ioshumans
  *
  */
 @Path("/token")
 public class TokenEndpoint {
+	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.oauth.TokenEndpoint.class);
 
-	@SuppressWarnings("unused")
+	//@SuppressWarnings("unused")
 	@POST
 	@Consumes("application/x-www-form-urlencoded")
 	//@Consumes("application/json")
@@ -58,40 +63,37 @@ public class TokenEndpoint {
 			oauthRequest = new OAuthUnauthenticatedTokenRequest(request);
 
 			//check if clientid is valid
-			if (!TestContent.CLIENT_ID.equals(oauthRequest.getParam(OAuth.OAUTH_CLIENT_ID))) {
+			if (!Constants.getString("CLIENT_ID").equals(oauthRequest.getParam(OAuth.OAUTH_CLIENT_ID))) {
+				
 				OAuthResponse response =
 						OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
-						.setError(OAuthError.TokenResponse.INVALID_CLIENT).setErrorDescription("client_id not found")
+						.setError(OAuthError.TokenResponse.INVALID_CLIENT).setErrorDescription("invalid client")
 						.buildJSONMessage();
 				return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
 			}
 
-			/*           //do checking for different grant types
-            if (oauthRequest.getParam(OAuth.OAUTH_GRANT_TYPE)
-                .equals(GrantType.AUTHORIZATION_CODE.toString())) {
-                if (!TestContent.AUTHORIZATION_CODE.equals(oauthRequest.getParam(OAuth.OAUTH_CODE))) {
-                    OAuthResponse response = OAuthASResponse
-                        .errorResponse(HttpServletResponse.SC_BAD_REQUEST)
-                        .setError(OAuthError.TokenResponse.INVALID_GRANT)
-                        .setErrorDescription("invalid authorization code")
-                        .buildJSONMessage();
-                    return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
-                }
-            } else 
-
-			 */            	
 			if (oauthRequest.getParam(OAuth.OAUTH_GRANT_TYPE)
 					.equals(GrantType.PASSWORD.toString())) {
 				HumansUserDAO dao = new HumansUserDAO();
 				HumansUser user = dao.findOneByUsername(oauthRequest.getUsername()); //new HumansUser(oauthRequest.getUsername(), oauthRequest.getPassword());
+				if(user == null) {
+					OAuthResponse response = OAuthASResponse
+							.errorResponse(HttpServletResponse.SC_UNAUTHORIZED)
+							.setError(OAuthError.TokenResponse.INVALID_CLIENT)
+							.setErrorDescription("invalid username or password")
+							.buildJSONMessage();
+					return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
+
+				}
+				
 				if(user.verifyPassword(oauthRequest.getPassword())) {
-					String token = oauthIssuerImpl.accessToken();
-					user.setAccessToken(token);
+					String access_token = oauthIssuerImpl.accessToken();
+					user.setAccessToken(access_token);
 					user.save();
 					//System.out.println("Token="+token);
 					OAuthResponse response = OAuthASResponse
 							.tokenResponse(HttpServletResponse.SC_ACCEPTED)
-							.setAccessToken(token)
+							.setAccessToken(access_token)
 							/*.setExpiresIn("3600")*/
 							.buildJSONMessage();
 
@@ -101,7 +103,7 @@ public class TokenEndpoint {
 					user.setAccessToken(null);
 					user.save();
 					OAuthResponse response = OAuthASResponse
-							.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
+							.errorResponse(HttpServletResponse.SC_UNAUTHORIZED)
 							.setError(OAuthError.TokenResponse.INVALID_GRANT)
 							.setErrorDescription("invalid username or password")
 							.buildJSONMessage();
@@ -110,6 +112,7 @@ public class TokenEndpoint {
 				}
 				
 			}
+			// otherwise, invalid grant type
 			OAuthResponse response = OAuthASResponse
 					.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
 					.setError(OAuthError.TokenResponse.INVALID_GRANT)
@@ -117,42 +120,23 @@ public class TokenEndpoint {
 					.buildJSONMessage();
 			return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
 
-			/*                if (!TestContent.PASSWORD.equals(oauthRequest.getPassword())
-                    || !TestContent.USERNAME.equals(oauthRequest.getUsername())) {
-                    OAuthResponse response = OAuthASResponse
-                        .errorResponse(HttpServletResponse.SC_BAD_REQUEST)
-                        .setError(OAuthError.TokenResponse.INVALID_GRANT)
-                        .setErrorDescription("invalid username or password")
-                        .buildJSONMessage();
-                    return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
-                }
-
-            } else if (oauthRequest.getParam(OAuth.OAUTH_GRANT_TYPE)
-                .equals(GrantType.REFRESH_TOKEN.toString())) {
-                OAuthResponse response = OAuthASResponse
-                    .errorResponse(HttpServletResponse.SC_BAD_REQUEST)
-                    .setError(OAuthError.TokenResponse.INVALID_GRANT)
-                    .setErrorDescription("invalid username or password")
-                    .buildJSONMessage();
-                return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
-            }
-			 */
 
 		} catch (OAuthProblemException e) {
-			OAuthResponse res = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST).error(e)
+			OAuthResponse res = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST).
+					setErrorDescription("invalid request").error(e)
 					.buildJSONMessage();
 			e.printStackTrace();
-			System.out.println(e);
+			logger.warn("bad request for oauth. oauth problems");
 			return Response.status(res.getResponseStatus()).entity(res.getBody()).build();
 		}
 
 	}
 
-	@GET
-	//@Consumes("application/x-www-form-urlencoded")
-	@Produces("application/json")
-	public Response authorizeGet(@Context HttpServletRequest request) throws OAuthSystemException {
-		return this.authorize(request);
+//	@GET
+//	//@Consumes("application/x-www-form-urlencoded")
+//	@Produces("application/json")
+//	public Response authorizeGet(@Context HttpServletRequest request) throws OAuthSystemException {
+//		return this.authorize(request);
 //		OAuthIssuer oauthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
 //
 //		OAuthResponse response = OAuthASResponse
@@ -162,6 +146,6 @@ public class TokenEndpoint {
 //				.buildJSONMessage();
 //
 //		return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
-	}
+//	}
 
 }

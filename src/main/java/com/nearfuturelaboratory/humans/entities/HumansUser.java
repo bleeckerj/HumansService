@@ -87,6 +87,17 @@ public class HumansUser extends BaseEntity {
 	public HumansUser() {
 		super();
 	}
+	
+	/**
+	 * Get all the humans users in the canonical datastore
+	 * 
+	 * @return a List of HumansUser
+	 */
+	public static List<HumansUser> getAllHumansUsers() {
+		HumansUserDAO dao = new HumansUserDAO();
+		return dao.getDatastore().find(dao.getEntityClass()).order("username").asList();
+	}
+
 
 	//	public HumansUser(String aUsername, String aPassword) throws InvalidUserException {
 	//		setUsername(aUsername);
@@ -434,14 +445,10 @@ public class HumansUser extends BaseEntity {
 				try {
 					flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(service_entry.getServiceUserID());
 					for(FlickrFriend f : flickr.getFriends()) {
-						//f.setOnBehalfOf(service_entry);
 						friends.add(f);
 					}
-					//friends.addAll(flickr.getFriends());
 				} catch (BadAccessTokenException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					logger.error("",e);
+					logger.warn(e);
 				}
 			}
 			if(service_entry.getServiceName().equalsIgnoreCase("instagram")) {
@@ -452,38 +459,24 @@ public class HumansUser extends BaseEntity {
 						//f.setOnBehalfOf(service_entry);
 						friends.add(f);
 					}
-					//logger.debug("INSTAGRAM "+instagram.getFollows());
-
-					//friends.addAll(instagram.getFollows());
-
 				} catch (BadAccessTokenException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					logger.error("",e);
+					logger.warn(e);
 				}
 			}
 			if(service_entry.getServiceName().equalsIgnoreCase("twitter")) {
 				TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_entry.getServiceUsername());
 				for(TwitterFriend f : twitter.getFriends() ) {
-					//f.setOnBehalfOf(service_entry);
 					friends.add(f);
 				}
-
-				//friends.addAll(twitter.getFriends());
-
 			}
 			if(service_entry.getServiceName().equalsIgnoreCase("foursquare")) {
 				try {
 					FoursquareService foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID(service_entry.getServiceUserID());
 					for(FoursquareFriend f : foursquare.getFriends() ) {
-						//f.setOnBehalfOf(service_entry);
 						friends.add(f);
 					}
-
 				} catch (BadAccessTokenException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					logger.error("",e);
+					logger.warn(e);
 				}
 			}
 		}
@@ -568,10 +561,17 @@ public class HumansUser extends BaseEntity {
 		boolean result = true;
 		DB cache_db = MongoUtil.getStatusCacheDB();
 		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
-		DBObject first = cache.findOne();
-		if(first != null) {
-			//logger.debug(first.get("lastUpdated").getClass());
-			Date d = (Date)first.get("lastUpdated");//HumansUser.format.parse( first.get("lastUpdated").toString() );
+		
+		BasicDBObject query = new BasicDBObject("key", this.getId()+"_"+aHuman.getId());
+		DBCursor cursor = cache.find(query);
+		DBObject key = null;
+		if(cursor.hasNext()) {
+		key = cursor.next();
+		}
+		if(key != null) {
+			logger.debug("Does this ever change format?? "+key.get("lastUpdated")+" from:"+cache.getName());
+			
+			Date d = (Date)key.get("lastUpdated");//HumansUser.format.parse( first.get("lastUpdated").toString() );
 			long then = d.getTime();
 			long now = new Date().getTime();
 			long diff = now - then;
@@ -600,7 +600,7 @@ public class HumansUser extends BaseEntity {
 		return allStatus;
 
 	}
-	
+
 	//TODO Need better strategy for pre-fetching status. Or..basically need a strategy..
 	/**
 	 * This is called by the endpoint handler. It gets status from a database "cache"
@@ -615,43 +615,58 @@ public class HumansUser extends BaseEntity {
 	public JsonArray getJsonStatusForHuman(Human aHuman) {
 		JsonArray result_array = new JsonArray();
 		JsonParser parser = new JsonParser();
+		String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+//		if(service == null) {
+//			service = "all";
+//		}
+
 		DB cache_db = MongoUtil.getStatusCacheDB();
-		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+		DBCollection cache = cache_db.getCollection(cache_name);
 		DBCursor cursor = cache.find(  );
 		logger.debug("cache="+cache);
 		if(this.isCachedStatusStale(aHuman) == false) {
 			List<DBObject> raw = new ArrayList<DBObject>();
 			//JsonArray array = new JsonArray();
 			// skip the first row - it's meta data..
-			if(cursor.hasNext()) cursor.next();
+			//if(cursor.hasNext()) cursor.next();
 			while (cursor.hasNext() ) {
 				DBObject obj = cursor.next();	
+				if(obj.containsField("key")) continue;
 				raw.add(obj);
 
 				JsonElement elem = parser.parse( gson.toJson(obj) );
-				logger.debug(elem.getAsJsonObject().get("service"));
+				//logger.debug(elem.getAsJsonObject().get("service"));
 				result_array.add(elem);
 			}
 			logger.info("Returning cached status "+result_array.size());
+//			if(result_array.size() < 1) {
+//				cache.drop();
+//				
+//			}
 			//return result;
 			//cache.drop();
 		} else {
-			if(cache.count() > 0) {
+			//if(cache.count() > 0) {
 				cache.drop();
 				logger.info("dropping cached status status_cache_"+this.getId()+"_"+aHuman.getId());
-			}
+			//}
 			List<ServiceStatus> statuses = getStatusForHuman(aHuman, false);
+			
 			for(ServiceStatus s : statuses) {
-				JsonElement elem = parser.parse( gson.toJson(s) );
-				result_array.add(elem);
+//				if(service == null || service.equalsIgnoreCase("all") || s.getService().equalsIgnoreCase(service)) {
+					JsonElement elem = parser.parse( gson.toJson(s) );
+//
+					result_array.add(elem);
+//				}
 			}
 		}
+			
 		return result_array;
 
 	}
 
-	
-	
+
+
 	protected List<ServiceStatus> getStatusForHuman(Human aHuman, boolean loadIfStale) {
 		List<ServiceStatus> result = new ArrayList<ServiceStatus>();
 
@@ -663,9 +678,9 @@ public class HumansUser extends BaseEntity {
 				TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
 				if(loadIfStale && twitter.localServiceStatusIsFreshFor(service_user.getUserID()) == false) {
 					List<TwitterStatus> status = twitter.serviceRequestStatusForUserID(service_user.getUserID());
-//					for(TwitterStatus stat : status) {
-//						result.add(stat.getStatusJSON());
-//					}
+					//					for(TwitterStatus stat : status) {
+					//						result.add(stat.getStatusJSON());
+					//					}
 					result.addAll(status);
 
 				} else {
@@ -683,7 +698,7 @@ public class HumansUser extends BaseEntity {
 						result.addAll(instagram.getStatusForUserID(service_user.getUserID()));
 					}
 				} catch (BadAccessTokenException e) {
-					logger.error("", e);
+					logger.warn(e);
 					e.printStackTrace();
 				}
 
@@ -697,7 +712,7 @@ public class HumansUser extends BaseEntity {
 						result.addAll(flickr.getStatusForUserID(service_user.getUserID()));
 					}
 				} catch (BadAccessTokenException e) {
-					logger.error("", e);
+					logger.warn(e);
 					e.printStackTrace();
 				}
 			}
@@ -711,7 +726,7 @@ public class HumansUser extends BaseEntity {
 					}
 					result.addAll(foursquare.getCheckinsForUserID(service_user.getUserID()));
 				} catch (BadAccessTokenException e) {
-					logger.error("", e);
+					logger.warn(e);
 					e.printStackTrace();
 				}
 			}
@@ -721,13 +736,15 @@ public class HumansUser extends BaseEntity {
 		Collections.sort(result);
 
 		DB cache_db = MongoUtil.getStatusCacheDB();
-
-		DBCollection cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+		String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+		DBCollection cache = cache_db.getCollection(cache_name);
+		logger.debug("writing cache "+cache_name);
 		cache.drop();
-		cache = cache_db.getCollection("status_cache_"+this.getId()+"_"+aHuman.getId());
+		cache = cache_db.getCollection(cache_name);
 		//Gson gson = new Gson();
 		BasicDBObject doc = new BasicDBObject
 				("user", this.toString()).
+				append("key", this.getId()+"_"+aHuman.getId()).
 				append("human", aHuman.toString()).
 				append("lastUpdated", new Date());
 		cache.insert(doc);

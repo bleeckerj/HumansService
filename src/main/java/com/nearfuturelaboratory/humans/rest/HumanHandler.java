@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.partition;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -19,6 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -145,8 +147,8 @@ public class HumanHandler {
 	 * @return
 	 */
 	@GET @Path("/status")
-	@Produces({"application/json"})
-	public String getStatusByID(
+	//@Produces({"application/json"})
+	public Response getStatusByID(
 			@QueryParam("humanid") String aHumanId, 
 			@QueryParam("page") String aPage,
 			@Context HttpServletRequest request,
@@ -156,8 +158,8 @@ public class HumanHandler {
 	}
 
 	@GET @Path("/status/{humanid}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String getStatus(
+	//@Produces(MediaType.APPLICATION_JSON)
+	public Response getStatus(
 			@PathParam("humanid") String aHumanId, 
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response) 	
@@ -165,9 +167,11 @@ public class HumanHandler {
 		return this.getStatus(aHumanId, "1", request, response);
 	}
 
+
+
 	@GET @Path("/status/{humanid}/{page}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String getStatus(
+	//@Produces(MediaType.APPLICATION_JSON)
+	public Response getStatus(
 			@PathParam("humanid") String aHumanId, 
 			@PathParam("page") String aPage,
 			@Context HttpServletRequest request,
@@ -183,37 +187,27 @@ public class HumanHandler {
 		} catch (InvalidAccessTokenException e1) {
 			logger.warn("invalid or missing access token", e1);
 			fail_response.addProperty("message", "invalid access token");
-			return fail_response.toString();
+			return Response.status(Response.Status.UNAUTHORIZED).entity("invalid access token").build();
+			//return fail_response.toString();
 			//e1.printStackTrace();
 		}
-		
+
 		logger.debug("humanid="+aHumanId);
 		Human human = user.getHumanByID(aHumanId);
 
 		if(human ==  null) {
 			fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
-			return fail_response.toString();
-		}
-		
-		
-		String status_response;
-		StatusPagingHelper paging_helper = null;
+			return Response.status(Response.Status.NOT_FOUND).entity("none such human found for humanid="+aHumanId).build();
 
-		logger.debug(session.getAttribute("status_"+aHumanId));
-		
-		if(session.getAttribute("status_"+aHumanId) == null) {
-			JsonArray result = user.getJsonStatusForHuman(human);
-			paging_helper = new StatusPagingHelper(result, human);
-			//paging_helper.getTotalPages();
-			session.setAttribute("status_"+aHumanId, paging_helper);	
+			//return fail_response.toString();
 		}
 
-		paging_helper = (StatusPagingHelper)session.getAttribute("status_"+aHumanId);
+		StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
 
 		if(paging_helper == null) {
-			fail_response.addProperty("message", "missing paging helper for humanid="+aHumanId);
-			return fail_response.toString();
+			return Response.status(Response.Status.EXPECTATION_FAILED).entity("no such paging helper found for "+human).build();
 		}
+
 
 		int page = 1;
 		if(aPage != null) {
@@ -223,25 +217,135 @@ public class HumanHandler {
 				logger.warn("", nfe);
 			}
 		}
-		status_response = paging_helper.statusByPage(page-1);
 
-		logger.debug("status by page"+(page-1)+" status_response count="+status_response.length());
+		JsonObject status_response;
+
+		status_response = paging_helper.statusJsonByPage(page-1);
+
+		//logger.debug("status by page"+(page-1)+" status_response count="+(status_response.get("status") == null ? status_response.get("status") : status_response.get("status").getAsJsonArray().size()));
 
 		//		JsonArray result = new JsonArray();
 		//		for(ServiceStatus s : status) {
 		//			result.add(s.getStatusJSON());
 		//		}
 		//logger.debug(status);
-		return status_response;
+		return Response.ok().entity(status_response.toString()).build();
 	}
 
-	//	public StatusPagingHelper getStatusPagingHelper
+	/**
+	 * Helper
+	 * @param session
+	 * @param user
+	 * @param human
+	 * @return
+	 */
+	protected StatusPagingHelper getStatusPagingHelperFromSession(HttpSession session, HumansUser user, Human human)
+	{
+		StatusPagingHelper paging_helper = null;
+		String aHumanId = human.getId();
+//		if(service == null) {
+//			service = "all";
+//		}
+		logger.debug("session="+session.getId());
+		String attribute_name = "status_"+aHumanId;
 
-	@GET
+		
+		paging_helper = (StatusPagingHelper)session.getAttribute(attribute_name);
+
+		if(paging_helper == null ) {
+			JsonArray result = user.getJsonStatusForHuman(human);
+			paging_helper = new StatusPagingHelper(result, human);
+			//paging_helper.getTotalPages();
+			logger.debug("for "+session.getId()+" result size="+result.size());
+			session.setAttribute(attribute_name, paging_helper);	
+
+		}
+
+		long now = new Date().getTime();
+		long diff = now - paging_helper.created_time;
+
+		if(diff > Constants.getLong("STATUS_STALE_TIME") ) {
+			JsonArray result = user.getJsonStatusForHuman(human);
+			session.removeAttribute(attribute_name);
+			paging_helper = new StatusPagingHelper(result, human);
+			session.setAttribute(attribute_name, paging_helper);
+		}
+		
+		
+		//logger.debug(attribute_name+" "+session.getAttribute(attribute_name));
+
+		
+		paging_helper = (StatusPagingHelper)session.getAttribute(attribute_name);
+
+		return paging_helper;
+	}
+
+
+	@GET @Path("/status/{humanid}/{page}/{service}")
+	//@Produces(MediaType.APPLICATION_JSON)
+	public Response getStatus(
+			@PathParam("humanid") String aHumanId, 
+			@PathParam("page") String aPage,
+			@PathParam("service") String service,
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response) 
+	{
+		//String result = getStatus(aHumanId, aPage, request, response);
+		// stoopid that you would have to convert it back to JSON
+		HttpSession session = request.getSession();
+		logger.debug("session="+session.getId());
+		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
+		RestCommon common = new RestCommon();
+		HumansUser user;
+		try {
+			user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+		} catch (InvalidAccessTokenException e1) {
+			logger.warn("invalid or missing access token", e1);
+			fail_response.addProperty("message", "invalid access token");
+			return Response.status(Response.Status.UNAUTHORIZED).entity("invalid access token").build();
+			//return fail_response.toString();
+			//e1.printStackTrace();
+		}
+
+		logger.debug("humanid="+aHumanId);
+		Human human = user.getHumanByID(aHumanId);
+
+		if(human ==  null) {
+			fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
+			return Response.status(Response.Status.NOT_FOUND).entity("none such human found for humanid="+aHumanId).build();
+
+			//return fail_response.toString();
+		}
+
+		StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
+
+		if(paging_helper == null) {
+			return Response.status(Response.Status.EXPECTATION_FAILED).entity("no such paging helper found for "+human).build();
+		}
+
+
+		int page = 1;
+		if(aPage != null) {
+			try {
+				page = Integer.parseInt(aPage);
+			} catch(NumberFormatException nfe) {
+				logger.warn("", nfe);
+			}
+		}
+
+		JsonObject status_response = paging_helper.statusJsonByPage(page-1);
+
+		return Response.ok().type(MediaType.APPLICATION_JSON).entity(status_response.toString()).build();		
+	}
+
+
+
+
+	@POST
 	@Path("{humanid}/update/serviceuser/{serviceuserid}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public String updateServiceUserFromHuman(
+	//@Consumes(MediaType.APPLICATION_JSON)
+	//@Produces(MediaType.APPLICATION_JSON)
+	public Response updateServiceUserFromHuman(
 			String aServiceUserJson,
 			@PathParam("humanid") String aHumanId,
 			@PathParam("serviceuserid") String aServiceUserId,
@@ -252,16 +356,18 @@ public class HumanHandler {
 		HumansUser user = dao.findByHumanID(aHumanId);
 
 		if(isValidUser(request, user) == false) {
-			return invalid_user_error_response.toString();
+			return Response.status(Response.Status.UNAUTHORIZED).entity("invalid access token").build();
+			//return invalid_user_error_response.toString();
 		}
 
 		ServiceUser aServiceUser = gson.fromJson(aServiceUserJson, ServiceUser.class);
 		boolean result = user.updateServiceUserById(aServiceUser, aServiceUserId);
 
 		if(result) {
-			return success_response.toString();
+			return Response.ok(success_response).build();
+			//return success_response.toString();
 		} else {
-			return fail_response.toString();
+			return Response.status(Response.Status.EXPECTATION_FAILED).entity(fail_response).build();//.toString();
 		}
 	}
 
@@ -275,7 +381,7 @@ public class HumanHandler {
 			@Context HttpServletResponse response)
 	{
 
-		//		HttpSession session = request.getSession();
+		//		HttpSession session = request.getSesxfwebsion();
 		//		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
 		HumansUserDAO dao = new HumansUserDAO();
 		HumansUser user = dao.findByHumanID(aHumanId);
@@ -386,7 +492,7 @@ class StatusPagingHelper {
 		pages = status_chunks.size();
 	}
 
-	public String statusByPage(int aPage) {
+	public JsonObject statusJsonByPage(int aPage) {
 		JsonObject json_result = new JsonObject();
 		if(aPage < 0) aPage = 0;
 
@@ -414,8 +520,14 @@ class StatusPagingHelper {
 			}
 			json_result.add("status", status);
 		}
-		return json_result.toString();
+		return json_result;
+
 	}
+
+	public String statusByPage(int aPage) {
+		return statusJsonByPage(aPage).toString();
+	}
+
 
 	public int getTotalPages() {
 		return pages;

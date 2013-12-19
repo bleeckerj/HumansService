@@ -329,6 +329,11 @@ public class HumansUserTest {
 	}
 	
 	
+	@Test
+	public void testGetJsonStatusForHuman() {
+		
+	}
+	
 	
 	@Test
 	public void testGetStatusForHuman() {

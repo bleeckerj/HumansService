@@ -46,9 +46,6 @@ public class InstagramService /*implements AbstractService*/ {
 	private static final String USER_URL = "https://api.instagram.com/v1/users/%s";
 
 	private OAuthService service;
-	//	private static String apiKey = Constants.getString("INSTAGRAM_API_KEY");
-	//	private static String apiSecret = Constants.getString("INSTAGRAM_API_SECRET");
-	//	private static String callbackURL = Constants.getString("INSTAGRAM_CALLBACK_URL");
 
 	private Token accessToken;
 
@@ -661,14 +658,5 @@ public class InstagramService /*implements AbstractService*/ {
 		InstagramUser user = dao.findByExactUsername(aUsername);
 		return user;
 	}
-
-
-
-
-
-
-
-
-
 
 }
