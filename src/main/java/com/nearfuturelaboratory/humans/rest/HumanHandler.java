@@ -4,7 +4,6 @@ import static com.google.common.collect.Lists.partition;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -34,7 +33,6 @@ import com.google.gson.JsonParser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
-import com.nearfuturelaboratory.humans.entities.InvalidUserException;
 import com.nearfuturelaboratory.humans.entities.ServiceUser;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 import com.nearfuturelaboratory.util.Constants;
@@ -178,26 +176,30 @@ public class HumanHandler {
 			@Context HttpServletResponse response) 
 	{
 		HttpSession session = request.getSession();
-		logger.debug("session="+session.getId());
-		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
+//		logger.debug("session="+session.getId());
+//		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
 		RestCommon common = new RestCommon();
 		HumansUser user;
 		try {
 			user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
 		} catch (InvalidAccessTokenException e1) {
-			logger.warn("invalid or missing access token", e1);
+			logger.warn("invalid or missing access token");
 			fail_response.addProperty("message", "invalid access token");
-			return Response.status(Response.Status.UNAUTHORIZED).entity("invalid access token").build();
+			return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
 			//return fail_response.toString();
 			//e1.printStackTrace();
 		}
 
 		logger.debug("humanid="+aHumanId);
-		Human human = user.getHumanByID(aHumanId);
-
+		Human human = null;
+		try {
+		human = user.getHumanByID(aHumanId);
+		} catch(java.lang.IllegalArgumentException iae) {
+			logger.warn(iae);
+		}
 		if(human ==  null) {
 			fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
-			return Response.status(Response.Status.NOT_FOUND).entity("none such human found for humanid="+aHumanId).build();
+			return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
 
 			//return fail_response.toString();
 		}
@@ -205,7 +207,8 @@ public class HumanHandler {
 		StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
 
 		if(paging_helper == null) {
-			return Response.status(Response.Status.EXPECTATION_FAILED).entity("no such paging helper found for "+human).build();
+			fail_response.addProperty("message", "no such paging helper found for "+human);
+			return Response.status(Response.Status.EXPECTATION_FAILED).type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
 		}
 
 
@@ -229,9 +232,22 @@ public class HumanHandler {
 		//			result.add(s.getStatusJSON());
 		//		}
 		//logger.debug(status);
-		return Response.ok().entity(status_response.toString()).build();
+		return Response.ok().type(MediaType.APPLICATION_JSON).entity(status_response.toString()).build();
 	}
 
+	//TODO
+//	@GET @Path("/status/{humanid}/{aftertimestamp}/{page}")
+//	//@Produces(MediaType.APPLICATION_JSON)
+//	public Response getStatus(
+//			@PathParam("humanid") String aHumanId,
+//			@PathParam("aftertimestamp") Long afterTimeStamp,
+//			@PathParam("page") String aPage,
+//			@Context HttpServletRequest request,
+//			@Context HttpServletResponse response) 
+//	{
+//		return Response.serverError().entity("not implemented yet").build();
+//	}
+	
 	/**
 	 * Helper
 	 * @param session

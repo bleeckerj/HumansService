@@ -8,9 +8,6 @@ import static ch.lambdaj.Lambda.selectUnique;
 import static ch.lambdaj.function.matcher.AndMatcher.and;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -666,14 +663,19 @@ public class HumansUser extends BaseEntity {
 	}
 
 
-
+	/**
+	 * 
+	 * @param aHuman
+	 * @param loadIfStale
+	 * @return
+	 */
 	protected List<ServiceStatus> getStatusForHuman(Human aHuman, boolean loadIfStale) {
 		List<ServiceStatus> result = new ArrayList<ServiceStatus>();
 
 		List<ServiceUser> service_users = aHuman.getServiceUsers();
 		for(ServiceUser service_user : service_users) {
 			String service_name = service_user.getService();
-			//logger.debug(service_user);
+			logger.debug("Gathering Status for "+service_user);
 			if(service_name.equalsIgnoreCase("twitter")) {
 				TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
 				if(loadIfStale && twitter.localServiceStatusIsFreshFor(service_user.getUserID()) == false) {
@@ -699,7 +701,7 @@ public class HumansUser extends BaseEntity {
 					}
 				} catch (BadAccessTokenException e) {
 					logger.warn(e);
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 
 			}
@@ -713,7 +715,7 @@ public class HumansUser extends BaseEntity {
 					}
 				} catch (BadAccessTokenException e) {
 					logger.warn(e);
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 			}
 			if(service_name.equalsIgnoreCase("foursquare")) {
@@ -727,7 +729,7 @@ public class HumansUser extends BaseEntity {
 					result.addAll(foursquare.getCheckinsForUserID(service_user.getUserID()));
 				} catch (BadAccessTokenException e) {
 					logger.warn(e);
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 			}
 

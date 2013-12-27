@@ -3,15 +3,14 @@ package com.nearfuturelaboratory.humans.entities;
 //import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.*;
-
-import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -34,10 +33,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
-import com.nearfuturelaboratory.humans.entities.Human;
-import com.nearfuturelaboratory.humans.entities.HumansUser;
-import com.nearfuturelaboratory.humans.entities.ServiceEntry;
-import com.nearfuturelaboratory.humans.entities.ServiceUser;
 import com.nearfuturelaboratory.util.Constants;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -484,7 +479,7 @@ public class HumansUserTest {
 	}
 
 	@Test
-	public void getStatus() {
+	public void testRefreshStatus() {
 		try {
 			HumansUserDAO dao = new HumansUserDAO();
 			HumansUser user = dao.findOneByUsername("darthjulian");
@@ -500,11 +495,11 @@ public class HumansUserTest {
 		}
 	}
 
-	@Ignore
+	@Test
 	public void test_fixImageUrls() {
 		try {
 			HumansUserDAO dao = new HumansUserDAO();
-			HumansUser user = dao.findOneByUsername("darthjulian");
+			HumansUser user = dao.findOneByUsername("nicolas");
 			List<Human> humans = user.getHumans();
 			for(Human human : humans) {
 				List<ServiceUser> service_users = human.getServiceUsers();

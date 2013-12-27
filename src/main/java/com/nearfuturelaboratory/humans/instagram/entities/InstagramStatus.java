@@ -87,10 +87,12 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 	public static final String STANDARD_RESOLUTION = "standard_resolution";
 	public static final String THUMBNAIL_RESOLUTION = "thumbnail_resolution";
 	public static final String LOW_RESOLUTION = "low_resolution";
-
+	
+	/* here we load the transient_instagam_user..not sure why i figured on this */
 	@PostLoad void postLoad() {
 		InstagramUserDAO dao = new InstagramUserDAO();
 		transient_instagram_user = dao.findByExactUserID(user.id);
+		logger.debug("transient_instagram_user="+transient_instagram_user);
 	}
 	
 	protected Date lastUpdated;
