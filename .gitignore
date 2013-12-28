@@ -10,3 +10,5 @@ logs
 /dump
 /foursquare
 /.settings
+/.classpath
+/.project
