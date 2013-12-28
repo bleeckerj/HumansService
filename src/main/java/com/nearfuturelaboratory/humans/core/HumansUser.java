@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -63,7 +64,7 @@ public class HumansUser {
 	// protected Map<String, List> servicesToAccount;
 
 	protected static String USER_DATA_ROOT = Constants.getString("USER_DATA_ROOT");
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
 	/**
 	 * Default constructor. Use this for creating a new user.

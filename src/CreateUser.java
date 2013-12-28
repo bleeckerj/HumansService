@@ -1,7 +1,8 @@
 import java.io.IOException;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.nearfuturelaboratory.humans.core.HumansUser;
@@ -10,7 +11,7 @@ import com.nearfuturelaboratory.util.Constants;
 
 public class CreateUser {
 
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
 	
 	public CreateUser() {

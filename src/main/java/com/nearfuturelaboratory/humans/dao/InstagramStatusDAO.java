@@ -9,7 +9,8 @@ import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -18,7 +19,7 @@ import org.mongodb.morphia.query.Query;
 
 public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.dao.InstagramStatusDAO.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.dao.InstagramStatusDAO.class);
 	protected static Mongo mongo;
 
 	public InstagramStatusDAO(/*String aUserId*/) {

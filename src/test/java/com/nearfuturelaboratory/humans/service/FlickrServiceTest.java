@@ -1,6 +1,7 @@
 package com.nearfuturelaboratory.humans.service;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -10,7 +11,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.fail;
 
-import org.apache.log4j.PropertyConfigurator;
+//import org.apache.log4j.PropertyConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -29,13 +30,13 @@ import org.junit.runners.MethodSorters;
 
 public class FlickrServiceTest {
 	static FlickrService flickr;
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
+			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			flickr = FlickrService.createFlickrServiceOnBehalfOfUserID("66854529@N00");
 
 			//logger.debug("Hey Ho!");

@@ -9,7 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
 import java.io.IOException;
@@ -17,7 +18,7 @@ import java.io.IOException;
 public class HelloController implements Controller {
 
     //protected final Log logger = LogFactory.getLog(getClass());
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.UserHandler.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.UserHandler.class);
 
     public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

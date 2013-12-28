@@ -3,8 +3,9 @@ package com.nearfuturelaboratory.humans.scheduler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+//import org.apache.log4j.PropertyConfigurator;
 
 import com.nearfuturelaboratory.humans.entities.*;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
@@ -21,7 +22,7 @@ import com.nearfuturelaboratory.humans.dao.*;
 import com.nearfuturelaboratory.util.Constants;
 
 public class FriendsPrefetcher {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.scheduler.FriendsPrefetcher.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.scheduler.FriendsPrefetcher.class);
 
 	public FriendsPrefetcher() {
 		// TODO Auto-generated constructor stub
@@ -30,7 +31,7 @@ public class FriendsPrefetcher {
 	public static void main(String[] args) {
 		try {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
+			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			FriendsPrefetcher prefetcher = new FriendsPrefetcher();
 			List<HumansUser> users = HumansUser.getAllHumansUsers();
 			logger.debug("Hey Ho!");

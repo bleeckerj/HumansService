@@ -18,7 +18,8 @@ import com.nearfuturelaboratory.util.*;
 
 import java.io.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 @WebServlet(name = "TwitterLoginServlet", urlPatterns = {"/login-twitter", "/TwitterLogin", "/scrumpy-twitter"}
 		)
@@ -37,7 +38,7 @@ public class TwitterLoginServlet extends HttpServlet {
 	protected TwitterService twitter;
 
 
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 	protected Token requestToken;
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

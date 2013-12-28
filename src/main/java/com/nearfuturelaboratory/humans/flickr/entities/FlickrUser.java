@@ -4,7 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.PrePersist;
@@ -48,7 +49,7 @@ public class FlickrUser extends MinimalSocialServiceUser {
 	}
 
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrUser.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrUser.class);
 	
 	@Version
 	@Property ("version")

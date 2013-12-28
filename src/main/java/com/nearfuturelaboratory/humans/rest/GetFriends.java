@@ -8,7 +8,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.oltu.oauth2.as.request.OAuthAuthzRequest;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
@@ -28,7 +29,7 @@ import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 @Deprecated
 public class GetFriends {
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.GetFriends.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.GetFriends.class);
 
 
 	@Context ServletContext context;

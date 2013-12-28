@@ -5,7 +5,8 @@ package com.nearfuturelaboratory.humans.core;
 
 import java.util.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.google.gson.Gson;
 
@@ -19,7 +20,7 @@ public class Human {
 	protected String name;
 	protected String id;
 	protected Set<ServiceUser> serviceUsers;
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
 	/**
 	 * 

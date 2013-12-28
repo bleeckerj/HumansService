@@ -21,7 +21,8 @@ import com.nearfuturelaboratory.util.*;
 import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class FoursquareService {
 
@@ -29,7 +30,7 @@ public class FoursquareService {
 	private static final String CHECKINS_URL = "https://api.foursquare.com/v2/users/self/checkins/?oauth_token=%s&v=20131006&sort=newestfirst";
 	private static final String USER_URL = "https://api.foursquare.com/v2/users/%s?oauth_token=%s&v=20131006";
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.service.FoursquareService.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.service.FoursquareService.class);
 	private static String apiKey = Constants.getString("FOURSQUARE_API_KEY");//"MKGJ3OZYTDNZAI5ZMROF3PAMAUND0ZO2HYRTZYXHIIR5TW1Q";
 	private static String apiSecret = Constants.getString("FOURSQUARE_API_SECRET");//"2G0DUIFCFAWBH1WPIYBUDQMESKRLFLGY5PHXY0BJNBE1MMN4";
 	private static String callbackURL = Constants.getString("FOURSQUARE_CALLBACK_URL");

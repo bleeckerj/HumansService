@@ -18,9 +18,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+//import org.apache.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+//import org.apache.log4j.PropertyConfigurator;
 import org.bson.types.ObjectId;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -37,20 +38,20 @@ import com.nearfuturelaboratory.util.Constants;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class HumansUserTest {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.entities.HumanTest.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.entities.HumanTest.class);
 	static HumansUserDAO test_dao;
 
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Logger.getRootLogger().setLevel(Level.OFF);
+		//Logger.getRootLogger().setLevel(Level.OFF);
 
 		try {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
+			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			test_dao = new HumansUserDAO("humans-test");
 			test_dao.getCollection().drop();
-			//logger.debug("Hey Ho!");
+			logger.debug("Hey Ho!");
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

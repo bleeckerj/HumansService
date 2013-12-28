@@ -3,7 +3,8 @@ package com.nearfuturelaboratory.humans.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -13,7 +14,7 @@ import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 
 public class InstagramFriendsDAO extends BasicDAO<InstagramFriend, ObjectId> {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO.class);
 	protected static Mongo mongo;
 
 	public InstagramFriendsDAO(/*String aUserId*/) {

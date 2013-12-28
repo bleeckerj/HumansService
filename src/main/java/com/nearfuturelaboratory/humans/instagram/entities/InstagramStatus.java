@@ -4,7 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -24,7 +25,7 @@ import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 
 @Entity(value = "status", noClassnameStored = true)
 public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
 
 	//	@Indexed(value = IndexDirection.ASC, name = "uniq_status_id", unique = true, dropDups = true)
 	//	@Id

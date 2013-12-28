@@ -6,7 +6,8 @@ import java.io.*;
 import java.util.*;
 
 import org.apache.commons.configuration.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * Central place to store constants used on the site.
@@ -18,7 +19,7 @@ public class Constants /*extends PropertiesConfiguration*/ {
 
   /** Class-wide, webapp-wide cache for our constants */
   private static PropertiesConfiguration sProps = new PropertiesConfiguration();
-  private final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.util.Constants");
+  private final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.util.Constants");
 
 /*
   static {

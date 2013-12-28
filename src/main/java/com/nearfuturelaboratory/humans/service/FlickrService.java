@@ -10,7 +10,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -43,7 +44,7 @@ import com.nearfuturelaboratory.util.Constants;
 import org.apache.commons.collections4.CollectionUtils;
 
 public class FlickrService {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.service.FlickrService.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.service.FlickrService.class);
 
 	private String apiKey = Constants.getString("FLICKR_API_KEY");
 	private String apiSecret = Constants.getString("FLICKR_API_SECRET");

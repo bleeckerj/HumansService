@@ -4,7 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
@@ -26,7 +27,7 @@ import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 @Indexes( @Index(name="checkins_index", value="_id, user_id", unique=true/*, dropDups=true*/) )
 
 public class FoursquareCheckin extends ServiceStatus {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin.class);
 	@Version
 	@Property ("version")
 	private Long version;

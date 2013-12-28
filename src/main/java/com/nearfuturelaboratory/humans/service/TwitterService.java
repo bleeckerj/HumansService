@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -40,7 +41,7 @@ import static com.google.common.collect.Lists.partition;
 import static org.hamcrest.core.IsNull.notNullValue;
 
 public class TwitterService {
-	final static Logger logger = Logger
+	final static Logger logger = LogManager
 			.getLogger(com.nearfuturelaboratory.humans.service.TwitterService.class);
 
 	private String apiKey = Constants.getString("TWITTER_API_KEY");// "09ARKva0K7HMz1DW1GUg";

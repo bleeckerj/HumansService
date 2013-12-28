@@ -12,7 +12,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 
 import com.google.gson.Gson;
@@ -27,7 +28,7 @@ import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 
 @Path("login")
 public class Login {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.Login.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.Login.class);
 
 	@Context ServletContext context;
 	static JsonObject invalid_user_error_response;

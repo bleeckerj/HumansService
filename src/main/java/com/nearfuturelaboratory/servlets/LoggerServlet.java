@@ -21,7 +21,7 @@ import javax.servlet.ServletException;
 
 import org.apache.commons.configuration.ConfigurationException;
 // import log4j packages
-import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
 
 import java.util.*;
 
@@ -67,7 +67,7 @@ public class LoggerServlet extends HttpServlet {
 
 
 		try {
-			//System.out.println(this+" bad debugging.. constants="+config.getInitParameter("constants")+"\nfoo="+foo+"\nprops="+props);
+			System.out.println(this+" bad debugging.. constants="+config.getInitParameter("constants")+"\nfoo="+foo+"\nprops="+props);
 			String constants = config.getInitParameter("constants");
 			com.nearfuturelaboratory.util.Constants.load(foo+constants);
 		}
@@ -99,20 +99,20 @@ public class LoggerServlet extends HttpServlet {
 		System.err.println("Watch is set to: " + watch);
 
 		// use the props file to load up configuration parameters for log4j
-		if(watch != null && watch.equalsIgnoreCase("true")) {
-			PropertyConfigurator.configureAndWatch(props);
-		} else {
-			PropertyConfigurator.configure(props);
-		}
-		// once configured, we can start using the Looger now
+//		if(watch != null && watch.equalsIgnoreCase("true")) {
+//			PropertyConfigurator.configureAndWatch(props);
+//		} else {
+//			PropertyConfigurator.configure(props);
+//		}
+//		// once configured, we can start using the Looger now
+//
+//		Logger log = Logger.getLogger(com.nearfuturelaboratory.servlets.LoggerServlet.class);
+//
+//		Logger root = Logger.getRootLogger();
+//		root.setLevel(Level.OFF);
+//		root.error("--> "+root.getLevel());
+//		root.error("--> "+root.getLoggerRepository());
 
-/*		Logger log = Logger.getLogger("com.nearfuturelaboratory.winners.servlets.LoggerServlet");
-
-		Logger root = Logger.getRootLogger();
-		root.setLevel(Level.OFF);
-		root.error("--> "+root.getLevel());
-		root.error("--> "+root.getLoggerRepository());
-*/
 	} 
 
 

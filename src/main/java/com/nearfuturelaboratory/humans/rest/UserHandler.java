@@ -18,7 +18,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.ParameterStyle;
@@ -46,7 +48,7 @@ import com.nearfuturelaboratory.util.Constants;
 //@Consumes(MediaType.APPLICATION_JSON)
 //@Produces(MediaType.APPLICATION_JSON)
 public class UserHandler {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.UserHandler.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.UserHandler.class);
 	static JsonObject invalid_user_error_response;
 	static JsonObject success_response;
 	static JsonObject fail_response;
@@ -197,7 +199,7 @@ public class UserHandler {
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		HumansUserDAO dao = new HumansUserDAO();
+		//HumansUserDAO dao = new HumansUserDAO();
 		//HumansUser user = dao.findByHumanID(aHumanId);
 		
 		String access_token = request.getParameter("access_token");
@@ -551,7 +553,7 @@ public class UserHandler {
 			) 
 	{
 		String access_token = request.getParameter("access_token");
-		
+		logger.debug("Friends Get", this);
 		if(access_token == null) {
 			fail_response.addProperty("message", "invalid or missing access token");
 			return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();

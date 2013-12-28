@@ -1,5 +1,6 @@
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 import org.scribe.builder.*;
 import org.scribe.builder.api.*;
@@ -19,7 +20,7 @@ import java.util.*;
 public class FlickrExample
 {
   private static final String PROTECTED_RESOURCE_URL = "http://api.flickr.com/services/rest/";
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
   public static void main(String[] args)
   {

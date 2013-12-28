@@ -5,8 +5,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+//import org.apache.log4j.PropertyConfigurator;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Key;
@@ -32,7 +33,7 @@ import java.util.regex.Pattern;
 
 public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.dao.HumansUserDAO.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.dao.HumansUserDAO.class);
 	protected static Mongo mongo;
 
 	public HumansUserDAO() {

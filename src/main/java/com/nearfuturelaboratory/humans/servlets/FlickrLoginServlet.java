@@ -18,7 +18,8 @@ import com.nearfuturelaboratory.humans.entities.HumansUser;
 
 import java.io.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 @WebServlet(name = "FlickrLoginServlet", urlPatterns = {"/login-flickr", "/FlickrLogin"}
 		)
@@ -37,7 +38,7 @@ public class FlickrLoginServlet extends HttpServlet {
 	protected FlickrService flickr;
 
 
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 	protected Token requestToken;
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

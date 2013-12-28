@@ -3,7 +3,8 @@ package com.nearfuturelaboratory.humans.flickr.entities;
 import java.util.Date;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.PrePersist;
@@ -17,7 +18,7 @@ import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 
 @Entity("status")
 public class FlickrStatus extends ServiceStatus {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrStatus.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrStatus.class);
 	@Version
 	@Property ("version")
 	private Long version;

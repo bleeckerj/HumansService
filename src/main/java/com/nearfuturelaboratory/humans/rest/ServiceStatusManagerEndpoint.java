@@ -14,7 +14,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.google.gson.JsonObject;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
@@ -23,7 +24,7 @@ import com.nearfuturelaboratory.humans.entities.HumansUser;
 
 @WebServlet(value = "/manage", asyncSupported = true)
 public class ServiceStatusManagerEndpoint extends HttpServlet {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.ServiceStatusManagerEndpoint.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.ServiceStatusManagerEndpoint.class);
 	
 	static JsonObject invalid_user_error_response;
 	static JsonObject success_response;

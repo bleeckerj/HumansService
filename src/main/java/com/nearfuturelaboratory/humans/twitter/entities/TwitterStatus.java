@@ -3,7 +3,8 @@ package com.nearfuturelaboratory.humans.twitter.entities;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -21,7 +22,7 @@ import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 
 @Entity(value="status", noClassnameStored = true)
 public class TwitterStatus extends ServiceStatus {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus.class);
 	//protected String id;
 	@Version
 	@Property ("version")

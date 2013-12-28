@@ -9,7 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -60,7 +61,7 @@ public class InstagramService /*implements AbstractService*/ {
 
 	protected Gson gson;
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.service.InstagramService.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.service.InstagramService.class);
 
 	public InstagramService() {
 		//TODO Gross..

@@ -5,8 +5,9 @@ import static org.junit.Assert.*;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+//import org.apache.log4j.PropertyConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -19,7 +20,7 @@ import com.nearfuturelaboratory.util.Constants;
 
 public class FoursquareServiceTest {
 	static FoursquareService foursquare;
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
 	public static void main(String[] args) throws Exception {
 		FoursquareServiceTest test = new FoursquareServiceTest();
@@ -30,7 +31,7 @@ public class FoursquareServiceTest {
 	public static void setUpBeforeClass() throws Exception {
 		try {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
+			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID("91181");
 
 			//logger.debug("Hey Ho!");

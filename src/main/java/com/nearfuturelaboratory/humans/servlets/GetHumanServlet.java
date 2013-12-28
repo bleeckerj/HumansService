@@ -23,7 +23,8 @@ import com.nearfuturelaboratory.util.*;
 import java.io.*;
 import java.util.Scanner;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
 @WebServlet(name = "GetHumanServlet", urlPatterns = {"/getHuman"})
@@ -33,7 +34,7 @@ public class GetHumanServlet extends HttpServlet {
 	 * 
 	 */
 	private static final long serialVersionUID = 6406510742220694429L;
-	final static Logger logger = Logger.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
 
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

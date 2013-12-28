@@ -1,7 +1,9 @@
 package com.nearfuturelaboratory.humans.config;
 
 //import java.util.logging.Logger;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 //import at.ac.tuwien.ec.mongouk2011.entities.BaseEntity;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -13,7 +15,7 @@ import com.mongodb.WriteConcern;
  * MongoDB providing the database connection.
  */
 public class MongoDB {
-	private static final Logger logger = Logger.getLogger(MongoDB.class.getName());
+	private static final Logger logger = LogManager.getLogger(MongoDB.class.getName());
 	private static final MongoDB INSTANCE = new MongoDB();
 
 	//private final Datastore datastore = null;

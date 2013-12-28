@@ -16,7 +16,8 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.scribe.model.Token;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jasypt.util.binary.BasicBinaryEncryptor;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
@@ -33,7 +34,7 @@ import com.nearfuturelaboratory.util.Constants;
 
 @Entity(value = "service_token", noClassnameStored = true)
 public class ServiceToken extends BaseEntity {
-	final static Logger logger = Logger
+	final static Logger logger = LogManager
 			.getLogger(com.nearfuturelaboratory.humans.entities.ServiceToken.class);
 	private final static String key = "1234567890123456";
 

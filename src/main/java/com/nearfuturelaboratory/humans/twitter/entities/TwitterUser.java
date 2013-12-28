@@ -6,7 +6,8 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -25,7 +26,7 @@ import com.nearfuturelaboratory.humans.entities.BaseEntity;
 @Entity(value="user", noClassnameStored = true)
 public class TwitterUser extends MinimalSocialServiceUser 
 {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.twitter.entities.TwitterUser.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.twitter.entities.TwitterUser.class);
 	@Version
 	@Property ("version")
 	private Long version;

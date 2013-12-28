@@ -2,7 +2,8 @@ package com.nearfuturelaboratory.humans.flickr.entities;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Index;
@@ -23,7 +24,7 @@ import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 @Indexes( @Index(name="friend_index", value="user_id, friend_id", unique=true/*, dropDups=true*/) )
 public class FlickrFriend extends MinimalSocialServiceUser {
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend.class);
 
 	@Version
 	@Property ("version")

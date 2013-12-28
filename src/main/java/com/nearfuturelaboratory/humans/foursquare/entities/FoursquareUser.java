@@ -4,7 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.PrePersist;
@@ -17,7 +18,7 @@ import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 @Entity(value="user", noClassnameStored = true)
 public class FoursquareUser extends MinimalSocialServiceUser {
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser.class);
 	@Version
 	@Property ("version")
 	private Long version;

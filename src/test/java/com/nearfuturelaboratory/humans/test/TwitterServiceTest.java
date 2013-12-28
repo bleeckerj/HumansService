@@ -4,8 +4,9 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+//import org.apache.log4j.PropertyConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -18,7 +19,7 @@ import static org.hamcrest.core.IsNull.notNullValue;
 
 public class TwitterServiceTest {
 	static TwitterService twitter;
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.test.TwitterServiceTest.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.test.TwitterServiceTest.class);
 
 	public static void main(String[] args) throws Exception {
 		TwitterServiceTest test = new TwitterServiceTest();
@@ -32,7 +33,7 @@ public class TwitterServiceTest {
 	
 		try {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
+			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			logger.debug("Hey Ho!");
 			twitter = TwitterService.createTwitterServiceOnBehalfOfUsername("darthjulian");
 			logger.debug(twitter);

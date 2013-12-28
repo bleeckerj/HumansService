@@ -11,7 +11,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.oltu.oauth2.as.issuer.MD5Generator;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuer;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuerImpl;
@@ -46,7 +47,7 @@ import com.nearfuturelaboratory.util.Constants;
  */
 @Path("/token")
 public class TokenEndpoint {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.oauth.TokenEndpoint.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.oauth.TokenEndpoint.class);
 
 	//@SuppressWarnings("unused")
 	@POST

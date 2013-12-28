@@ -2,8 +2,9 @@ package com.nearfuturelaboratory.humans.util;
 
 import java.io.*;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+//import org.apache.log4j.PropertyConfigurator;
 import org.mongodb.morphia.Key;
 import org.scribe.model.Token;
 
@@ -12,7 +13,7 @@ import com.nearfuturelaboratory.humans.entities.ServiceToken;
 import com.nearfuturelaboratory.util.Constants;
 
 public class MigrateTokensToMongo {
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.util.MigrateTokensToMongo.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.util.MigrateTokensToMongo.class);
 
 	private static final String USERS_DB_PATH = Constants.getString("SERVICE_DATA_ROOT", ".")+"/%s/users/%s-%s/";
 	private static final String USERS_SER_TOKEN = USERS_DB_PATH+"%s-token-for-%s-%s.ser";
@@ -20,7 +21,7 @@ public class MigrateTokensToMongo {
 	public static void main(String[] args) throws IOException {
 		try {
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
-			PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
+			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			logger.debug("Hey Ho!");
 		} catch(Exception e) {
 			e.printStackTrace();

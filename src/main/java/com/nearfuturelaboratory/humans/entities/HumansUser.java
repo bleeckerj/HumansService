@@ -15,7 +15,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.mongodb.morphia.annotations.Embedded;
@@ -58,7 +59,7 @@ import com.nearfuturelaboratory.util.Constants;
 @Entity(value="users",noClassnameStored = true)
 public class HumansUser extends BaseEntity {
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.entities.HumansUser.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.entities.HumansUser.class);
 
 	@Indexed(value = IndexDirection.ASC, name = "username", unique = true, dropDups = true)
 	private String username;
@@ -566,7 +567,7 @@ public class HumansUser extends BaseEntity {
 		key = cursor.next();
 		}
 		if(key != null) {
-			logger.debug("Does this ever change format?? "+key.get("lastUpdated")+" from:"+cache.getName());
+			//logger.debug("Does this ever change format?? "+key.get("lastUpdated")+" from:"+cache.getName());
 			
 			Date d = (Date)key.get("lastUpdated");//HumansUser.format.parse( first.get("lastUpdated").toString() );
 			long then = d.getTime();
