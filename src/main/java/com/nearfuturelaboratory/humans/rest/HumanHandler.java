@@ -21,7 +21,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 
 import com.google.gson.Gson;
@@ -43,7 +44,7 @@ import com.nearfuturelaboratory.util.Constants;
 @Produces(MediaType.APPLICATION_JSON)
 public class HumanHandler {
 
-	final static Logger logger = Logger.getLogger(com.nearfuturelaboratory.humans.rest.HumanHandler.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.HumanHandler.class);
 	static JsonObject invalid_user_error_response;
 	static JsonObject success_response;
 	static JsonObject fail_response;
@@ -70,7 +71,7 @@ public class HumanHandler {
 	Gson gson;
 
 	public HumanHandler() {
-		logger.debug("Constructor " + context);  // null here   
+		//logger.debug("Constructor " + context);  // null here   
 		gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 	}
 
@@ -190,7 +191,7 @@ public class HumanHandler {
 			//e1.printStackTrace();
 		}
 
-		logger.debug("humanid="+aHumanId);
+		logger.debug("humanid="+aHumanId+" and page="+aPage);
 		Human human = null;
 		try {
 		human = user.getHumanByID(aHumanId);
@@ -204,6 +205,7 @@ public class HumanHandler {
 			//return fail_response.toString();
 		}
 
+		/*
 		StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
 
 		if(paging_helper == null) {
@@ -225,13 +227,15 @@ public class HumanHandler {
 
 		status_response = paging_helper.statusJsonByPage(page-1);
 
-		//logger.debug("status by page"+(page-1)+" status_response count="+(status_response.get("status") == null ? status_response.get("status") : status_response.get("status").getAsJsonArray().size()));
+		logger.debug("status by page"+(page-1)+" status_response count="+(status_response.get("status") == null ? status_response.get("status") : status_response.get("status").getAsJsonArray().size()));
 
 		//		JsonArray result = new JsonArray();
 		//		for(ServiceStatus s : status) {
 		//			result.add(s.getStatusJSON());
 		//		}
 		//logger.debug(status);
+		 */
+		JsonArray status_response = user.getJsonStatusForHuman(human);
 		return Response.ok().type(MediaType.APPLICATION_JSON).entity(status_response.toString()).build();
 	}
 
