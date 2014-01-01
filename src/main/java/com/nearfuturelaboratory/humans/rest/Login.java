@@ -93,6 +93,8 @@ public class Login {
     	String b = request.getParameter("defcon");
 		HumansUserDAO dao = new HumansUserDAO();
 		
+		logger.debug("username="+aUsername);
+		
 		if(aUsername == null || aPassword == null) {
 			fail_response.addProperty("message", "invalid username and password");
 			return fail_response.toString();

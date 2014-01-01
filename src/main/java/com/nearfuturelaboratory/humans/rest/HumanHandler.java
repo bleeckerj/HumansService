@@ -176,9 +176,9 @@ public class HumanHandler {
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response) 
 	{
-		HttpSession session = request.getSession();
-//		logger.debug("session="+session.getId());
-//		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
+		//		HttpSession session = request.getSession();
+		//		logger.debug("session="+session.getId());
+		//		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
 		RestCommon common = new RestCommon();
 		HumansUser user;
 		try {
@@ -194,7 +194,7 @@ public class HumanHandler {
 		logger.debug("humanid="+aHumanId+" and page="+aPage);
 		Human human = null;
 		try {
-		human = user.getHumanByID(aHumanId);
+			human = user.getHumanByID(aHumanId);
 		} catch(java.lang.IllegalArgumentException iae) {
 			logger.warn(iae);
 		}
@@ -235,41 +235,81 @@ public class HumanHandler {
 		//		}
 		//logger.debug(status);
 		 */
-		JsonArray status_response = user.getJsonStatusForHuman(human);
+		StatusPagingHelper helper = getStatusPagingHelper(user, human);
+
+		if(helper == null) {
+			return Response.status(Response.Status.NOT_FOUND).entity("no such paging helper found for human="+human.getId()+" name="+human.getName()+" "+user.getUsername()).build();
+
+		}
+		
+		int page = 1;
+		if(aPage != null) {
+			try {
+				page = Integer.parseInt(aPage);
+			} catch(NumberFormatException nfe) {
+				logger.warn("", nfe);
+			}
+		}
+
+		
+		JsonObject status_response = helper.statusJsonByPage(page-1);
+		//JsonArray status_response = user.getJsonStatusForHuman(human);
 		return Response.ok().type(MediaType.APPLICATION_JSON).entity(status_response.toString()).build();
 	}
 
 	//TODO
-//	@GET @Path("/status/{humanid}/{aftertimestamp}/{page}")
-//	//@Produces(MediaType.APPLICATION_JSON)
-//	public Response getStatus(
-//			@PathParam("humanid") String aHumanId,
-//			@PathParam("aftertimestamp") Long afterTimeStamp,
-//			@PathParam("page") String aPage,
-//			@Context HttpServletRequest request,
-//			@Context HttpServletResponse response) 
-//	{
-//		return Response.serverError().entity("not implemented yet").build();
-//	}
-	
+	//	@GET @Path("/status/{humanid}/{aftertimestamp}/{page}")
+	//	//@Produces(MediaType.APPLICATION_JSON)
+	//	public Response getStatus(
+	//			@PathParam("humanid") String aHumanId,
+	//			@PathParam("aftertimestamp") Long afterTimeStamp,
+	//			@PathParam("page") String aPage,
+	//			@Context HttpServletRequest request,
+	//			@Context HttpServletResponse response) 
+	//	{
+	//		return Response.serverError().entity("not implemented yet").build();
+	//	}
+
+	/**
+	 * Helper. Not tied to session. Not sure how to do that without being a memory hog.
+	 * 
+	 * @param aUser
+	 * @param aHuman
+	 * @return Basically a helper to format the results for get/status/ and allow you to page through it.
+	 */
+	protected StatusPagingHelper getStatusPagingHelper(HumansUser aUser, Human aHuman)
+	{
+		StatusPagingHelper helper;
+		try {
+			JsonArray result = aUser.getJsonStatusForHuman(aHuman);
+			helper = new StatusPagingHelper(result, aHuman);
+		}catch(NumberFormatException nfe) {
+			helper = null;
+
+		}
+		return helper; 
+	}
+
 	/**
 	 * Helper
 	 * @param session
 	 * @param user
 	 * @param human
 	 * @return
+	 * @deprecated
 	 */
+	@Deprecated
 	protected StatusPagingHelper getStatusPagingHelperFromSession(HttpSession session, HumansUser user, Human human)
 	{
 		StatusPagingHelper paging_helper = null;
 		String aHumanId = human.getId();
-//		if(service == null) {
-//			service = "all";
-//		}
+		//		if(service == null) {
+		//			service = "all";
+		//		}
 		logger.debug("session="+session.getId());
 		String attribute_name = "status_"+aHumanId;
 
-		
+
 		paging_helper = (StatusPagingHelper)session.getAttribute(attribute_name);
 
 		if(paging_helper == null ) {
@@ -290,17 +330,26 @@ public class HumanHandler {
 			paging_helper = new StatusPagingHelper(result, human);
 			session.setAttribute(attribute_name, paging_helper);
 		}
-		
-		
+
+
 		//logger.debug(attribute_name+" "+session.getAttribute(attribute_name));
 
-		
+
 		paging_helper = (StatusPagingHelper)session.getAttribute(attribute_name);
 
 		return paging_helper;
 	}
 
-
+	//TODO status by service? Is this useful?
+	/**
+	 * Doesn't work
+	 * @param aHumanId
+	 * @param aPage
+	 * @param service
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@GET @Path("/status/{humanid}/{page}/{service}")
 	//@Produces(MediaType.APPLICATION_JSON)
 	public Response getStatus(
@@ -313,8 +362,6 @@ public class HumanHandler {
 		//String result = getStatus(aHumanId, aPage, request, response);
 		// stoopid that you would have to convert it back to JSON
 		HttpSession session = request.getSession();
-		logger.debug("session="+session.getId());
-		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
 		RestCommon common = new RestCommon();
 		HumansUser user;
 		try {
@@ -337,8 +384,8 @@ public class HumanHandler {
 			//return fail_response.toString();
 		}
 
-		StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
-
+		//StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
+		StatusPagingHelper paging_helper = this.getStatusPagingHelper(user, human);
 		if(paging_helper == null) {
 			return Response.status(Response.Status.EXPECTATION_FAILED).entity("no such paging helper found for "+human).build();
 		}
@@ -498,11 +545,19 @@ public class HumanHandler {
 class StatusPagingHelper {
 
 	ArrayList<JsonElement> status_list;
+	ArrayList<String> status_list_strings;
 	Human human;
 	List<List<JsonElement>> status_chunks;
+	List<List<String>> status_chunks_strings;
 	int pages;
 	long created_time;
 
+//	public StatusPagingHelper(ArrayList<String> aStatus, Human aHuman) {
+//		status_list_strings = aStatus;
+//		human = aHuman;
+//		status_chunks_strings = partition(status_list_strings,  Constants.getInt("STATUS_CHUNK_SIZE", 50));
+//	}
+	
 	public StatusPagingHelper(JsonArray aStatus, Human aHuman) {
 		status_list = getStatusAsList(aStatus);
 		human = aHuman;
@@ -512,6 +567,44 @@ class StatusPagingHelper {
 		pages = status_chunks.size();
 	}
 
+	public String statusJsonByPageStr(int aPage) {
+		JsonObject json_result = new JsonObject();
+		//String status_str_result = new String();
+		if(aPage < 0) aPage = 0;
+
+		if(aPage < status_chunks_strings.size()) {
+			List<String> chunk = status_chunks_strings.get(aPage);
+			//			JsonElement first = chunk.get(0);
+			//			JsonElement last = chunk.get(0);
+			//			if(first.isJsonObject()) {
+			//				JsonObject obj = first.getAsJsonObject();
+			//				obj.get("");
+			//			}
+			JsonObject head = new JsonObject();
+			head.addProperty("pages", pages);
+			if(aPage+1 > pages) {
+				aPage = pages-1;
+			}
+			head.addProperty("page", aPage+1);
+			head.addProperty("total_status", status_list.size());
+			head.addProperty("count", chunk.size());
+			head.addProperty("human_name", human.getName());
+			head.addProperty("human_id", human.getId());
+			json_result.add("head", head);
+
+			ArrayList<String> status = new ArrayList<String>();
+
+			for(int i=0; i<chunk.size(); i++) {
+				status.add(chunk.get(i));
+			}
+			//String result = head.getAsString()+",\"status\":["
+			//json_result.add("status", status);
+		}
+		return null;//json_result;
+
+
+	}
+	
 	public JsonObject statusJsonByPage(int aPage) {
 		JsonObject json_result = new JsonObject();
 		if(aPage < 0) aPage = 0;
@@ -526,6 +619,9 @@ class StatusPagingHelper {
 			//			}
 			JsonObject head = new JsonObject();
 			head.addProperty("pages", pages);
+			if(aPage+1 > pages) {
+				aPage = pages-1;
+			}
 			head.addProperty("page", aPage+1);
 			head.addProperty("total_status", status_list.size());
 			head.addProperty("count", chunk.size());
@@ -564,6 +660,7 @@ class StatusPagingHelper {
 		} 
 		return status_list;		
 	}
+
 
 }
 

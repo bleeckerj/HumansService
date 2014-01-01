@@ -1,13 +1,23 @@
 package com.nearfuturelaboratory.humans.service;
 
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
-import org.scribe.model.*;
-import org.scribe.oauth.*;
-import org.json.simple.*;
+import java.util.Date;
+import java.util.List;
 
-import java.util.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.Foursquare2Api;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
 
+import com.google.gson.Gson;
+import com.jayway.jsonpath.JsonPath;
 import com.nearfuturelaboratory.humans.dao.FoursquareCheckinDAO;
 import com.nearfuturelaboratory.humans.dao.FoursquareFriendDAO;
 import com.nearfuturelaboratory.humans.dao.FoursquareUserDAO;
@@ -17,12 +27,7 @@ import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
-import com.nearfuturelaboratory.util.*;
-import com.google.gson.Gson;
-import com.jayway.jsonpath.JsonPath;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import com.nearfuturelaboratory.util.Constants;
 
 public class FoursquareService {
 

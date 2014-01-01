@@ -59,10 +59,10 @@ public class TokenEndpoint {
 		//OAuthTokenRequest oauthRequest = null;
 		OAuthUnauthenticatedTokenRequest oauthRequest = null;
 		OAuthIssuer oauthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
-
+		logger.debug("Token Endpoint "+request);
 		try {
 			oauthRequest = new OAuthUnauthenticatedTokenRequest(request);
-
+			logger.debug("oauthRequest="+oauthRequest);
 			//check if clientid is valid
 			if (!Constants.getString("CLIENT_ID").equals(oauthRequest.getParam(OAuth.OAUTH_CLIENT_ID))) {
 				

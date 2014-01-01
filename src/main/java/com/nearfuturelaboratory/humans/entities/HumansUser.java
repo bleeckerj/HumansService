@@ -599,6 +599,58 @@ public class HumansUser extends BaseEntity {
 
 	}
 
+/*	
+	public ArrayList<String> getRawJsonStatusForHuman(Human aHuman)
+	{
+		ArrayList<String> result_array = new ArrayList<String>();
+		
+		String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+//		if(service == null) {
+//			service = "all";
+//		}
+
+		DB cache_db = MongoUtil.getStatusCacheDB();
+		DBCollection cache = cache_db.getCollection(cache_name);
+		DBCursor cursor = cache.find(  );
+		logger.debug("cache="+cache);
+		logger.debug("isCachedStatusStale?"+this.isCachedStatusStale(aHuman));
+		if(this.isCachedStatusStale(aHuman) == false) {
+			//List<DBObject> raw = new ArrayList<DBObject>();
+			//JsonArray array = new JsonArray();
+			// skip the first row - it's meta data..
+			//if(cursor.hasNext()) cursor.next();
+			while (cursor.hasNext() ) {
+				DBObject obj = cursor.next();	
+				// the document that contains this 'key' field is the
+				// key to the collection. we don't need it for status
+				// it's used purely as metadata about the documents themselves.
+				if(obj.containsField("key")) continue;
+				
+				// if it's not the key, add it to the result
+				result_array.add(obj.toString());
+			}
+			logger.info("Returning cached status for human="+aHuman.getName() +" from cache="+cache.getName()+" and size="+ result_array.size());
+		} else {
+			//if(cache.count() > 0) {
+				cache.drop();
+				logger.info("dropping cached status named="+cache.getName()+" for human="+aHuman.getName());
+			//}
+			List<ServiceStatus> statuses = getStatusForHuman(aHuman, false);
+			
+			for(ServiceStatus s : statuses) {
+//				if(service == null || service.equalsIgnoreCase("all") || s.getService().equalsIgnoreCase(service)) {
+					//JsonElement elem = parser.parse( gson.toJson(s) );
+//
+					
+					result_array.add(s.getStatusJSON().toString());
+//				}
+			}
+		}
+			
+		return result_array;
+	}
+	*/
+	
 	//TODO Need better strategy for pre-fetching status. Or..basically need a strategy..
 	/**
 	 * This is called by the endpoint handler. It gets status from a database "cache"
@@ -623,30 +675,39 @@ public class HumansUser extends BaseEntity {
 		DBCursor cursor = cache.find(  );
 		logger.debug("cache="+cache);
 		if(this.isCachedStatusStale(aHuman) == false) {
-			List<DBObject> raw = new ArrayList<DBObject>();
+			//List<DBObject> raw = new ArrayList<DBObject>();
 			//JsonArray array = new JsonArray();
 			// skip the first row - it's meta data..
 			//if(cursor.hasNext()) cursor.next();
 			while (cursor.hasNext() ) {
 				DBObject obj = cursor.next();	
+				// the document that contains this 'key' field is the
+				// key to the collection. we don't need it for status
+				// it's used purely as metadata about the documents themselves.
 				if(obj.containsField("key")) continue;
-				raw.add(obj);
-
-				JsonElement elem = parser.parse( gson.toJson(obj) );
+				
+				// if it's not the key, add it to the result
+				//raw.add(obj);
+				//logger.debug("obj from cache is "+obj);
+				/////JsonElement elem = parser.parse( gson.toJson(obj) );
+				
+				JsonElement elem = parser.parse(obj.toString());
+				
 				//logger.debug(elem.getAsJsonObject().get("service"));
 				result_array.add(elem);
 			}
-			logger.info("Returning cached status "+result_array.size());
+			logger.info("Returning cached status for human="+aHuman.getName() +" from cache="+cache.getName()+" and size="+ result_array.size());
 //			if(result_array.size() < 1) {
 //				cache.drop();
 //				
+			
 //			}
 			//return result;
 			//cache.drop();
 		} else {
 			//if(cache.count() > 0) {
 				cache.drop();
-				logger.info("dropping cached status status_cache_"+this.getId()+"_"+aHuman.getId());
+				logger.info("dropping cached status named="+cache.getName()+" for human="+aHuman.getName());
 			//}
 			List<ServiceStatus> statuses = getStatusForHuman(aHuman, false);
 			
@@ -676,7 +737,7 @@ public class HumansUser extends BaseEntity {
 		List<ServiceUser> service_users = aHuman.getServiceUsers();
 		for(ServiceUser service_user : service_users) {
 			String service_name = service_user.getService();
-			logger.debug("Gathering Status for "+service_user);
+			logger.debug("Gathering Status for "+service_user+" loadIfStale=%@", loadIfStale ? "YES" : "NO");
 			if(service_name.equalsIgnoreCase("twitter")) {
 				TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
 				if(loadIfStale && twitter.localServiceStatusIsFreshFor(service_user.getUserID()) == false) {
@@ -745,16 +806,19 @@ public class HumansUser extends BaseEntity {
 		cache.drop();
 		cache = cache_db.getCollection(cache_name);
 		//Gson gson = new Gson();
+		// the document that contains this 'key' field is the
+		// key to the collection. we don't need it for status
+		// it's used purely as metadata about the documents themselves.
 		BasicDBObject doc = new BasicDBObject
 				("user", this.toString()).
 				append("key", this.getId()+"_"+aHuman.getId()).
 				append("human", aHuman.toString()).
 				append("lastUpdated", new Date());
+		logger.debug("writing cache key for "+cache_name);
 		cache.insert(doc);
 		for(ServiceStatus status : result) {
 			DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
 			cache.save(obj);
-
 		}
 
 		return result;
