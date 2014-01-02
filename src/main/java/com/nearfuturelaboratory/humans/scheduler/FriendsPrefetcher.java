@@ -9,16 +9,11 @@ import org.apache.logging.log4j.LogManager;
 
 import com.nearfuturelaboratory.humans.entities.*;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
-import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
-import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
-import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
 import com.nearfuturelaboratory.humans.service.FlickrService;
 import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.service.TwitterService;
-import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
-import com.nearfuturelaboratory.humans.dao.*;
+import com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.util.Constants;
 
 public class FriendsPrefetcher {

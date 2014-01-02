@@ -57,9 +57,12 @@ public class GetFriends {
 		String access_token = oauthRequest.getAccessToken();
 	    HumansUserDAO dao = new HumansUserDAO();
 	    
-	    } catch (OAuthProblemException | OAuthSystemException e) {
+	    } catch (OAuthProblemException e) {
 	    	logger.error("",e);
-	    }
+	    } catch (OAuthSystemException e) {
+            logger.error("",e);
+
+        }
 		
 		HttpSession session = request.getSession();
 		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");

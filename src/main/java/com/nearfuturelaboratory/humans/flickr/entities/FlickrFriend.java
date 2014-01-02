@@ -9,14 +9,13 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.Indexes;
 import org.mongodb.morphia.annotations.PostLoad;
-import org.mongodb.morphia.annotations.PostPersist;
 import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Version;
 import org.mongodb.morphia.annotations.Entity;
 
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
+import com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 
 

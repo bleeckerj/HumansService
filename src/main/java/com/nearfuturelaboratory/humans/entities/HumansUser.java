@@ -1,44 +1,8 @@
 package com.nearfuturelaboratory.humans.entities;
 
-import static ch.lambdaj.Lambda.having;
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.Lambda.select;
-import static ch.lambdaj.Lambda.selectFirst;
-import static ch.lambdaj.Lambda.selectUnique;
-import static ch.lambdaj.function.matcher.AndMatcher.and;
-import static org.hamcrest.CoreMatchers.equalTo;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.bson.types.ObjectId;
-import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.utils.IndexDirection;
-
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
+import com.google.gson.*;
+import com.mongodb.*;
 import com.mongodb.util.JSON;
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
@@ -54,6 +18,20 @@ import com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 import com.nearfuturelaboratory.util.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.bson.types.ObjectId;
+import org.jasypt.util.password.StrongPasswordEncryptor;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.utils.IndexDirection;
+
+import java.util.*;
+
+import static ch.lambdaj.Lambda.*;
+import static ch.lambdaj.function.matcher.AndMatcher.and;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 
 @Entity(value="users",noClassnameStored = true)
@@ -85,29 +63,21 @@ public class HumansUser extends BaseEntity {
 	public HumansUser() {
 		super();
 	}
-	
-	/**
-	 * Get all the humans users in the canonical datastore
-	 * 
-	 * @return a List of HumansUser
-	 */
+
+    public static boolean doesUsernameExist(String aUsername) {
+        HumansUserDAO dao = new HumansUserDAO();
+        return dao.doesUsernameExist(aUsername);
+    }
+
+        /**
+         * Get all the humans users in the canonical datastore
+         *
+         * @return a List of HumansUser
+         */
 	public static List<HumansUser> getAllHumansUsers() {
 		HumansUserDAO dao = new HumansUserDAO();
 		return dao.getDatastore().find(dao.getEntityClass()).order("username").asList();
 	}
-
-
-	//	public HumansUser(String aUsername, String aPassword) throws InvalidUserException {
-	//		setUsername(aUsername);
-	//		setPassword(aPassword);
-	//		if(isValidUser() == false) {
-	//			throw new InvalidUserException("Invalid username and/or password");
-	//		}
-	//	}
-	//	public static HumansUser(String aUsername, String aPassword) {
-	//		setUsername(aUsername);
-	//		setPassword(aPassword);
-	//	}
 
 	public boolean isValidUser() {
 		boolean result = false;
@@ -852,7 +822,7 @@ public class HumansUser extends BaseEntity {
 
 	/**
 	 * 
-	 * @param ServiceName
+	 * @param aServiceName
 	 *            typically lowercase name of a service, eg twitter, instagram,
 	 *            flickr, foursquare
 	 * @return a List<String> of the accounts for that service assigned/attached
@@ -982,7 +952,7 @@ public class HumansUser extends BaseEntity {
 	/**
 	 * This you'll want to call when you remove a service because the "onBehalfOf" component will no longer exist
 	 * 
-	 * @param aServiceEntry
+	 * @param onBehalfOf
 	 */
 	protected void removeServiceUsersRelyingOn(ServiceEntry onBehalfOf) {
 		if(onBehalfOf == null) {

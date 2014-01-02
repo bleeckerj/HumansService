@@ -1,8 +1,6 @@
-package com.nearfuturelaboratory.humans.core;
+package com.nearfuturelaboratory.humans.entities;
 
 import org.mongodb.morphia.annotations.Embedded;
-
-import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 
 public abstract class MinimalSocialServiceUser {
 

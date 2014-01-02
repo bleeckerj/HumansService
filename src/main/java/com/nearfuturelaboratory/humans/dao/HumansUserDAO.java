@@ -10,24 +10,23 @@ import org.apache.logging.log4j.LogManager;
 //import org.apache.log4j.PropertyConfigurator;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Key;
+//import org.mongodb.morphia.Key;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
-import org.mongodb.morphia.query.Criteria;
+//import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.QueryResults;
-import org.mongodb.morphia.query.UpdateOperations;
-import org.mongodb.morphia.query.UpdateResults;
-
-import com.mongodb.DBCollection;
+//import org.mongodb.morphia.query.QueryResults;
+//import org.mongodb.morphia.query.UpdateOperations;
+//import org.mongodb.morphia.query.UpdateResults;
+//
+//import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
-import com.mongodb.WriteConcern;
-import com.nearfuturelaboratory.humans.config.MongoDB;
-import com.nearfuturelaboratory.humans.entities.ServiceUser;
+//import com.nearfuturelaboratory.humans.config.MongoDB;
+//import com.nearfuturelaboratory.humans.entities.ServiceUser;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
-import com.nearfuturelaboratory.humans.entities.Human;
+//import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
-import com.nearfuturelaboratory.util.Constants;
+//import com.nearfuturelaboratory.util.Constants;
 
 import java.util.regex.Pattern;
 
@@ -86,11 +85,14 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 		return findOne(q);
 	}
 	
-//	public boolean doesUsernameExist(String aUsername) {
-//		boolean result = false;
-//		HumansUser h = findOneByUsername(aUsername);
-//		
-//	}
+	public boolean doesUsernameExist(String aUsername) {
+		boolean result = false;
+		HumansUser h = findOneByUsername(aUsername);
+		if(h != null) {
+            result = true;
+        }
+        return result;
+	}
 	
 	public HumansUser findOneByUsername(String aUsername) {		
 		Query<HumansUser> q = this.createQuery().field("username").equal(aUsername);

@@ -387,7 +387,7 @@ public class HumanHandler {
 		//StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
 		StatusPagingHelper paging_helper = this.getStatusPagingHelper(user, human);
 		if(paging_helper == null) {
-			return Response.status(Response.Status.EXPECTATION_FAILED).entity("no such paging helper found for "+human).build();
+			return Response.status(Response.Status.NOT_ACCEPTABLE).entity("no such paging helper found for "+human).build();
 		}
 
 
@@ -434,7 +434,7 @@ public class HumanHandler {
 			return Response.ok(success_response).build();
 			//return success_response.toString();
 		} else {
-			return Response.status(Response.Status.EXPECTATION_FAILED).entity(fail_response).build();//.toString();
+			return Response.status(Response.Status.NOT_ACCEPTABLE).entity(fail_response).build();//.toString();
 		}
 	}
 

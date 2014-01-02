@@ -298,11 +298,14 @@ public class FlickrService {
 			oldest_taken_date = formatter.parse(oldest.get("datetaken").toString());
 			oldest_time = oldest_taken_date.getTime();
 
-		} catch (java.text.ParseException | NullPointerException e) {
+		} catch (java.text.ParseException e) {
 			logger.error(e);
 			logger.error(e.getStackTrace());
 			e.printStackTrace();
-		}
+		} catch( NullPointerException e) {
+            logger.error(e);
+            logger.error(e.getStackTrace());
+        }
 
 		int page = Integer.parseInt(		JsonPath.read(status, "photos.page").toString());
 		int pages = Integer.parseInt(		JsonPath.read(status, "photos.pages").toString());
@@ -646,7 +649,7 @@ public class FlickrService {
 	 * old filesystem database and the database had no users in it yet. Really, when you
 	 * save a new user you also save the user basic with the token
 	 * 
-	 * @param aUsername
+	 * @param aUserID
 	 */
 	private static Token deserializeTokenByUserID(String aUserID) {
 		ServiceTokenDAO dao = new ServiceTokenDAO("flickr");

@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.json.simple.JSONObject;
 
-import com.nearfuturelaboratory.humans.core.HumansUser;
+import com.nearfuturelaboratory.humans.entities.HumansUser;
 
 @WebServlet(name = "CreateHumanUserServlet", urlPatterns = {"/create.human.user"})
 public class CreateHumanUserServlet extends HttpServlet {
@@ -33,7 +33,7 @@ public class CreateHumanUserServlet extends HttpServlet {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 		String email = request.getParameter("email");
-		
+
 		if(HumansUser.doesUsernameExist(username)) {
 			json_response.put("status", "error");
 			json_response.put("message", "Username "+username+" already exists");
@@ -57,12 +57,12 @@ public class CreateHumanUserServlet extends HttpServlet {
 
 		}
 
-		HumansUser humansUser = new HumansUser();		
+		HumansUser humansUser = new HumansUser();
 		humansUser.setUsername(username);
 		humansUser.setPassword(password);
 		humansUser.setEmail(email);
-		
-		
+
+
 		response.setContentType("application/json");
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.getWriter().write(humansUser.toString());

@@ -1,36 +1,17 @@
 package com.nearfuturelaboratory.humans.entities;
 
+import com.nearfuturelaboratory.util.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jasypt.util.binary.BasicBinaryEncryptor;
+import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.utils.IndexDirection;
+import org.scribe.model.Token;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.scribe.model.Token;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.jasypt.util.binary.BasicBinaryEncryptor;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.annotations.PostLoad;
-import org.mongodb.morphia.annotations.PostPersist;
-import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.annotations.Serialized;
-import org.mongodb.morphia.annotations.Transient;
-import org.mongodb.morphia.utils.IndexDirection;
-
-import com.nearfuturelaboratory.humans.util.PersistableToken;
-import com.nearfuturelaboratory.util.Constants;
 
 @Entity(value = "service_token", noClassnameStored = true)
 public class ServiceToken extends BaseEntity {

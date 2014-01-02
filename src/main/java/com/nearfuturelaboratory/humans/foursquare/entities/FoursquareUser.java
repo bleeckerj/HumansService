@@ -13,7 +13,7 @@ import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Version;
 import org.mongodb.morphia.annotations.Entity;
 
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
+import com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser;
 
 @Entity(value="user", noClassnameStored = true)
 public class FoursquareUser extends MinimalSocialServiceUser {

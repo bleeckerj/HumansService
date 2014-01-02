@@ -367,15 +367,15 @@ public class UserHandler {
 		}
 		return array_of_humans.toString();
 	}
-
+    @Deprecated
 	protected boolean doesUsernameExist(String aUsername) {
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser h = dao.findOneByUsername(aUsername);
-		if(h != null) {
-			return true;
-		} else {
-			return false;
-		}
+		return HumansUser.doesUsernameExist(aUsername);
+//		HumansUser h = dao.findOneByUsername(aUsername);
+//		if(h != null) {
+//			return true;
+//		} else {
+//			return false;
+//		}
 	}
 
 	/**
@@ -398,7 +398,7 @@ public class UserHandler {
 			JsonObject obj = elem.getAsJsonObject();
 			String check_username = obj.get("check_username").getAsString();
 
-			if(doesUsernameExist(check_username)) {
+			if(HumansUser.doesUsernameExist(check_username)) {
 				success_response.addProperty("exists", Boolean.TRUE);
 				return success_response.toString();
 			} else {

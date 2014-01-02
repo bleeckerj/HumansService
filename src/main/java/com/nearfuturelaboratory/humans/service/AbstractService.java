@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.scribe.model.Token;
 
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
+import com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.entities.ServiceUser;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;

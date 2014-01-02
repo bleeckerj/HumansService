@@ -1,7 +1,6 @@
 package com.nearfuturelaboratory.humans.flickr.entities;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
@@ -12,7 +11,7 @@ import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Version;
 
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
+import com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser;
 
 @Entity(value="user", noClassnameStored = true)
 public class FlickrUser extends MinimalSocialServiceUser {

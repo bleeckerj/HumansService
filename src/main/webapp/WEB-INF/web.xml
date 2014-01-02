@@ -47,10 +47,14 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Jersey REST Service</servlet-name>
-		<url-pattern>/rest/*</url-pattern>		
+		<url-pattern>/rest/*</url-pattern>
 		<url-pattern>/oauth2/*</url-pattern>	
 	</servlet-mapping>
- 
+    <listener>
+        <listener-class>org.apache.logging.log4j.core.web.Log4jServletContextListener</listener-class>
+    </listener>
+
+
  <!--        <context-param>
             <param-name>quartz:shutdown-on-unload</param-name>
             <param-value>false</param-value>
@@ -76,40 +80,6 @@
  
  -->	
 	
-<!-- 	<listener> -->
-<!--         <listener-class> -->
-<!--             org.springframework.web.context.ContextLoaderListener -->
-<!--         </listener-class> -->
-<!--     </listener> -->
-    
-<!-- <context-param> -->
-<!--     <param-name>contextConfigLocation</param-name> -->
-<!--     <param-value> -->
-<!--         /WEB-INF/security-applicationContext.xml -->
-<!--     </param-value> -->
-<!-- </context-param> -->
 
-<!-- Enables Spring Security -->
-
-<!-- <filter> -->
-<!--     <filter-name>springSecurityFilterChain</filter-name> -->
-<!--     <filter-class> -->
-<!--         org.springframework.web.filter.DelegatingFilterProxy -->
-<!--     </filter-class> -->
-<!--     <init-param> -->
-<!--         <param-name>targetBeanName</param-name> -->
-<!--         <param-value>springSecurityFilterChain</param-value> -->
-<!--     </init-param> -->
-<!-- </filter> -->
-
-<!-- <filter-mapping> -->
-<!--     <filter-name>springSecurityFilterChain</filter-name> -->
-<!--     <url-pattern>/*</url-pattern> -->
-
-<!-- </filter-mapping> -->
-
-<!--listener>
-    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
-</listener-->
     
 </web-app>

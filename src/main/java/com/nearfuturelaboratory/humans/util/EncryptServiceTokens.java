@@ -18,7 +18,8 @@ import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
 import com.nearfuturelaboratory.util.Constants;
 
-import static com.jayway.restassured.RestAssured.given;
+//import static com.jayway.restassured.RestAssured.given;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;

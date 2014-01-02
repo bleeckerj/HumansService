@@ -1,19 +1,10 @@
 package com.nearfuturelaboratory.humans.entities;
-import java.util.Date;
 
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.annotations.Property;
-import org.mongodb.morphia.annotations.Reference;
-import org.mongodb.morphia.annotations.Version;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.gson.Gson;
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.*;
+
+import java.util.Date;
 
 
 /**

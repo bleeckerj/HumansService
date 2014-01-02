@@ -1,12 +1,9 @@
 package com.nearfuturelaboratory.humans.entities;
+
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-
-import com.mongodb.MongoClient;
-import com.mongodb.WriteConcern;
-
-import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
+import org.mongodb.morphia.annotations.Version;
 
 //@Entity("users")
 public class BaseEntity {

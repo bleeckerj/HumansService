@@ -8,11 +8,9 @@
 <%@ page import="java.io.*"%>
 <%@ page import="org.json.simple.parser.*"%>
 <%@ page import="com.nearfuturelaboratory.humans.entities.*"%>
-<%@ page import="com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser"%>
+<%@ page import="com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser"%>
 
 <%@ page import="org.json.simple.*"%>
-<%@ page import="java.io.*"%>
-<%@ page import="org.json.simple.parser.*"%>
 <%
 	//JSONArray obj_friends = null;
 	List obj_friends = null;

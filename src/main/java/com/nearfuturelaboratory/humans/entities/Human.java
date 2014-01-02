@@ -1,30 +1,5 @@
 package com.nearfuturelaboratory.humans.entities;
 
-import static ch.lambdaj.Lambda.having;
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.Lambda.selectUnique;
-import static ch.lambdaj.Lambda.select;
-import static ch.lambdaj.Lambda.forEach;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Index;
-import org.mongodb.morphia.annotations.Indexes;
-import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.annotations.Property;
-import org.mongodb.morphia.annotations.Reference;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.utils.IndexDirection;
-
-import com.nearfuturelaboratory.humans.entities.ServiceUser;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
@@ -33,6 +8,14 @@ import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static ch.lambdaj.Lambda.*;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 
 @Entity(value="humans",noClassnameStored = true)
