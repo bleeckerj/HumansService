@@ -7,8 +7,11 @@ logs
 /logs
 /instagram
 /flickr
-/dump
 /foursquare
 /.settings
 /.classpath
 /.project
+/bin
+/.idea/**
+*.idea/**
+*
