@@ -13,10 +13,7 @@ import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 //import org.apache.log4j.Level;
 import org.apache.logging.log4j.Logger;
@@ -34,9 +31,20 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.util.Constants;
+import org.apache.logging.log4j.core.config.XMLConfigurationFactory;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class HumansUserTest {
+
+    static {
+//        Properties props = System.getProperties();
+//        props.list(System.out);
+//        System.out.println(props.getProperty("user.dir"));
+//        System.out.println("");
+        //System.setProperty(XMLConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/test/conf/log4j2.xml");
+
+
+    }
 	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.entities.HumanTest.class);
 	static HumansUserDAO test_dao;
 
@@ -46,9 +54,11 @@ public class HumansUserTest {
 		//Logger.getRootLogger().setLevel(Level.OFF);
 
 		try {
+
 			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
 			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
-			test_dao = new HumansUserDAO("humans-test");
+
+            test_dao = new HumansUserDAO("humans-test");
 			test_dao.getCollection().drop();
 			logger.debug("Hey Ho!");
 		} catch(Exception e) {
@@ -466,7 +476,7 @@ public class HumansUserTest {
 		}
 	}
 
-	@Ignore
+	@Test
 	public void test_getByHumanID() {
 		try {
 			HumansUserDAO dao = new HumansUserDAO();
@@ -482,7 +492,8 @@ public class HumansUserTest {
 	public void testRefreshStatus() {
 		try {
 			HumansUserDAO dao = new HumansUserDAO();
-			HumansUser user = dao.findOneByUsername("darthjulian");
+            HumansUser user = dao.findOneByUsername("darthjulian");
+//			HumansUser user = dao.findOneByUsername("darthjulian");
 			user.getStatusForAllHumans(true);
 			user = dao.findOneByUsername("fabien");
 			user.getStatusForAllHumans(true);
