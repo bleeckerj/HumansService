@@ -32,7 +32,6 @@ import org.mongodb.morphia.Key;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.nearfuturelaboratory.humans.core.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.util.Constants;
 
