@@ -69,6 +69,7 @@ public class FoursquareCheckin extends ServiceStatus {
 //	protected FoursquareUnit overlaps;
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
+        created = getCreatedAt();
 	}
 	public String getUserID() {
 		return user_id;
@@ -148,6 +149,9 @@ public class FoursquareCheckin extends ServiceStatus {
 		obj.addProperty("service", "foursquare");
 		return obj;
 	}
+
+    @Property("created")
+    public long created;
 	@Override
 	public long getCreated() {
 		return this.createdAt * 1000L;

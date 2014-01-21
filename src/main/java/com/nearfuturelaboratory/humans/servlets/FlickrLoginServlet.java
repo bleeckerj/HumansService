@@ -38,7 +38,7 @@ public class FlickrLoginServlet extends HttpServlet {
 	protected FlickrService flickr;
 
 
-	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.servlets.FlickrLoginServlet.class);
 	protected Token requestToken;
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

@@ -186,10 +186,15 @@ public class FlickrService {
 		service.signRequest(accessToken, request);
 		Response response = request.send();
 		String s = response.getBody();
+
+        //TODO Error checking
+        // eg { "stat": "fail", "code": "112", "message": "Method unknown not found" }
 		Object jsonResponse = JSONValue.parse(s);
 		JSONObject status = (JSONObject)jsonResponse;
 
-		JSONArray photos = JsonPath.read(status, "photos.photo");
+		JSONArray photos = new JSONArray();
+        try {
+        photos = JsonPath.read(status, "photos.photo");
 
 		int page = Integer.parseInt(		JsonPath.read(status, "photos.page").toString());
 		int pages = Integer.parseInt(		JsonPath.read(status, "photos.pages").toString());
@@ -223,7 +228,12 @@ public class FlickrService {
 			//			oldest_time = oldest_taken_date.getTime();
 			page = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
 			pages = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
+
 		}
+        } catch(Exception e) {
+            logger.error(e);
+            logger.error("For this FlickrStatus "+status);
+        }
 		return saveStatus(photos);
 
 	}
@@ -608,7 +618,8 @@ public class FlickrService {
 	}
 
 
-	protected void saveFollowsJson(List<JSONObject> list_of_friends, String follower_id) {
+
+    protected void saveFollowsJson(List<JSONObject> list_of_friends, String follower_id) {
 		//JSONArray result = new JSONArray();
 		//friendsDAO.deleteByQuery??;
 
@@ -642,6 +653,7 @@ public class FlickrService {
 
 
 	}
+
 
 	/**
 	 * Weird bootstrap method needed while migrating. We really should not have a token
@@ -700,5 +712,11 @@ public class FlickrService {
 	public String toString() {
 		return "["+this.getThisUser().toString()+", accessToken="+this.accessToken+"]";
 	}
+
+    public long getStatusCountForUserID(String userID) {
+        long result = 0;
+        result = statusDAO.getStatusCountForUserID(userID);
+        return result;
+    }
 }
 

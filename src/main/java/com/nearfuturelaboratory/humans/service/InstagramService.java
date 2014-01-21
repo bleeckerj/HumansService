@@ -111,7 +111,7 @@ public class InstagramService /*implements AbstractService*/ {
 		.build();
 
 	}
-
+    @Deprecated 
 	public void initServiceOnBehalfOfUsername(String aUsername) throws BadAccessTokenException 
 	{
 		accessToken = InstagramService.deserializeToken(aUsername);
@@ -504,13 +504,14 @@ public class InstagramService /*implements AbstractService*/ {
 
 	//TODO we should delete all the follows first..then add them back?
 	//TODO or find the ones we would be deleting in the overlap exclusion?
-	//TODO TwitterService passes the id of the user to this method
+	//TODO InstagramService passes the id of the user to this method
 	protected void saveFollowsJson(List<JSONObject> data, String follower_id) {
 
 		List<InstagramFriend> new_friends = new ArrayList<InstagramFriend>();
 		for(JSONObject j : data) {
 			InstagramUserBriefly iub = gson.fromJson(j.toString(), InstagramUserBriefly.class);
 			InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
+            // here's where we update a user if their local user basic is stale..
 			if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
 				friend = this.serviceRequestUserBasicForUserID(iub.getId());
 			}
@@ -660,4 +661,8 @@ public class InstagramService /*implements AbstractService*/ {
 		return user;
 	}
 
+    public long getStatusCountForUserID(String userID) {
+        long result = statusDAO.getStatusCountForUserID(userID);
+        return result;
+    }
 }

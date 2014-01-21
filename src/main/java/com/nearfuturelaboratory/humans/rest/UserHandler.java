@@ -42,6 +42,9 @@ import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 //import static com.google.common.collect.Lists.partition;
 import com.nearfuturelaboratory.util.Constants;
+import org.quartz.*;
+import org.quartz.ee.servlet.QuartzInitializerListener;
+import org.quartz.impl.StdSchedulerFactory;
 
 
 @Path("/user")
@@ -88,6 +91,30 @@ public class UserHandler {
 				setExclusionStrategies(new UserJsonExclusionStrategy()).
 				registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 	}
+
+
+    @GET
+    @Path("/gettyup")
+    @Produces({"application/json"})
+    public Response buildCaches(
+            @Context HttpServletRequest request,
+            @Context HttpServletResponse response) {
+        // TODO Auto-generated method stub
+        //Trigger trigger = TriggerBuilder.newTrigger().withIdentity("ScheduledStatusFetcher").startNow().build();
+        try {
+            StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
+                    .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
+
+            Scheduler scheduler = stdSchedulerFactory.getScheduler();
+            JobKey jobKey = new JobKey("ScheduledStatusFetcher");
+            scheduler.triggerJob(jobKey);
+        } catch (SchedulerException e) {
+            logger.warn(e);
+        }
+
+        return Response.ok("{ok:ok}", MediaType.APPLICATION_JSON).build();
+
+    }
 
 	@GET @Path("/update/{humanid}")
 	public Response updateStatusForHuman(

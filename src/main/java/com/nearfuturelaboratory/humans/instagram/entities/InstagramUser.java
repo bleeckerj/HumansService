@@ -62,6 +62,8 @@ public class InstagramUser extends MinimalSocialServiceUser {
 		return full_name;
 	}
 
+    public String getFullName() {return full_name;}
+
 	public void setFull_name(String aFull_name) {
 		full_name = aFull_name;
 	}

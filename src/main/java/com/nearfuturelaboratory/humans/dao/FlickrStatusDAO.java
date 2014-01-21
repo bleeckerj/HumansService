@@ -34,4 +34,9 @@ public class FlickrStatusDAO extends BasicDAO<FlickrStatus, ObjectId> {
 		return result;
 	}
 
+    public long getStatusCountForUserID(String aUserID) {
+        long result;
+        result = this.getDatastore().find(this.getEntityClass()).filter("id", aUserID).countAll();
+        return result;
+    }
 }

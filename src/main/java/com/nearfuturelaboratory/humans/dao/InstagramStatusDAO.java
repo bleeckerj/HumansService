@@ -57,4 +57,9 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 		return result;
 	}
 
+    public long getStatusCountForUserID(String aUserID) {
+        long result;
+        result = this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).countAll();
+        return result;
+    }
 }

@@ -142,7 +142,9 @@ public class TwitterFriend extends MinimalSocialServiceUser {
 		return this.getFriend().getName();
 	}
 
-	
+	public String getFullName() {
+        return this.getFriend().getName();
+    }
 	
 	@Override
 	public String getLargeImageURL() {

@@ -411,7 +411,8 @@ public class TwitterUser extends MinimalSocialServiceUser
 		return name;
 	}
 
-	
+	public String getFullName() { return name; }
+
 	@Override
 	public String getLargeImageURL() {
 		String i = getImageURL();

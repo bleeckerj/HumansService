@@ -5,14 +5,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.annotations.Property;
-import org.mongodb.morphia.annotations.Transient;
-import org.mongodb.morphia.annotations.Version;
+import org.mongodb.morphia.annotations.*;
 import org.mongodb.morphia.utils.IndexDirection;
 
 import com.google.gson.Gson;
@@ -40,19 +33,28 @@ public class TwitterStatus extends ServiceStatus {
 	}
 
 	//protected String id_str;
+
 	@Indexed(value = IndexDirection.ASC, name = "created_at", unique = false, dropDups = false)
 	protected Date created_at;
 	protected String text;
 	protected String screen_name;
+
 
 	@Embedded
 	protected Coordinates coordinates;
 
 	@Transient
 	protected String service="twitter";
-	
 
-	/**
+
+    @Property("created")
+    public long created;
+    public long getCreated() {
+        return this.getCreated_at().getTime();
+    }
+
+
+    /**
 	 * @return the service
 	 */
 	public String getService() {
@@ -85,9 +87,9 @@ public class TwitterStatus extends ServiceStatus {
 	
 	protected Date lastUpdated;
 
-
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
+        created = created_at.getTime();
 	}
 
 	public Date getLastUpdated() {
@@ -270,10 +272,6 @@ public class TwitterStatus extends ServiceStatus {
 		JsonObject obj = new Gson().toJsonTree(this, this.getClass()).getAsJsonObject();
 		obj.addProperty("service", "twitter");
 		return obj;
-	}
-
-	public long getCreated() {
-		return this.getCreated_at().getTime();
 	}
 
 	

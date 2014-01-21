@@ -38,7 +38,7 @@ public class TwitterLoginServlet extends HttpServlet {
 	protected TwitterService twitter;
 
 
-	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.servlets.TwitterLoginServlet.class);
 	protected Token requestToken;
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

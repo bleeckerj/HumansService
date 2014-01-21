@@ -93,15 +93,21 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 	@PostLoad void postLoad() {
 		InstagramUserDAO dao = new InstagramUserDAO();
 		transient_instagram_user = dao.findByExactUserID(user.id);
-		logger.debug("transient_instagram_user="+transient_instagram_user);
+		//logger.debug("transient_instagram_user="+transient_instagram_user);
 	}
 	
 	protected Date lastUpdated;
 
-	
+
+    @Property("created")
+    public long created;
+    public long getCreated() {
+        return this.created_time * 1000L;
+    }
 
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
+        created = getCreatedDate().getTime();
 	}
 	
 
@@ -197,10 +203,6 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 		return obj;
 	}
 
-
-	public long getCreated() {
-		return this.created_time * 1000L;
-	}
 
 
 //	@Override

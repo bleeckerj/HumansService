@@ -10,7 +10,7 @@ public abstract class ServiceStatus implements Comparable<ServiceStatus> {
 	public abstract JsonObject getStatusJSON();
 	
 	public abstract long getCreated();
-	
+
 	public abstract String getService();
 	
 	public ServiceStatus() {}

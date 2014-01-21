@@ -189,7 +189,7 @@ public class ServiceUser extends MinimalSocialServiceUser {
 
 	@Override
 	public String getServiceName() {
-		return "-";
+		return this.service;
 	}
 
 	@Override
@@ -197,6 +197,7 @@ public class ServiceUser extends MinimalSocialServiceUser {
 		return "-";
 	}
 
+//TODO eh?? Are these handled in the super classes?
 	public String getFirstName() {
 		return null;
 	}
@@ -205,6 +206,9 @@ public class ServiceUser extends MinimalSocialServiceUser {
 		return null;
 	}
 
+    public String getFullName() {
+        return null;
+    }
 
 }
 
@@ -243,5 +247,6 @@ class OnBehalfOf  {
 		return "OnBehalfOf [serviceUserID=" + serviceUserID
 				+ ", serviceUsername=" + serviceUsername + "]";
 	}
+
 
 }

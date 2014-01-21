@@ -166,8 +166,14 @@ public class HumanHandler {
 		return this.getStatus(aHumanId, "1", request, response);
 	}
 
-
-
+    /**
+     *
+     * @param aHumanId
+     * @param aPage 0-based (page=0 is the first page), which means the "pages" count is canonical not indexical
+     * @param request
+     * @param response
+     * @return
+     */
 	@GET @Path("/status/{humanid}/{page}")
 	//@Produces(MediaType.APPLICATION_JSON)
 	public Response getStatus(
@@ -191,7 +197,7 @@ public class HumanHandler {
 			//e1.printStackTrace();
 		}
 
-		logger.debug("humanid="+aHumanId+" and page="+aPage);
+		//logger.debug("humanid="+aHumanId+" and page="+aPage);
 		Human human = null;
 		try {
 			human = user.getHumanByID(aHumanId);
@@ -205,56 +211,63 @@ public class HumanHandler {
 			//return fail_response.toString();
 		}
 
-		/*
-		StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
+        int page = 1;
+        if(aPage != null) {
+            try {
+                page = Integer.parseInt(aPage);
+            } catch(NumberFormatException nfe) {
+                logger.warn("", nfe);
+            }
+        }
 
-		if(paging_helper == null) {
-			fail_response.addProperty("message", "no such paging helper found for "+human);
-			return Response.status(Response.Status.EXPECTATION_FAILED).type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
-		}
+        //page-=1;
 
+        int pages = user.getJsonStatusPageCountForHuman(human, Constants.getInt("STATUS_CHUNK_SIZE", 25));
+        if(page > pages) {
+            page = pages;
+        }
+        int total_status = user.getJsonStatusCountForHuman(human);
+        //logger.debug("pages="+" total_status="+total_status);
 
-		int page = 1;
-		if(aPage != null) {
-			try {
-				page = Integer.parseInt(aPage);
-			} catch(NumberFormatException nfe) {
-				logger.warn("", nfe);
-			}
-		}
+        JsonArray array = new JsonArray();
+        JsonArray tmp = user.getJsonStatusForHuman(human, page);
+        if(tmp == null || tmp.size() < 1) {
+            logger.warn("I got empty json status here for "+human+" "+page);
+            fail_response.addProperty("message", "no status found right now for page="+page+" of "+pages+" for humanid="+aHumanId);
+            fail_response.addProperty("page", page);
+            fail_response.addProperty("pages", pages);
+            fail_response.addProperty("humanid", aHumanId);
 
-		JsonObject status_response;
+            return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
+        }
 
-		status_response = paging_helper.statusJsonByPage(page-1);
+        JsonObject data = new JsonObject();
 
-		logger.debug("status by page"+(page-1)+" status_response count="+(status_response.get("status") == null ? status_response.get("status") : status_response.get("status").getAsJsonArray().size()));
+        JsonObject head = new JsonObject();
+        JsonObject head_m = new JsonObject();
 
-		//		JsonArray result = new JsonArray();
-		//		for(ServiceStatus s : status) {
-		//			result.add(s.getStatusJSON());
-		//		}
-		//logger.debug(status);
-		 */
-		StatusPagingHelper helper = getStatusPagingHelper(user, human);
+        head_m.addProperty("pages", pages);
 
-		if(helper == null) {
-			return Response.status(Response.Status.NOT_FOUND).entity("no such paging helper found for human="+human.getId()+" name="+human.getName()+" "+user.getUsername()).build();
+        head_m.addProperty("page", page);
+        head_m.addProperty("total_status", total_status);//user.getJsonStatusCountForHuman(human));// status_list.size());
+        head_m.addProperty("count", tmp.size());
+        head_m.addProperty("human_name", human.getName());
+        head_m.addProperty("human_id", human.getId());
+        //head.add("head", head_m);
 
-		}
-		
-		int page = 1;
-		if(aPage != null) {
-			try {
-				page = Integer.parseInt(aPage);
-			} catch(NumberFormatException nfe) {
-				logger.warn("", nfe);
-			}
-		}
+        data.add("head", head_m);
+//        array.add(head);
 
-		
-		JsonObject status_response = helper.statusJsonByPage(page-1);
-		//JsonArray status_response = user.getJsonStatusForHuman(human);
-		return Response.ok().type(MediaType.APPLICATION_JSON).entity(status_response.toString()).build();
+        //JsonObject status = new JsonObject();
+        //status.add("status", tmp);
+        //array.add(status);
+        //array.addAll(tmp);
+        data.add("status", tmp);
+
+        //status.add(0, json_result.getAsString());
+
+        return Response.ok().type(MediaType.APPLICATION_JSON).entity(data.toString()).build();
+
 	}
 
 	//TODO
@@ -270,94 +283,18 @@ public class HumanHandler {
 	//		return Response.serverError().entity("not implemented yet").build();
 	//	}
 
-	/**
-	 * Helper. Not tied to session. Not sure how to do that without being a memory hog.
-	 * 
-	 * @param aUser
-	 * @param aHuman
-	 * @return Basically a helper to format the results for get/status/ and allow you to page through it.
-	 */
-	protected StatusPagingHelper getStatusPagingHelper(HumansUser aUser, Human aHuman)
-	{
-		StatusPagingHelper helper;
-		try {
-			JsonArray result = aUser.getJsonStatusForHuman(aHuman);
-			helper = new StatusPagingHelper(result, aHuman);
-		}catch(NumberFormatException nfe) {
-			helper = null;
-
-		}
-		return helper; 
-	}
-
-	/**
-	 * Helper
-	 * @param session
-	 * @param user
-	 * @param human
-	 * @return
-	 * @deprecated
-	 */
-	@Deprecated
-	protected StatusPagingHelper getStatusPagingHelperFromSession(HttpSession session, HumansUser user, Human human)
-	{
-		StatusPagingHelper paging_helper = null;
-		String aHumanId = human.getId();
-		//		if(service == null) {
-		//			service = "all";
-		//		}
-		logger.debug("session="+session.getId());
-		String attribute_name = "status_"+aHumanId;
-
-
-		paging_helper = (StatusPagingHelper)session.getAttribute(attribute_name);
-
-		if(paging_helper == null ) {
-			JsonArray result = user.getJsonStatusForHuman(human);
-			paging_helper = new StatusPagingHelper(result, human);
-			//paging_helper.getTotalPages();
-			logger.debug("for "+session.getId()+" result size="+result.size());
-			session.setAttribute(attribute_name, paging_helper);	
-
-		}
-
-		long now = new Date().getTime();
-		long diff = now - paging_helper.created_time;
-
-		if(diff > Constants.getLong("STATUS_STALE_TIME") ) {
-			JsonArray result = user.getJsonStatusForHuman(human);
-			session.removeAttribute(attribute_name);
-			paging_helper = new StatusPagingHelper(result, human);
-			session.setAttribute(attribute_name, paging_helper);
-		}
-
-
-		//logger.debug(attribute_name+" "+session.getAttribute(attribute_name));
-
-
-		paging_helper = (StatusPagingHelper)session.getAttribute(attribute_name);
-
-		return paging_helper;
-	}
 
 	//TODO status by service? Is this useful?
-	/**
-	 * Doesn't work
-	 * @param aHumanId
-	 * @param aPage
-	 * @param service
-	 * @param request
-	 * @param response
-	 * @return
-	 */
+
+/*
 	@GET @Path("/status/{humanid}/{page}/{service}")
 	//@Produces(MediaType.APPLICATION_JSON)
 	public Response getStatus(
-			@PathParam("humanid") String aHumanId, 
+			@PathParam("humanid") String aHumanId,
 			@PathParam("page") String aPage,
 			@PathParam("service") String service,
 			@Context HttpServletRequest request,
-			@Context HttpServletResponse response) 
+			@Context HttpServletResponse response)
 	{
 		//String result = getStatus(aHumanId, aPage, request, response);
 		// stoopid that you would have to convert it back to JSON
@@ -365,7 +302,9 @@ public class HumanHandler {
 		RestCommon common = new RestCommon();
 		HumansUser user;
 		try {
-			user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+			user = common.getUserForAccessToken(*/
+/*context, *//*
+request.getParameter("access_token"));
 		} catch (InvalidAccessTokenException e1) {
 			logger.warn("invalid or missing access token", e1);
 			fail_response.addProperty("message", "invalid access token");
@@ -385,10 +324,10 @@ public class HumanHandler {
 		}
 
 		//StatusPagingHelper paging_helper = getStatusPagingHelperFromSession(session, user, human);
-		StatusPagingHelper paging_helper = this.getStatusPagingHelper(user, human);
-		if(paging_helper == null) {
-			return Response.status(Response.Status.NOT_ACCEPTABLE).entity("no such paging helper found for "+human).build();
-		}
+//		StatusPagingHelper paging_helper = this.getStatusPagingHelper(user, human);
+//		if(paging_helper == null) {
+//			return Response.status(Response.Status.NOT_ACCEPTABLE).entity("no such paging helper found for "+human).build();
+//		}
 
 
 		int page = 1;
@@ -402,9 +341,10 @@ public class HumanHandler {
 
 		JsonObject status_response = paging_helper.statusJsonByPage(page-1);
 
-		return Response.ok().type(MediaType.APPLICATION_JSON).entity(status_response.toString()).build();		
+		return Response.ok().type(MediaType.APPLICATION_JSON).entity(status_response.toString()).build();
 	}
 
+*/
 
 
 
@@ -542,7 +482,8 @@ public class HumanHandler {
  * @author julian
  *
  */
-class StatusPagingHelper {
+/*class StatusPagingHelper {
+
 
 	ArrayList<JsonElement> status_list;
 	ArrayList<String> status_list_strings;
@@ -557,7 +498,15 @@ class StatusPagingHelper {
 //		human = aHuman;
 //		status_chunks_strings = partition(status_list_strings,  Constants.getInt("STATUS_CHUNK_SIZE", 50));
 //	}
-	
+
+    public StatusPagingHelper(ArrayList<String> aStatus, Human aHuman) {
+        status_list_strings = aStatus;
+        human = aHuman;
+        status_chunks_strings = partition(status_list_strings, Constants.getInt("STATUS_CHUNK_SIZE", 50));
+        created_time = new Date().getTime();
+        pages = status_chunks.size();
+    }
+
 	public StatusPagingHelper(JsonArray aStatus, Human aHuman) {
 		status_list = getStatusAsList(aStatus);
 		human = aHuman;
@@ -567,8 +516,9 @@ class StatusPagingHelper {
 		pages = status_chunks.size();
 	}
 
-	public String statusJsonByPageStr(int aPage) {
+	public List<String> statusJsonByPageStr(int aPage) {
 		JsonObject json_result = new JsonObject();
+        ArrayList<String> status = new ArrayList<String>();
 		//String status_str_result = new String();
 		if(aPage < 0) aPage = 0;
 
@@ -592,7 +542,7 @@ class StatusPagingHelper {
 			head.addProperty("human_id", human.getId());
 			json_result.add("head", head);
 
-			ArrayList<String> status = new ArrayList<String>();
+            status.add(0, json_result.getAsString());
 
 			for(int i=0; i<chunk.size(); i++) {
 				status.add(chunk.get(i));
@@ -600,7 +550,7 @@ class StatusPagingHelper {
 			//String result = head.getAsString()+",\"status\":["
 			//json_result.add("status", status);
 		}
-		return null;//json_result;
+		return status;//json_result;
 
 
 	}
@@ -662,7 +612,7 @@ class StatusPagingHelper {
 	}
 
 
-}
+}*/
 
 /*@Provider
 class ServiceUserMessageBodyReader implements MessageBodyReader<ServiceUser> {

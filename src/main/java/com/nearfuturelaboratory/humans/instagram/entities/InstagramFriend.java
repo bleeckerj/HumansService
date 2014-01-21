@@ -250,13 +250,16 @@ public class InstagramFriend extends MinimalSocialServiceUser {
 	}
 	
 	public String getFirstName() {
-		return getUser().getFull_name();
+		return getFriend().getFull_name();
 	}
 	
 	public String getLastName() {
-		return getUser().getFull_name();
+		return getFriend().getFull_name();
 	}
-	
+
+    public String getFullName() {
+        return getFriend().getFull_name();
+    }
 //	public void setOnBehalfOf(ServiceEntry entry) {
 //		onBehalfOf = entry;
 //	}

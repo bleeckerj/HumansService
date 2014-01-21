@@ -142,6 +142,9 @@ public class FlickrUser extends MinimalSocialServiceUser {
 		return this.realname.get("_content");
 	}
 
+    public String getFullName() {
+        return this.realname.get("_content");
+    }
 
 	@Override
 	public String getServiceName() {

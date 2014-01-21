@@ -86,6 +86,9 @@ public class FoursquareUser extends MinimalSocialServiceUser {
 	public void setLastName(String aLastName) {
 		lastName = aLastName;
 	}
+    public String getFullName() {
+        return firstName+" "+lastName;
+    }
 	public FoursquarePhoto getPhoto() {
 		return photo;
 	}
@@ -152,10 +155,8 @@ public class FoursquareUser extends MinimalSocialServiceUser {
 	 */
 	@Override
 	public String toString() {
-		return "FoursquareUser [lastUpdated=" + lastUpdated + ", id=" + id
-				+ ", firstName=" + firstName + ", lastName=" + lastName
-				+ ", photo=" + photo + ", homeCity=" + homeCity + ", contact="
-				+ contact + "]";
+		return "FoursquareUser [id=" + id
+				+ ", firstName=" + firstName + ", lastName=" + lastName+"]";
 	}
 
 	@Override
@@ -182,8 +183,9 @@ public class FoursquareUser extends MinimalSocialServiceUser {
 	public String getLargeImageURL() {
 		return getSquarePhoto(120);
 	}
-	
-//	public Map<String, String> getTips() {
+
+
+    //	public Map<String, String> getTips() {
 //		return tips;
 //	}
 //	public void setTips(Map<String, String> aTips) {

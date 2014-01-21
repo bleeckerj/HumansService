@@ -39,7 +39,7 @@ public class FoursquareLoginServlet extends HttpServlet {
 	protected JSONObject user;
 	protected FoursquareService foursquare;
 
-	final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.humans.test.Test");
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.servlets.FoursquareLoginServlet.class);
 	protected Token requestToken;
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

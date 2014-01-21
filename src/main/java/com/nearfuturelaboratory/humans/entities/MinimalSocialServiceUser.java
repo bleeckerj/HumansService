@@ -16,6 +16,8 @@ public abstract class MinimalSocialServiceUser {
 	public abstract String getFirstName();
 	
 	public abstract String getLastName();
+
+    public abstract String getFullName();
 	
 	public abstract String getServiceName();
 	

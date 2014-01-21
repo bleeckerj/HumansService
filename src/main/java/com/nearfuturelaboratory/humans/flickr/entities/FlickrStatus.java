@@ -106,9 +106,19 @@ public class FlickrStatus extends ServiceStatus {
 	protected String url_o;
 	protected Integer height_o;
 	protected Integer width_o;
-	
+	@Property("created")
+    public long created;
+    @Override
+    /**
+     * Use date uploaded for sorting
+     */
+    public long getCreated() {
+        return this.getDateupload().longValue();
+    }
+
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
+        created = getCreatedDate().getTime();
 	}
 
 	public Long getVersion() {
@@ -374,13 +384,7 @@ public class FlickrStatus extends ServiceStatus {
 		return obj;
 	}
 
-	@Override
-	/**
-	 * Use date uploaded for sorting
-	 */
-	public long getCreated() {
-		return this.getDateupload().longValue();
-	}
+
 
 
 }

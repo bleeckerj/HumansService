@@ -313,6 +313,9 @@ public class FlickrFriend extends MinimalSocialServiceUser {
 		return this.getRealname();
 	}
 
+    public String getFullName() {
+        return this.getRealname();
+    }
 //	public void setOnBehalfOf(ServiceEntry entry) {
 //		onBehalfOf = entry;
 //	}

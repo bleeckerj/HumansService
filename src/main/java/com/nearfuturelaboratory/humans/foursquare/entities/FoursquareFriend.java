@@ -153,6 +153,10 @@ public class FoursquareFriend extends MinimalSocialServiceUser {
 	public String getLastName() {
 		return friend.lastName;
 	}
+
+    public String getFullName() {
+        return friend.firstName + " "+friend.lastName;
+    }
 //	public void setOnBehalfOf(ServiceEntry entry) {
 //		onBehalfOf = entry;
 //	}

@@ -16,6 +16,7 @@ public class TwitterUserDAO extends BasicDAO<TwitterUser, ObjectId> {
 	
 	public TwitterUserDAO() {
 		super(MongoUtil.getMongo(), new Morphia(), "twitter");
+
 	}
 
 	protected TwitterUserDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {

@@ -2,6 +2,7 @@ package com.nearfuturelaboratory.humans.util;
 
 import java.net.UnknownHostException;
 
+import com.nearfuturelaboratory.util.Constants;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -17,8 +18,8 @@ public class MongoUtil {
 	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.util.MongoUtil.class);
 
 
-	private static final int port = 27017;
-	private static final String host = "localhost";
+	private static final int port = Constants.getInt("MONGO_PORT", 27017);
+	private static final String host = Constants.getString("MONGO_IP", "localhost");
 	private static MongoClient mongo = null;
 
 	public static MongoClient getMongo() {
