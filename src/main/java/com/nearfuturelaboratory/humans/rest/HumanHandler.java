@@ -2,6 +2,7 @@ package com.nearfuturelaboratory.humans.rest;
 
 import static com.google.common.collect.Lists.partition;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -72,7 +73,7 @@ public class HumanHandler {
 
 	public HumanHandler() {
 		//logger.debug("Constructor " + context);  // null here   
-		gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+		gson = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 	}
 
 
@@ -156,6 +157,91 @@ public class HumanHandler {
 		return this.getStatus(aHumanId, aPage, request, response);
 	}
 
+
+    @GET @Path("/status/count/{humanid}")
+    public Response getStatusCount(
+            @PathParam("humanid") String aHumanId,
+            @Context HttpServletRequest request,
+            @Context HttpServletResponse response)
+    {
+        RestCommon common = new RestCommon();
+        HumansUser user;
+        try {
+            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+        } catch (InvalidAccessTokenException e1) {
+            logger.warn("invalid or missing access token");
+            fail_response.addProperty("message", "invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
+            //return fail_response.toString();
+            //e1.printStackTrace();
+        }
+
+        //logger.debug("humanid="+aHumanId+" and page="+aPage);
+        Human human = null;
+        try {
+            human = user.getHumanByID(aHumanId);
+        } catch(java.lang.IllegalArgumentException iae) {
+            logger.warn(iae);
+        }
+        if(human ==  null) {
+            fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
+            return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
+
+            //return fail_response.toString();
+        }
+
+        int result = user.getStatusCountFromCache(human);
+        success_response.addProperty("count", String.valueOf(result));
+        return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+
+    }
+
+    @GET @Path("/status/count/{humanid}/after/{timestamp}")
+    public Response getStatusCountAfter(
+            @PathParam("humanid") String aHumanId,
+            @PathParam("timestamp") long aTimestamp,
+            @Context HttpServletRequest request,
+            @Context HttpServletResponse response)
+    {
+        RestCommon common = new RestCommon();
+        HumansUser user;
+        try {
+            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+        } catch (InvalidAccessTokenException e1) {
+            logger.warn("invalid or missing access token");
+            fail_response.addProperty("message", "invalid access token");
+            return Response.ok().type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
+            //return fail_response.toString();
+            //e1.printStackTrace();
+        }
+
+        //logger.debug("humanid="+aHumanId+" and page="+aPage);
+        Human human = null;
+        try {
+            human = user.getHumanByID(aHumanId);
+        } catch(java.lang.IllegalArgumentException iae) {
+            logger.warn(iae);
+        }
+        if(human ==  null) {
+            fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
+            return Response.ok().type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
+
+            //return fail_response.toString();
+        }
+        int count;
+        try {
+        //long timestamp = Long.parseLong(aTimestamp);
+
+        count = user.getStatusCountFromCacheAfterTimestamp(human, aTimestamp);
+        } catch(Exception nfe) {
+            logger.warn("Bad parameter passed as a timestamp "+aTimestamp, nfe);
+            fail_response.addProperty("Bad parameter passed as a timestamp", aTimestamp);
+            return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
+        }
+        success_response.addProperty("count", count);
+        return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+    }
+
 	@GET @Path("/status/{humanid}")
 	//@Produces(MediaType.APPLICATION_JSON)
 	public Response getStatus(
@@ -163,7 +249,7 @@ public class HumanHandler {
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response) 	
 	{
-		return this.getStatus(aHumanId, "1", request, response);
+		return this.getStatus(aHumanId, "0", request, response);
 	}
 
     /**

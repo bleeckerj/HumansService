@@ -342,7 +342,7 @@ public class HumansUser extends BaseEntity {
         List<ServiceUser> all = getServiceUsersForAllHumans();
         for(int i=0; i<all.size(); i++) {
             ServiceUser su = all.get(i);
-            if(su.getService().equalsIgnoreCase(aService)) {
+            if(su.getServiceName().equalsIgnoreCase(aService)) {
                 result.add(su);
             }
         }
@@ -362,12 +362,13 @@ public class HumansUser extends BaseEntity {
         for(MinimalSocialServiceUser friend : friends) {
 
             JsonObject obj = new JsonObject();
-            obj.addProperty("serviceID", friend.getUserID());
+            obj.addProperty("serviceUserID", friend.getUserID());
             obj.addProperty("username", friend.getUsername());
-            obj.addProperty("service", friend.getServiceName());
+            obj.addProperty("serviceName", friend.getServiceName());
             obj.addProperty("imageURL", friend.getImageURL());
             obj.addProperty("largeImageURL", friend.getLargeImageURL());
             obj.addProperty("fullname", friend.getFullName());
+            obj.addProperty("lastUpdated", String.valueOf(friend.getLastUpdated().getTime()));
 //            obj.addProperty("firstname", friend.getFirstName());
 //            obj.addProperty("lastname", friend.getLastName());
 
@@ -378,8 +379,8 @@ public class HumansUser extends BaseEntity {
 //            obj.add("onBehalfOf", new JsonParser().parse(gson.toJson(o)));
 
             JsonObject onBehalfOf = new JsonObject();
-            onBehalfOf.addProperty("service", friend.getServiceName());
-            onBehalfOf.addProperty("serviceID", friend.getOnBehalfOf().getServiceUserID());
+            onBehalfOf.addProperty("serviceName", friend.getServiceName());
+            onBehalfOf.addProperty("serviceUserID", friend.getOnBehalfOf().getServiceUserID());
             onBehalfOf.addProperty("serviceUsername", friend.getOnBehalfOf().getServiceUsername());
             obj.add("onBehalfOf", onBehalfOf);
 
@@ -690,6 +691,43 @@ public class HumansUser extends BaseEntity {
     }
 
     /**
+     * Returns a count of status in a human cache greater than (after) a given timestamp
+     * @param aHuman
+     * @param aTimestamp
+     * @return
+     */
+    public int getStatusCountFromCacheAfterTimestamp(Human aHuman, long aTimestamp)
+    {
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+
+        DB cache_db = MongoUtil.getStatusCacheDB();
+
+        DBCollection cache = cache_db.getCollection(cache_name);
+
+        BasicDBObject query = new BasicDBObject("created", new BasicDBObject("$gt", aTimestamp));
+
+        DBCursor cursor = cache.find(query);
+
+        return cursor.size();
+
+    }
+
+
+
+    public int getStatusCountFromCache(Human aHuman)
+    {
+
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+
+        DB cache_db = MongoUtil.getStatusCacheDB();
+
+        DBCollection cache = cache_db.getCollection(cache_name);
+//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("created")
+
+        return (int)cache.getCount();
+    }
+
+    /**
      * Returns whatever may be cached for this Human, otherwise, if the cache doesn't exist
      * or the cache is empty, it returns an empty result.
      *
@@ -735,7 +773,7 @@ public class HumansUser extends BaseEntity {
         int count = 0;
         List<ServiceUser> service_users = aHuman.getServiceUsers();
         for(ServiceUser service_user : service_users) {
-            String service_name = service_user.getService();
+            String service_name = service_user.getServiceName();
 
             try {
                 if(service_name.equalsIgnoreCase("twitter")) {
@@ -769,7 +807,7 @@ public class HumansUser extends BaseEntity {
      * Just refresh status, don't return a list of it. For updating the database with latest status, basically.
      * @param aHuman
      */
-    protected void serviceRefreshStatusForHuman(Human aHuman)
+    public void serviceRefreshStatusForHuman(Human aHuman)
     {
 
         // if this particular HumansUser has foursquare accounts we may as well
@@ -790,8 +828,13 @@ public class HumansUser extends BaseEntity {
         List<ServiceUser> service_users = aHuman.getServiceUsers();
 
         for(ServiceUser service_user : service_users) {
-            String service_name = service_user.getService();
-            logger.info("Human="+ aHuman.getName() +":"+this.getUsername()+" / refreshing status for " + service_user.getUsername()+" @ "+service_user.getService() + " "+service_user.getUserID());
+            logger.info("Human="+ aHuman.getName() +":"+this.getUsername()+" / refreshing status for " + service_user.getUsername()+" @ "+service_user.getServiceName() + " "+service_user.getUserID());
+            if(service_user.getServiceName() == null) {
+                logger.warn("Bad thing. While refreshing service status found a null serviceName in serviceUser. Skipping. human="+aHuman.getName()+" service_user="+service_user);
+
+                continue;
+            }
+            String service_name = service_user.getServiceName();
             if(service_name.equalsIgnoreCase("twitter")) {
                 try {
                     TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
@@ -805,7 +848,7 @@ public class HumansUser extends BaseEntity {
             }
             if(service_name.equalsIgnoreCase("instagram")) {
                 try {
-                    //logger.debug(service_user.getServiceID()+" "+service_user.getUsername());
+                    //logger.debug(service_user.getServiceUserID()+" "+service_user.getUsername());
                     InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
                     if(instagram.localServiceStatusIsFreshForUserID(service_user.getUserID()) == false) {
                         instagram.serviceRequestStatusForUserID(service_user.getUserID());
@@ -841,8 +884,14 @@ public class HumansUser extends BaseEntity {
 
         List<ServiceUser> service_users = aHuman.getServiceUsers();
         for(ServiceUser service_user : service_users) {
-            String service_name = service_user.getService();
-            //logger.info("Gathering Status for " + service_user + " loadIfStale=" + (loadIfStale ? "YES" : "NO"));
+            String service_name = service_user.getServiceName();
+            logger.info("Gathering Status for " + service_user + " loadIfStale=" + (loadIfStale ? "YES" : "NO"));
+            if(service_name == null) {
+                logger.warn("Empty/null service_name. Migration issue. Fix if you want, but it's on a case-by-case basis. human="+aHuman+" service_user="+service_user);
+                logger.warn("In the meantime, this human will not have any status refreshes cause we don't know what service it is for.");
+                logger.warn("username="+this.getUsername()+" service_user="+service_user+" is not going to get a service update.");
+                continue;
+            }
             if(service_name.equalsIgnoreCase("twitter")) {
                 try {
                     TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
@@ -978,7 +1027,7 @@ public class HumansUser extends BaseEntity {
             //aServiceName = aServiceName.toLowerCase();
             List<ServiceUser> serviceUsers = this.getServiceUsersForAllHumans();
             for(ServiceUser serviceUser : serviceUsers) {
-                if(serviceUser.service != null && serviceUser.service.equalsIgnoreCase(aServiceName)) {
+                if(serviceUser.serviceName != null && serviceUser.serviceName.equalsIgnoreCase(aServiceName)) {
                     if(serviceUser.getOnBehalfOfUsername() == null) {
                         logger.warn("WTF? "+this+" The username for serviceUser.getOnBehalfOf is null: "+serviceUser);
                     }
