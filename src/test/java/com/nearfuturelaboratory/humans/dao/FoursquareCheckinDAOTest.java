@@ -62,4 +62,20 @@ public class FoursquareCheckinDAOTest {
 		//fail("Not yet implemented"); // TODO
 	}
 
+    @Test
+    public void testfindByExactUserID() throws Exception {
+        
+
+    }
+
+    @Test
+    public void testfindLatestCheckin() throws Exception {
+        
+
+    }
+
+    @Test
+    public void testgetStatusCountForUserID() throws Exception {
+
+    }
 }

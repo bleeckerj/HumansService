@@ -2,20 +2,21 @@ package com.nearfuturelaboratory.humans.entities;
 
 //import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.util.*;
 
 //import org.apache.log4j.Level;
+import com.google.gson.JsonObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.nearfuturelaboratory.humans.service.FoursquareService;
+import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
+import com.nearfuturelaboratory.humans.util.MongoUtil;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 //import org.apache.log4j.PropertyConfigurator;
@@ -31,7 +32,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.util.Constants;
-import org.apache.logging.log4j.core.config.XMLConfigurationFactory;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class HumansUserTest {
@@ -47,6 +47,7 @@ public class HumansUserTest {
     }
 	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.entities.HumanTest.class);
 	static HumansUserDAO test_dao;
+    static HumansUserDAO dev_dao;
 
 	
 	@BeforeClass
@@ -60,6 +61,10 @@ public class HumansUserTest {
 
             test_dao = new HumansUserDAO("humans-test");
 			test_dao.getCollection().drop();
+
+            dev_dao = new HumansUserDAO("humans");
+
+
 			logger.debug("Hey Ho!");
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -74,7 +79,7 @@ public class HumansUserTest {
 //		assertThat(user.isValidUser(), is(true));
 //		} catch(InvalidUserException iue) {
 //			fail(iue.toString());
-//			
+//
 //		}
 //	}
 
@@ -179,7 +184,7 @@ public class HumansUserTest {
 		ServiceEntry new_service_entry = new ServiceEntry("new_id", "new_username", "faafaa");
 
 		service_user.setUsername("Boo Boo Boo");
-		service_user.setService("faafaa");
+		service_user.setServiceName("faafaa");
 		service_user.setOnBehalfOf(new_service_entry);
 
 		boolean result = user.updateServiceUserById(service_user, aId.toString());
@@ -193,7 +198,7 @@ public class HumansUserTest {
 		assertThat(user.getServiceUsersForAllHumansByServiceName("faafaa"), hasItem(service_user));
 		assertThat(user.getServiceUsersForServiceName("faafaa"), hasItem(service_user));
 		assertThat(user.getServiceUserById(aId.toString()), notNullValue());
-		assertThat(user.getServiceUserById(aId.toString()).getService(), equalTo("faafaa"));
+		assertThat(user.getServiceUserById(aId.toString()).getServiceName(), equalTo("faafaa"));
 		assertThat(user.getServiceUserById(aId.toString()).getUsername(), equalTo("Boo Boo Boo"));
 		assertThat(user.getServiceUserById(aId.toString()).getOnBehalfOf(), equalTo(new_service_entry));
 		user.save(test_dao);
@@ -216,7 +221,7 @@ public class HumansUserTest {
 		ServiceEntry new_service_entry = new ServiceEntry("new_id", "new_username", "faafaa");
 		service_user = new ServiceUser();
 		service_user.setUsername("Foo Foo Foo");
-		service_user.setService("fiddlefaddle");
+		service_user.setServiceName("fiddlefaddle");
 		service_user.setOnBehalfOf(new_service_entry);
 
 
@@ -336,8 +341,9 @@ public class HumansUserTest {
 	
 	@Test
 	public void testGetJsonStatusForHuman() {
-		
-	}
+        fail("Unimplemnted. Get to it.");
+
+    }
 	
 	
 	@Test
@@ -345,12 +351,6 @@ public class HumansUserTest {
 		fail("Unimplemnted. Get to it.");
 	}
 
-	@Ignore
-	public void test_getServicesFor() {
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser user = dao.findOneByUsername("darthjulian");
-		logger.debug(user.getServicesForServiceName("twitter"));
-	}
 
 	@Ignore
 	public void test_getServices() {
@@ -421,7 +421,73 @@ public class HumansUserTest {
 		assertThat(user.getServices(), not(hasItem(service)));
 
 	}
-	
+
+    @Test
+    public void getJsonStatusForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("darthjulian");
+        Human human = user.getHumanByName("Dawn Mike Ella");
+        JsonArray jsonStatusForHuman = user.getJsonStatusForHuman(human, -1);
+        assertThat(jsonStatusForHuman.size(), greaterThan(0));
+        int pages = user.getJsonStatusPageCountForHuman(human, 10);
+        int total = jsonStatusForHuman.size();
+
+        assertThat(total/10, lessThanOrEqualTo(pages));
+
+/*
+
+        for(int i=0; i<user.getJsonStatusPageCountForHuman(human, Constants.getInt("STATUS_CHUNK_SIZE", 25)); i++) {
+            JsonArray page = user.getJsonStatusForHuman(human, i);
+            Iterator<JsonElement> iter = page.iterator();
+            assertThat(page.size(), greaterThan(0));
+        }
+*/
+    }
+
+
+
+
+    @Test
+    public void getJsonStatusPageCountForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("nicolas");
+        Human human = user.getHumanByName("fabien");
+        int pages = user.getJsonStatusPageCountForHuman(human, 25);
+        int total = user.getJsonStatusCountForHuman(human);
+        assertThat(total/25, lessThanOrEqualTo(pages));
+        logger.debug("total="+total+" pages="+pages);
+
+
+        assertThat(total, greaterThan(0));
+        assertThat(pages, greaterThan(0));
+        //logger.warn("HEllo");
+    }
+
+
+    @Test
+    public void getJsonStatusCountForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("nicolas");
+        Human human = user.getHumanByName("fabien");
+        long count = user.getJsonStatusCountForHuman(human);
+        int count_int = (int)count;
+        JsonArray all_status = user.getJsonStatusForHuman(human, -1);
+        assertThat(all_status.size(), equalTo(count_int));
+    }
+
+
+    @Test
+    public void __getJsonStatusCountForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("darthjulian");
+        Human human = user.getHumanByName("Dawn Mike Ella");
+        long count = user.getJsonStatusCountForHuman(human);
+        JsonArray all_status = user.getJsonStatusForHuman(human, -1);
+        assertThat(all_status.size(), equalTo((int)count));
+    }
+
+    @Ignore
+    public void getFriends() {
+        HumansUser user = test_dao.findOneByUsername("darthjulian");
+
+    }
+
 //	@Test
 //	public void test_removeService() {
 //		HumansUserDAO dao = new HumansUserDAO();
@@ -434,6 +500,39 @@ public class HumansUserTest {
 //		fail("Not implemented");
 //
 //	}
+
+    @Test
+    public void test_getServicesForServiceName() {
+        HumansUser user = new HumansUser();
+        user.setUsername("shempy");
+        ServiceEntry twitter = new ServiceEntry("1", "shempy", "twitter");
+        ServiceEntry foursquare = new ServiceEntry("1", "twombly", "foursquare");
+        user.addService(twitter);
+        user.addService(foursquare);
+        user.addService(new ServiceEntry("2", "twinkles", "twitter"));
+
+        List<ServiceEntry> serviceEntries = user.getServicesForServiceName("twitter");
+        assertThat(serviceEntries, notNullValue());
+        assertThat(serviceEntries, hasSize(2));
+        assertThat(serviceEntries, hasItem(twitter));
+        assertThat(serviceEntries, not(hasItem(foursquare)));
+
+        serviceEntries = user.getServicesForServiceName("foursquare");
+        assertThat(serviceEntries, notNullValue());
+        assertThat(serviceEntries, hasSize(1));
+        assertThat(serviceEntries, hasItem(foursquare));
+
+    }
+
+    @Test
+    public void test_serviceRefreshStatusForHuman() {
+        HumansUserDAO dao = new HumansUserDAO();
+        HumansUser user = dao.findOneByUsername("nicolas");
+        user.getHumanByName("SVANES");
+
+        user.refreshStatusForAllHumans();
+
+    }
 
 	@Ignore
 	public void test_C_getFriends() {
@@ -488,16 +587,107 @@ public class HumansUserTest {
 		}
 	}
 
+    @Test
+    public void serviceRefreshStatusForHuman() {
+        try {
+            HumansUserDAO dao = new HumansUserDAO();
+            //HumansUser user;
+
+            List<HumansUser> humans = dao.getAllHumansUsers();
+            for(HumansUser user : humans) {
+                for(Human human : user.getAllHumans()) {
+                    user.serviceRefreshStatusForHuman(human);
+                }
+            }
+        } catch(Exception e) {
+            logger.error("", e);
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
+
+    @Test
+    public void getStatusCountFromCache()
+    {
+        List<HumansUser> users = dev_dao.getAllHumansUsers();
+        if(users.size() > 0) {
+          HumansUser test_user = users.get(0);
+          if(test_user.getAllHumans() != null && test_user.getAllHumans().size() > 0) {
+              Human test_human = test_user.getAllHumans().get(0);
+
+              test_user.refreshCache(test_human);
+
+              int cache_count = test_user.getStatusCountFromCache(test_human);
+
+              String cache_name = "status_cache_"+test_user.getId()+"_"+test_human.getId();
+
+              DB cache_db = MongoUtil.getStatusCacheDB();
+
+              DBCollection cache = cache_db.getCollection(cache_name);
+
+              assertThat((int)cache.count(), is(equalTo(cache_count)));
+
+          } else {
+              fail("HumansUser has no humans!");
+          }
+
+
+        } else {
+            fail("No HumansUsers to run test.");
+        }
+
+    }
+
+    @Test
+    public void getStatusCountFromCacheAfterTimestamp() {
+
+        List<HumansUser> users = dev_dao.getAllHumansUsers();
+        if(users.size() > 0) {
+            HumansUser test_user = users.get(0);
+            if(test_user.getAllHumans() != null && test_user.getAllHumans().size() > 0) {
+                Human test_human = test_user.getAllHumans().get(0);
+
+                test_user.refreshCache(test_human);
+
+                JsonArray status = test_user.getJsonStatusFromCache(test_human, -1);
+
+                if(status.size() < 1 || status.size() <10 ) {
+                    fail("No/not enough status to test. user="+test_user+" human="+test_human);
+                } else {
+
+                    JsonObject nine = status.get(9).getAsJsonObject();
+                    JsonObject zero = status.get(0).getAsJsonObject();
+                    String x = String.valueOf(nine.get("created"));
+                    long ago = Long.valueOf(String.valueOf(nine.get("created")));
+                    int after_nine = test_user.getStatusCountFromCacheAfterTimestamp(test_human, ago);
+                    assertThat(after_nine, is(equalTo(9)));
+                }
+
+
+
+            } else {
+                fail("HumansUser has no humans!");
+            }
+
+
+        } else {
+            fail("No HumansUsers to run test.");
+        }
+
+    }
+
 	@Test
 	public void testRefreshStatus() {
 		try {
 			HumansUserDAO dao = new HumansUserDAO();
-            HumansUser user = dao.findOneByUsername("darthjulian");
-//			HumansUser user = dao.findOneByUsername("darthjulian");
-			user.getStatusForAllHumans(true);
-			user = dao.findOneByUsername("fabien");
+            HumansUser user;
+
+            user = dao.findOneByUsername("darthjulian");
 			user.getStatusForAllHumans(true);
 			user = dao.findOneByUsername("nicolas");
+			user.getStatusForAllHumans(true);
+			user = dao.findOneByUsername("fabien");
 			user.getStatusForAllHumans(true);
 			user = dao.findOneByUsername("grignani");
 			user.getStatusForAllHumans(true);

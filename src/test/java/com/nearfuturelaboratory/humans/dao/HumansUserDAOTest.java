@@ -2,6 +2,9 @@ package com.nearfuturelaboratory.humans.dao;
 
 import static org.junit.Assert.*;
 
+import com.nearfuturelaboratory.humans.entities.ServiceUser;
+import com.nearfuturelaboratory.util.Constants;
+import org.bson.types.ObjectId;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -18,14 +21,21 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.fail;
+import com.nearfuturelaboratory.humans.entities.Human;
+
 
 public class HumansUserDAOTest {
 
 	static HumansUserDAO dao;
-	
+    static HumansUserDAO dao_dev;
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		dao = new HumansUserDAO("test-humans-user");
+        Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+
+        dao = new HumansUserDAO("test-humans-user");
+        dao_dev = new HumansUserDAO("humans");
+
 	}
 
 	@Test
@@ -47,6 +57,37 @@ public class HumansUserDAOTest {
 	public void testFindOneByUsername() {
 		fail("Not yet implemented"); // TODO
 	}
+
+    @Test
+    public void findOneByID() {
+        HumansUser tmp = new HumansUser();
+        tmp.setUsername("darthjulian");
+        tmp.setPassword("pwd");
+        tmp.setAccessToken("0123456789");
+
+        Human human = new Human();
+        human.setName("foo");
+
+        ServiceUser service_user = new ServiceUser();
+        service_user.setServiceName("twitter");
+        service_user.setUsername("shempy");
+        service_user.setServiceUserID("101010101010");
+        service_user.setOnBehalfOf("20202020", "seawolf", "twitter");
+
+        human.addServiceUser(service_user);
+
+        tmp.addHuman(human);
+        //dao.delete(tmp);
+        dao.save(tmp);
+
+
+        HumansUser user = dao.findOneByUsername("darthjulian");
+        String id = user.getId().toString();
+        HumansUser test = dao.findOneByID(user.getId().toString());
+        assertThat(user, equalTo(test));
+
+        dao.delete(tmp);
+    }
 
 	@Test
 	public void testFindOneByAccessToken() {
@@ -83,6 +124,29 @@ public class HumansUserDAOTest {
 		dao.delete(user);
 		//fail("Not yet implemented"); // TODO
 	}
+
+
+    @Test
+    public void testFindMeByUsernameAndFixPassword() {
+        HumansUserDAO _dao = new HumansUserDAO("humans");
+
+        HumansUser user = _dao.findOneByUsername("darthjulian");
+
+        assertThat(user, notNullValue());
+
+        user.setPassword("darthjulian");
+        _dao.save(user);
+
+        user = null;
+
+        //user = new HumansUser();
+       user = _dao.findOneByUsername("darthjulian");
+
+        assertThat(user, notNullValue() );
+        assertThat(user.verifyPassword("darthjulian"), is(true));
+        System.out.println(user);
+    }
+
 
 	@Test
 	public void testGetHumansUser() {

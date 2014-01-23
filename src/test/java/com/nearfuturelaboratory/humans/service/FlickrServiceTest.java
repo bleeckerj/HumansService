@@ -74,7 +74,7 @@ public class FlickrServiceTest {
 		}
 	}
 
-	@Ignore
+	@Test
 	public void test_serviceRequestStatus() {
 		try {
 			flickr.serviceRequestStatus();
@@ -84,4 +84,9 @@ public class FlickrServiceTest {
 		}
 	}
 
+    @Test
+    public void serviceRequestStatus()
+    {
+        flickr.serviceRequestStatus();
+    }
 }

@@ -41,7 +41,12 @@ public class FoursquareServiceTest {
 
 	}
 
-	@Test
+    @Test
+    public void testgetStatusCountForUserID() throws Exception {
+
+    }
+
+    @Test
 	public void test_serviceRequestUserBasic() {
 		try {
 		foursquare.serviceRequestUserBasic();
