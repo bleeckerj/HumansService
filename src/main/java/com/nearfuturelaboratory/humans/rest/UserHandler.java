@@ -5,7 +5,6 @@ import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -16,15 +15,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.apache.oltu.oauth2.common.message.types.ParameterStyle;
-import org.apache.oltu.oauth2.rs.request.OAuthAccessResourceRequest;
 import org.bson.types.ObjectId;
 
 import com.google.gson.Gson;
@@ -38,7 +31,6 @@ import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
 import com.nearfuturelaboratory.humans.entities.ServiceEntry;
-import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 //import static com.google.common.collect.Lists.partition;
 import com.nearfuturelaboratory.util.Constants;
@@ -83,14 +75,19 @@ public class UserHandler {
 	@Context ServletContext context;
 	Gson in_gson;
 	Gson out_gson;
-
+    Gson gson_get_humans;//// = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+    Gson gson_add_humans;
 	public UserHandler() {
 		//logger.debug("Constructor " + context);  // null here   
 		in_gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 		out_gson = new GsonBuilder().
 				setExclusionStrategies(new UserJsonExclusionStrategy()).
 				registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
-	}
+
+        gson_get_humans = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+        gson_add_humans = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).
+                setExclusionStrategies(new ClientAddNewHumanJsonExclusionStrategy()).create();
+    }
 
 
     @GET
@@ -322,46 +319,64 @@ public class UserHandler {
 	// use that service??
 	@POST @Path("/add/human/")
 	@Produces({"application/json"})
-	public String addNewHuman(
+	public Response addNewHuman(
 			String aHumanJson,
 			@Context HttpServletRequest request,
-			@Context HttpServletResponse response)
-	{
-		String access_token = request.getParameter("access_token");
-		
-		if(access_token == null) {
-			fail_response.addProperty("message", "invalid or missing access token");
-			return fail_response.toString();
-		}
-		
-		HumansUser user = getUserForAccessToken(context, access_token);
+			@Context HttpServletResponse response) {
+        String access_token = request.getParameter("access_token");
 
-		if(user == null) {
-			invalid_user_error_response.addProperty("message", "invalid access token");
-			return invalid_user_error_response.toString();
-		}
-		Human human = in_gson.fromJson(aHumanJson, Human.class);
+        if (access_token == null) {
+            fail_response.addProperty("message", "invalid or missing access token");
+            return Response.status(Response.Status.UNAUTHORIZED).encoding(fail_response.toString()).build();
+        }
+
+        HumansUser user = getUserForAccessToken(context, access_token);
+
+        if (user == null) {
+            invalid_user_error_response.addProperty("message", "invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).encoding(invalid_user_error_response.toString()).build();
+            //return invalid_user_error_response.toString();
+        }
+        Human human = null;
+        try {
+            human = gson_add_humans.fromJson(aHumanJson, Human.class);
 //		if(isValidUser(request, user) == false) {
 //			return invalid_user_error_response.toString();
 //		}
 
-		// TODO Finish this - need to check if the human we're adding has a
-		// service user that shouldn't be there because the User doesn't have
-		// the onBehalfOf component?
-		List<ServiceEntry> x = human.getServicesThisHumanReliesUpon();
-		human.getServiceUsers();
+            // TODO Finish this - need to check if the human we're adding has a
+            // service user that shouldn't be there because the User doesn't have
+            // the onBehalfOf component?
+            List<ServiceEntry> x = human.getServicesThisHumanReliesUpon();
+            human.getServiceUsers();
 
-		boolean result = user.addHuman(human);
+            boolean result = user.addHuman(human);
 
-		if(result) {
-			user.save();
-			this.clearContextOfUser(context, access_token);
-			return success_response.toString();
-		} else {
-			return fail_response.toString();
-		}
+            if (result) {
+                user.save();
 
-	}
+                //Process p = new ProcessBuilder("java", "com.nearfuturelaboratory.humans.util.RefreshHuman")
+
+                this.clearContextOfUser(context, access_token);
+                //String bar = success_response.
+                //Response foo = Response.status(Response.Status.OK).entity(success_response).build();
+                //Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+                return Response.ok(success_response.toString(), MediaType.APPLICATION_JSON).build(); //Response.OK.build();//success_response.toString();
+            } else {
+                fail_response.addProperty("message", "couldn't save human");
+                return Response.status(Response.Status.OK).entity(fail_response.getAsString()).build();//.toString();
+            }
+        } catch (Exception e) {
+            logger.error("in /user/add/human with " + human+" "+e.getCause().getMessage(), e);
+            fail_response.addProperty("exception", e.getCause().getMessage());
+
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(fail_response.toString()).type( MediaType.APPLICATION_JSON).build();
+            //Response.status()
+            //return Response.status(Response.Status.NOT_ACCEPTABLE).entity(fail_response).build();
+
+            //return fail_response.toString();
+        }
+    }
 
 	@GET @Path("/get/humans/")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -385,12 +400,12 @@ public class UserHandler {
 		}
 
 
-		Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+		//Gson gson_get_humans = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
 
 		List<Human> humans = user.getAllHumans();
 		JsonArray array_of_humans = new JsonArray();
 		for(Human human : humans) {
-			array_of_humans.add(gson.toJsonTree(human, Human.class));
+			array_of_humans.add(gson_get_humans.toJsonTree(human, Human.class));
 		}
 		return array_of_humans.toString();
 	}

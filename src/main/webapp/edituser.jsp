@@ -1,17 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
-<%@ page import="com.nearfuturelaboratory.humans.core.*"%>
+<%@ page import="com.nearfuturelaboratory.humans.entities.*"%>
 <%@ page import="com.nearfuturelaboratory.util.*"%>
 <%@ page import="java.nio.charset.*"%>
-<%@ page import="org.apache.log4j.Logger"%>
+<%@ page import="org.apache.logging.log4j.*"%>
 <%
-	final Logger logger = Logger
-			.getLogger("com.nearfuturelaboratory.humans.test.Test");
-	request.setCharacterEncoding("UTF-8");
-	out.println(request.getParameter("username"));
-	HumansUser user = new HumansUser();
-	user.loadByUsername(request.getParameter("username"));
-	logger.debug(request.getParameter("username"));
+    HumansUser user = (HumansUser) session.getAttribute("logged-in-user");
+    if(user == null) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+    }
+
 %>
 <!DOCTYPE html>
 <html>
@@ -65,7 +63,7 @@
 								<label class="control-label" for="username">Username</label>
 								<div class="controls">
 									<input type="text" id="username"
-										value="<%=user.getUsername()%>" name="username"
+										value="" name="username"
 										placeholder="" class="input-xlarge" required>
 									<p class="help-block">Username can contain any letters or
 										numbers, without spaces</p>

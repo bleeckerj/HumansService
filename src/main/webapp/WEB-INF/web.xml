@@ -11,49 +11,54 @@
 	</welcome-file-list>
 
 	
-	<description>A Logger Servlet</description>
-	<servlet>
-		<servlet-name>logger-init</servlet-name>
-		<servlet-class>com.nearfuturelaboratory.servlets.LoggerServlet</servlet-class>
-		<init-param>
-			<param-name>props-files</param-name>
-			<param-value>./WEB-INF/lib/dev.logger.properties</param-value>
-		</init-param>
-		<init-param>
-			<param-name>constants</param-name>
-			<param-value>./WEB-INF/lib/dev.app.properties</param-value>
-		</init-param>
-		<init-param>
-			<param-name>watch</param-name>
-			<param-value>true</param-value>
-		</init-param>
-		<load-on-startup>1</load-on-startup>
-	</servlet>
-	<session-config>
-		<session-timeout>86400</session-timeout>
-	</session-config>
-	<servlet-mapping>
-		<servlet-name>logger-init</servlet-name>
-		<url-pattern>/logger</url-pattern>
-	</servlet-mapping>
+
 	<servlet>
 		<servlet-name>Jersey REST Service</servlet-name>
 		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 		<init-param>
 			<param-name>jersey.config.server.provider.packages</param-name>
-			<param-value>com.nearfuturelaboratory.humans.rest;com.nearfuturelaboratory.humans.oauth</param-value>
+			<param-value>com.nearfuturelaboratory.humans.rest;com.nearfuturelaboratory.humans.oauth,com.nearfuturelaboratory.humans.servlets</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Jersey REST Service</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
-		<url-pattern>/oauth2/*</url-pattern>	
-	</servlet-mapping>
+		<url-pattern>/oauth2/*</url-pattern>
+        <url-pattern>/admin/*</url-pattern>
+
+    </servlet-mapping>
     <listener>
         <listener-class>org.apache.logging.log4j.core.web.Log4jServletContextListener</listener-class>
     </listener>
-
+    <listener>
+        <listener-class>org.quartz.ee.servlet.QuartzInitializerListener</listener-class>
+    </listener>
+    <description>A Startup Servlet</description>
+    <servlet>
+        <servlet-name>startup-init</servlet-name>
+        <servlet-class>com.nearfuturelaboratory.servlets.StartupServlet</servlet-class>
+        <init-param>
+            <param-name>props-files</param-name>
+            <param-value>./WEB-INF/lib/dev.logger.properties</param-value>
+        </init-param>
+        <init-param>
+            <param-name>constants</param-name>
+            <param-value>./WEB-INF/lib/dev.app.properties</param-value>
+        </init-param>
+        <init-param>
+            <param-name>watch</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <session-config>
+        <session-timeout>86400</session-timeout>
+    </session-config>
+    <servlet-mapping>
+        <servlet-name>startup-init</servlet-name>
+        <url-pattern>/gettyup</url-pattern>
+    </servlet-mapping>
 
  <!--        <context-param>
             <param-name>quartz:shutdown-on-unload</param-name>

@@ -109,7 +109,10 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 		return this.findOne(q);
 	}
 	
-
+    public HumansUser findOneByID(String aID) {
+        Query<HumansUser> q = this.createQuery().field("_id").equal(new ObjectId(aID));
+        return this.findOne(q);
+    }
 
 	public HumansUser getHumansUser(String aUsername, String aPassword) {
 		HumansUser h = null;

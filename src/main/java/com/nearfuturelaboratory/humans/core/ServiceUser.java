@@ -11,6 +11,7 @@ import com.google.gson.Gson;
  * @author julian
  *
  */
+@Deprecated
 public class ServiceUser {
 	protected String username;
 	protected String serviceID;

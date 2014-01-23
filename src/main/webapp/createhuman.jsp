@@ -11,13 +11,17 @@
 <%@ page import="com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser"%>
 
 <%@ page import="org.json.simple.*"%>
+<%@ page import="com.google.gson.JsonArray" %>
 <%
+
 	//JSONArray obj_friends = null;
-	List obj_friends = null;
+
+    JsonArray obj_friends = null;
 	HumansUser user = (HumansUser) session.getAttribute("logged-in-user");
 
 	// the session attribute used to build up the new human on this page
 	session.removeAttribute("human");
+
 
 	//Human human = (Human) session.getAttribute("human_in_progress");
 	if (user == null) {
@@ -92,7 +96,7 @@ function saveThisHuman(obj) {
 				data : {
 					human_json : JSON.stringify( human ),
 					human_name : $('#human_name').val(),
-					add_service_user : 'yes',
+					add_service_user : 'yes'
 				
 				},
 			}).success(function(data) {
@@ -232,16 +236,16 @@ function addThisServiceUser(obj) {
 				var markup = "<div class='panel panel-default'><div class='panel-body'>";
 				markup += "<div class='row'>";
 				markup += "<div class='col-xs-2'>";
-				markup += "<img id='image_url' style='max-height: 48px; max-width: 48px' src='"+friend.image_url+"' class='img-rounded'>";
-				markup += "<div class='row'>" + friend.user_id + " " + friend.username + " " + friend.service_name + "</div>";
+				markup += "<img id='image_url' style='max-height: 48px; max-width: 48px' src='"+friend.imageURL+"' class='img-rounded'>";
+				markup += "<div class='row'>" + friend.serviceID + " " + friend.username + " " + friend.service + "</div>";
 
 				markup += "</div><div class='col-xs-2'>";
 				markup += "<div id='username' class='hidden'>" + friend.username + "</div>";
-				markup += "<div id='service_id' class='hidden'>" + friend.user_id + "</div>";
-				markup += "<div id='service_name' class='hidden'>" + friend.service_name + "</div>";
-				markup += "<div id='prepared_image_url' class='hidden'>" + friend.image_url +"</div>";
-				markup += "<div id='onbehalfof_username' class='hidden'>" + friend.on_behalf_of_username + "</div>";
-				markup += "<div id='onbehalfof_userid' class='hidden'>" + friend.on_behalf_of_userid + "</div>";
+				markup += "<div id='service_id' class='hidden'>" + friend.serviceID + "</div>";
+				markup += "<div id='service_name' class='hidden'>" + friend.service + "</div>";
+				markup += "<div id='prepared_image_url' class='hidden'>" + friend.imageURL +"</div>";
+				markup += "<div id='onbehalfof_username' class='hidden'>" + friend.onBehalfOf.serviceUsername + "</div>";
+				markup += "<div id='onbehalfof_userid' class='hidden'>" + friend.onBehalfOf.serviceUserID + "</div>";
 
 				markup += "<button type='button' class='btn btn-sm btn-success' onclick='prepareThisServiceUser(this)'>Add</button><button type='button' class='btn btn-sm btn-danger'>Remove</button>";
 				markup += "</div></div>";
