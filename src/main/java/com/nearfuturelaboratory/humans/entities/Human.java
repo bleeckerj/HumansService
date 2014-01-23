@@ -184,40 +184,40 @@ public class Human  /*extends BaseEntity*/ {
 	public ServiceUser fixImageUrls(ServiceUser aServiceUser) {
 		ServiceUser result = aServiceUser;
 		ServiceEntry se = aServiceUser.getOnBehalfOf();
-		if(aServiceUser.getService().equalsIgnoreCase("instagram")) {
+		if(aServiceUser.getServiceName().equalsIgnoreCase("instagram")) {
 			try {
 				InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(se.getServiceUsername());
-				InstagramUser u = instagram.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				InstagramUser u = instagram.serviceRequestUserBasicForUserID(aServiceUser.getServiceUserID());
 				aServiceUser.setImageURL(u.getImageURL());
 				result = aServiceUser;
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		if(aServiceUser.getService().equalsIgnoreCase("twitter")) {
+		if(aServiceUser.getServiceName().equalsIgnoreCase("twitter")) {
 			try {
 				TwitterService service = TwitterService.createTwitterServiceOnBehalfOfUsername(se.getServiceUsername());
-				TwitterUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				TwitterUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceUserID());
 				aServiceUser.setImageURL(u.getImageURL());
 				result = aServiceUser;
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		if(aServiceUser.getService().equalsIgnoreCase("foursquare")) {
+		if(aServiceUser.getServiceName().equalsIgnoreCase("foursquare")) {
 			try {
 				FoursquareService service = FoursquareService.createFoursquareServiceOnBehalfOfUserID(se.getServiceUserID());
-				FoursquareUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				FoursquareUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceUserID());
 				aServiceUser.setImageURL(u.getImageURL());
 				result = aServiceUser;
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		if(aServiceUser.getService().equalsIgnoreCase("flickr")) {
+		if(aServiceUser.getServiceName().equalsIgnoreCase("flickr")) {
 			try {
 				FlickrService service = FlickrService.createFlickrServiceOnBehalfOfUserID(se.getServiceUserID());
-				FlickrUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceID());
+				FlickrUser u = service.serviceRequestUserBasicForUserID(aServiceUser.getServiceUserID());
 				aServiceUser.setImageURL(u.getImageURL());
 				result = aServiceUser;
 			} catch(Exception e) {

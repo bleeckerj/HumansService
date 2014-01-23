@@ -26,8 +26,8 @@ public class ServiceUser extends MinimalSocialServiceUser {
 	protected ObjectId id;
 
 	protected String username;
-	protected String serviceID;
-	protected String service;
+	protected String serviceUserID;
+	protected String serviceName;
 	//	@Embedded
 	//	protected ServiceEntry onBehalfOf;
 
@@ -35,13 +35,17 @@ public class ServiceUser extends MinimalSocialServiceUser {
 		super();
 	}
 
-	public ServiceUser(String aServiceID, String aUsername, String aServiceName, String aImageURL, ServiceEntry onBehalfOf) {
+	public ServiceUser(String aServiceUserID, String aUsername, String aServiceName, String aImageURL, ServiceEntry onBehalfOf) {
 		setUsername(aUsername);
-		setServiceID(aServiceID);
-		setService(aServiceName);
+		setServiceUserID(aServiceUserID);
+		setServiceName(aServiceName);
 		this.setImageURL(aImageURL);
 		this.setOnBehalfOf(onBehalfOf);
 	}
+
+    public Date getLastUpdated() {
+        return lastUpdated;
+    }
 
 	/**
 	 * This is the service icon/avatar image for this user for this service
@@ -72,26 +76,23 @@ public class ServiceUser extends MinimalSocialServiceUser {
 	public void setUsername(String aUsername) {
 		username = aUsername;
 	}
-	public String getService() {
-		return service;
-	}
-	public void setService(String aService) {
-		service = aService;
+	public void setServiceName(String aServiceName) {
+		serviceName = aServiceName;
 	}
 	/**
-	 * @return the serviceID
+	 * @return the serviceUserID
 	 */
-	public String getServiceID() {
-		return serviceID;
+	public String getServiceUserID() {
+		return serviceUserID;
 	}
 
 
 
 	/**
-	 * @param aServiceID the serviceID to set
+	 * @param aServiceUserID the serviceUserID to set
 	 */
-	public void setServiceID(String aServiceID) {
-		serviceID = aServiceID;
+	public void setServiceUserID(String aServiceUserID) {
+		serviceUserID = aServiceUserID;
 	}
 
 	public ServiceEntry getOnBehalfOf() {
@@ -125,8 +126,8 @@ public class ServiceUser extends MinimalSocialServiceUser {
 	 */
 	@Override
 	public String toString() {
-		return "ServiceUser [username=" + username + ", serviceID=" + serviceID
-				+ ", service=" + service + ", imageURL=" + imageURL + "]";
+		return "ServiceUser [username=" + username + ", serviceUserID=" + serviceUserID
+				+ ", serviceName=" + serviceName + ", imageURL=" + imageURL + "]";
 	}
 
 	//	@Override
@@ -144,9 +145,9 @@ public class ServiceUser extends MinimalSocialServiceUser {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((service == null) ? 0 : service.hashCode());
+		result = prime * result + ((serviceName == null) ? 0 : serviceName.hashCode());
 		result = prime * result
-				+ ((serviceID == null) ? 0 : serviceID.hashCode());
+				+ ((serviceUserID == null) ? 0 : serviceUserID.hashCode());
 		result = prime * result
 				+ ((username == null) ? 0 : username.hashCode());
 		return result;
@@ -164,15 +165,15 @@ public class ServiceUser extends MinimalSocialServiceUser {
 		if (getClass() != obj.getClass())
 			return false;
 		ServiceUser other = (ServiceUser) obj;
-		if (service == null) {
-			if (other.service != null)
+		if (serviceName == null) {
+			if (other.serviceName != null)
 				return false;
-		} else if (!service.equals(other.service))
+		} else if (!serviceName.equals(other.serviceName))
 			return false;
-		if (serviceID == null) {
-			if (other.serviceID != null)
+		if (serviceUserID == null) {
+			if (other.serviceUserID != null)
 				return false;
-		} else if (!serviceID.equals(other.serviceID))
+		} else if (!serviceUserID.equals(other.serviceUserID))
 			return false;
 		if (username == null) {
 			if (other.username != null)
@@ -184,12 +185,12 @@ public class ServiceUser extends MinimalSocialServiceUser {
 
 	@Override
 	public String getUserID() {
-		return this.getServiceID();
+		return this.getServiceUserID();
 	}
 
 	@Override
 	public String getServiceName() {
-		return this.service;
+		return this.serviceName;
 	}
 
 	@Override
@@ -218,12 +219,15 @@ class OnBehalfOf  {
 	//@Transient protected Pair<String, String> pair;
 	@Property("serviceUserID") protected String serviceUserID;
 	@Property("serviceUsername") protected String serviceUsername;
+    @Property("service") protected String serviceName;
 
 	protected OnBehalfOf() {}
 
-	public OnBehalfOf(String aServiceUserID, String aServiceUsername) {
+
+    public OnBehalfOf(String aServiceUserID, String aServiceUsername, String aService) {
 		serviceUserID = aServiceUserID;
 		serviceUsername = aServiceUsername;
+        serviceName = aService;
 	} 
 
 	public String getServiceUserID() {
@@ -242,10 +246,19 @@ class OnBehalfOf  {
 		serviceUsername = aServiceUsername;
 	}
 
-	@Override
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+
+    @Override
 	public String toString() {
 		return "OnBehalfOf [serviceUserID=" + serviceUserID
-				+ ", serviceUsername=" + serviceUsername + "]";
+				+ ", serviceUsername=" + serviceUsername + ", service=" + serviceName+"]";
 	}
 
 

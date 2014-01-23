@@ -2,6 +2,8 @@ package com.nearfuturelaboratory.humans.entities;
 
 import org.mongodb.morphia.annotations.Embedded;
 
+import java.util.Date;
+
 public abstract class MinimalSocialServiceUser {
 
 	@Embedded
@@ -22,6 +24,8 @@ public abstract class MinimalSocialServiceUser {
 	public abstract String getServiceName();
 	
 	public abstract String getLargeImageURL();
+
+    public abstract Date getLastUpdated();
 	
 	public void setOnBehalfOf(ServiceEntry entry) {
 		onBehalfOf = entry;
