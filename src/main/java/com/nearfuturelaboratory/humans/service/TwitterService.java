@@ -263,6 +263,7 @@ public class TwitterService {
             // logger.debug(user.get("id").getClass());
             aUserID = user.getId_str().toString();
         }
+
         String statusURL = String.format(STATUS_URL, aUserID);
         OAuthRequest request = new OAuthRequest(Verb.GET, statusURL);
         request.addQuerystringParameter("count", "200");
@@ -270,19 +271,38 @@ public class TwitterService {
         if (since_id != null) {
             request.addQuerystringParameter("since_id", since_id);
         }
+        JSONArray jsonResponse = new JSONArray();
 
         service.signRequest(accessToken, request);
         Response response = request.send();
-        String s = response.getBody();
-        // TODO error chck
 
-        Object objResponse = JSONValue.parse(s);
-        // logger.debug(objResponse);
-        // TODO error checking!
-        JSONArray jsonResponse = (JSONArray) objResponse;
+        if(response.isSuccessful() && response.getCode() == 200) {
 
+            if(response.getBody().length() < 3) {
+                // empty thing, no new status
+                logger.info("No new status for twitter user="+aUserID+" since status id="+since_id);
+                return jsonResponse;
+            }
+
+            String s = response.getBody();
+
+            // TODO error chck
+
+            try {
+                Object objResponse = JSONValue.parse(s);
+                // logger.debug(objResponse);
+                jsonResponse = (JSONArray) objResponse;
+
+            } catch(Exception e) {
+                logger.warn("Error retrieving Twitter Status "+aUserID+" "+since_id, e);
+                logger.warn(request);
+                jsonResponse = new JSONArray();
+            }
+        }
         return this.saveStatusJson(jsonResponse);
+
     }
+
 
     public List<TwitterStatus> getStatus() {
         return getStatusForUserID(this.getThisUser().getId_str());
@@ -629,9 +649,9 @@ public class TwitterService {
     }
 
 
-//	public long getCreated() {
-//		return this.getCreatedDate().getTime();
-//	}
+    //	public long getCreated() {
+    //		return this.getCreatedDate().getTime();
+    //	}
 
 
 
