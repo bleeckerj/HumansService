@@ -6,6 +6,7 @@ import com.mongodb.util.JSON;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
+import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
 import com.nearfuturelaboratory.humans.service.FlickrService;
@@ -174,6 +175,9 @@ public class HumansUser extends BaseEntity {
         // trying weird lambdaj syntax
         Human human = selectUnique(this.getHumans(), having(on(Human.class).getHumanid(), equalTo(new ObjectId(aHumanId))));
         result = humans.remove(human);
+        if(result) {
+            removeCacheForHuman(human);
+        }
         return result;
     }
 
@@ -676,6 +680,20 @@ public class HumansUser extends BaseEntity {
     }
 
 
+    protected void removeCacheForHuman(Human aHuman)
+    {
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+
+        DB cache_db = MongoUtil.getStatusCacheDB();
+
+        if(cache_db.collectionExists(cache_name)) {
+            DBCollection cache = cache_db.getCollection(cache_name);
+            cache.drop();
+            logger.info("removing cache for "+aHuman.getName() +" / "+aHuman.getId());
+        }
+    }
+
+
     protected void refreshCache(Human aHuman)
     {
         //String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
@@ -923,6 +941,9 @@ public class HumansUser extends BaseEntity {
             if(service_name.equalsIgnoreCase("flickr")) {
                 try {
                     FlickrService flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
+
+                    //FlickrUser user = flickr.getURLForBuddyIconForUser();
+
                     if(loadIfStale && flickr.localServiceStatusIsFreshForUserID(service_user.getUserID()) == false) {
                         result.addAll(flickr.serviceRequestStatusForUserID(service_user.getUserID()));
                     } else {
@@ -958,6 +979,15 @@ public class HumansUser extends BaseEntity {
         return result;
     }
 
+    /**
+     * Refactor this to just do updates or upserts
+     * Update the lastUpdated field but otherwise?
+     * Thing is — if the human changes configuration (you add/remove a person) then the status should change as
+     * well and if you don't delete it from the cache, you'll get bad elements in the cache...
+     * Sigh..
+     * @param aHuman
+     * @param aListOfStatus
+     */
     public void cacheStatusForHuman(Human aHuman, List<ServiceStatus> aListOfStatus) {
         DB cache_db = MongoUtil.getStatusCacheDB();
         String cache_final_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
@@ -981,7 +1011,8 @@ public class HumansUser extends BaseEntity {
             DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
             cache.save(obj);
         }
-
+        logger.info("wrote "+aListOfStatus.size()+" items");
+        logger.info("renaming cache now");
         cache.rename(cache_final_name, true);
         logger.info("writing cache is done");
     }

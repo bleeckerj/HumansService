@@ -85,6 +85,9 @@
       <logger name="com.nearfuturelaboratory.humans.service" level="info">
           <appender-ref ref="HUMANS"/>
       </logger>
+      <logger name="com.nearfuturelaboratory.humans.service" level="warn">
+          <appender-ref ref="QUARTZ"/>
+      </logger>
       <logger name="com.nearfuturelaboratory.humans.dao" level="info">
           <appender-ref ref="HUMANS"/>
           <appender-ref ref="HUMANS_DB"/>

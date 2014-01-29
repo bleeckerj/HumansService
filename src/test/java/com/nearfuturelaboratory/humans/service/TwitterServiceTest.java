@@ -97,7 +97,7 @@ public class TwitterServiceTest {
         }
     }
 
-    @Ignore
+    @Test
     public void test_getMostRecentStatus() {
         try {
             TwitterStatus status = twitter.getMostRecentStatus();

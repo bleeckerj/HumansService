@@ -10,6 +10,8 @@ import com.nearfuturelaboratory.humans.flickr.entities.FlickrStatus;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterStatus;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 
+import java.util.List;
+
 public class FlickrStatusDAO extends BasicDAO<FlickrStatus, ObjectId> {
 
 	public FlickrStatusDAO() {
@@ -33,6 +35,13 @@ public class FlickrStatusDAO extends BasicDAO<FlickrStatus, ObjectId> {
 		result = q.get();
 		return result;
 	}
+
+    public List<FlickrStatus> findByExactUserID(String aUserID) {
+        List<FlickrStatus> result = null;
+        result = this.getDatastore().find(this.getEntityClass()).filter("owner", aUserID).order("-dateupload").asList();
+        return result;
+    }
+
 
     public long getStatusCountForUserID(String aUserID) {
         long result;

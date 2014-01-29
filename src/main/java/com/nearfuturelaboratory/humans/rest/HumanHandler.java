@@ -324,7 +324,7 @@ public class HumanHandler {
             fail_response.addProperty("pages", pages);
             fail_response.addProperty("humanid", aHumanId);
 
-            return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
+            return Response.ok().type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
         }
 
         JsonObject data = new JsonObject();

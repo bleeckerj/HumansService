@@ -425,7 +425,7 @@ public class HumansUserTest {
     @Test
     public void getJsonStatusForHuman() {
         HumansUser user = dev_dao.findOneByUsername("darthjulian");
-        Human human = user.getHumanByName("Dawn Mike Ella");
+        Human human = user.getHumanByName("anti");
         JsonArray jsonStatusForHuman = user.getJsonStatusForHuman(human, -1);
         assertThat(jsonStatusForHuman.size(), greaterThan(0));
         int pages = user.getJsonStatusPageCountForHuman(human, 10);

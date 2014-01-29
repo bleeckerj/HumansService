@@ -126,9 +126,12 @@ public class FlickrService {
 
 	public boolean localServiceStatusIsFreshForUserID(String aServiceID) {
 		boolean result = false;
-
+        long then = 0;
 		//Date d = this. getLatestStatus().getDateupload();
-		long then = this.getLatestStatus().getDateupload();
+        FlickrStatus latest = this.getLatestStatus();
+        if(latest != null) {
+		then = this.getLatestStatus().getDateupload();
+        }
 		long now = new Date().getTime();
 		long diff = now - then;
 		if(diff < Constants.getLong("STATUS_STALE_TIME")) {
@@ -148,6 +151,7 @@ public class FlickrService {
 	public List<FlickrStatus> getStatusForUserID(String aUserID) 
 	{
 		List<FlickrStatus> result = new ArrayList<FlickrStatus>();
+        result = statusDAO.findByExactUserID(aUserID);
 		return result;
 	}
 
@@ -167,6 +171,8 @@ public class FlickrService {
 		if(aUserID == null || aUserID.equalsIgnoreCase("self")) {
 			aUserID = (String)user.getId();
 		}
+
+
 
 		FlickrStatus latest = statusDAO.findMostRecentStatusByExactUserID(aUserID);
 		if(latest == null) {
@@ -427,7 +433,18 @@ public class FlickrService {
 		return user;
 	}
 
-	public URL getURLForBuddyIconForUser(JSONObject aUser) {
+
+    public FlickrUser getUserByID(String aID) throws BadAccessTokenException {
+        FlickrUser user = userDAO.findByExactUserID(aID);
+        if(user == null) {
+            user = this.serviceRequestUserBasicForUserID(aID);
+            userDAO.save(user);
+        }
+        return user;
+    }
+
+
+	public static URL getURLForBuddyIconForUser(JSONObject aUser) {
 		URL result = null;
 		// http://farm{icon-farm}.staticflickr.com/{icon-server}/buddyicons/{nsid}.jpg
 		String str = "http://farm%s.staticflickr.com/%s/buddyicons/%s.jpg";

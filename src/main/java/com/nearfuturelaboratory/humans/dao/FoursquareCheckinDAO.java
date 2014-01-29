@@ -23,7 +23,7 @@ public class FoursquareCheckinDAO extends BasicDAO<FoursquareCheckin, ObjectId> 
 
 	/**
 	 * A user by userid, most recent first
-	 * @param aUsername
+	 * @param aUserID
 	 * @return
 	 */
 	public List<FoursquareCheckin> findByExactUserID( String aUserID ) {

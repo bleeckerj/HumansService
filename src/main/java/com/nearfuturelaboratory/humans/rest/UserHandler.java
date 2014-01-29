@@ -240,15 +240,6 @@ public class UserHandler {
 			return invalid_user_error_response.toString();
 		}
 
-		
-		//HttpSession session = request.getSession();
-//		if(user == null) {
-//			return no_such_human_for_user.toString();
-//		}
-//		if(isValidUser(request, user) == false) {
-//			return invalid_user_error_response.toString();
-//		}
-
 		boolean result = user.removeHumanById(aHumanId);
 		user.save();
 		this.clearContextOfUser(context, access_token);
