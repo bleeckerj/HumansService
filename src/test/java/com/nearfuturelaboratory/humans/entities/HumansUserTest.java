@@ -8,12 +8,12 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+import java.net.UnknownHostException;
 import java.util.*;
 
 //import org.apache.log4j.Level;
 import com.google.gson.JsonObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
+import com.mongodb.*;
 import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
@@ -32,6 +32,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.util.Constants;
+import org.mongodb.morphia.Morphia;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class HumansUserTest {
@@ -48,6 +49,7 @@ public class HumansUserTest {
 	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.entities.HumanTest.class);
 	static HumansUserDAO test_dao;
     static HumansUserDAO dev_dao;
+    static HumansUserDAO remote_dao;
 
 	
 	@BeforeClass
@@ -63,9 +65,30 @@ public class HumansUserTest {
 			test_dao.getCollection().drop();
 
             dev_dao = new HumansUserDAO("humans");
+            remote_dao = null;
+            Mongo remote_mongo;
+
+            try {
+
+                MongoClientOptions mco = new MongoClientOptions.Builder()
+                        .connectionsPerHost(10)
+                        .threadsAllowedToBlockForConnectionMultiplier(10)
+                        .build();
+                //MongoClient client = new MongoClient(addresses, mco);
+                ServerAddress address = new ServerAddress("localhost", 29017);
+                remote_mongo = new MongoClient(address, mco);
+                remote_dao = new HumansUserDAO(remote_mongo, new Morphia(), "humans");
+
+            } catch (UnknownHostException e) {
+                logger.error(e.getMessage());
+            } catch(MongoException e) {
+                logger.error(e.getMessage());
+
+            }
 
 
-			logger.debug("Hey Ho!");
+
+            logger.debug("Hey Ho!");
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -525,13 +548,17 @@ public class HumansUserTest {
     }
 
     @Test
-    public void test_serviceRefreshStatusForHuman() {
-        HumansUserDAO dao = new HumansUserDAO();
-        HumansUser user = dao.findOneByUsername("nicolas");
-        user.getHumanByName("SVANES");
+    public void serviceRefreshStatusForHuman() {
+       // if(remote_dao != null) {
+        //HumansUser user = remote_dao.findOneByUsername("grignani");
+        HumansUser user = dev_dao.findOneByUsername("grignani");
+        Human human = user.getHumanByName("Julian 🍤🍧😳");
 
-        user.refreshStatusForAllHumans();
+        List<Human> humans = user.getAllHumans();
 
+
+        user.serviceRefreshStatusForHuman(human);
+      //  }
     }
 
 	@Ignore
@@ -588,7 +615,7 @@ public class HumansUserTest {
 	}
 
     @Test
-    public void serviceRefreshStatusForHuman() {
+    public void test_serviceRefreshStatusForHuman() {
         try {
             HumansUserDAO dao = new HumansUserDAO();
             //HumansUser user;

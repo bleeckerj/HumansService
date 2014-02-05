@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "humans.users", "name" : "_id_" }, { "v" : 1, "key" : { "username" : 1 }, "unique" : true, "ns" : "humans.users", "name" : "username", "dropDups" : true }, { "v" : 1, "key" : { "access_token" : 1 }, "unique" : true, "ns" : "humans.users", "name" : "access_token", "sparse" : true } ] }

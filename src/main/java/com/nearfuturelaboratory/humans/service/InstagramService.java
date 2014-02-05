@@ -545,32 +545,6 @@ public class InstagramService /*implements AbstractService*/ {
 		}
 
 		//		Iterator<JSONObject> iter = data.iterator();
-		//		for(int i=0; i<data.size(); i++) {
-		//			String u = data.get(i).toString();
-		//			InstagramUserBriefly iub = gson.fromJson(u, InstagramUserBriefly.class);
-		//			//iub.setFollower_id(getThisUser().getId());
-		//			
-		//			//TODO save the big user, or this brief one that comes back when we request follows?
-		//			//InstagramUser friend = this.serviceRequestUserBasicForUserID(iub.getId());
-		//			InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
-		//			if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
-		//				friend = this.serviceRequestUserBasicForUserID(iub.getId());
-		//			}
-		//			
-		//			InstagramFriend iuf = new InstagramFriend(friend);
-		//			iuf.setFollower_id(getThisUser().getId());
-		//			iuf.setFriend_id(iub.getId());
-		//			iuf.setFriend_username(iub.getUsername());
-		//			
-		//			InstagramFriend f = followsDAO.findFollowsByUserIDFollowsID(friend.getId(), getThisUser().getId());
-		//			if(f != null) {
-		//				f.setFriend(friend);
-		//				followsDAO.save(f);
-		//			} else {
-		//				followsDAO.save(iuf);
-		//			}
-		//		}
-
 	}
 
 	public static void serializeToken(Token aToken, InstagramUser aUser) {

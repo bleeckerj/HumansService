@@ -1,0 +1,16 @@
+logs
+/classes
+/target
+/users
+/twitter
+/instagram
+/logs
+/instagram
+/flickr
+/foursquare
+/.settings
+/.classpath
+/.project
+/bin
+/.idea/**
+*.idea/**

@@ -63,7 +63,7 @@ public class TwitterServiceTest {
     @Test
     public void serviceRequestStatusForUserID()
     {
-        List<TwitterStatus> status = twitter.serviceRequestStatusForUserID("14715186");
+        List<TwitterStatus> status = twitter.serviceRequestStatusForUserID("185383");
         assertThat(status, Matchers.notNullValue());
         assertThat(status, hasSize(200));
         assertThat(status, everyItem(isA(TwitterStatus.class)));
@@ -71,6 +71,19 @@ public class TwitterServiceTest {
 
 
     }
+
+    @Test
+    public void serviceRequestStatusForUserIDAndSinceID()
+    {
+        List<TwitterStatus> status = twitter.serviceRequestStatusForUserIDAndSinceID("185383", null);
+        assertThat(status, Matchers.notNullValue());
+        //assertThat(status, hasSize(200));
+        assertThat(status, everyItem(isA(TwitterStatus.class)));
+
+
+    }
+
+
     @Ignore
     public void test_serviceRequestUserBasic() {
         try {

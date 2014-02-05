@@ -1,0 +1,1 @@
+db.status.find({'entities.hashtags' : {$exists:true}})

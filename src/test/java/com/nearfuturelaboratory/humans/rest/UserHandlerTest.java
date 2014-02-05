@@ -66,7 +66,7 @@ public class UserHandlerTest {
 		RestAssured.keystore("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit");
 //		String sessionId = get("/login?username=darthjulian&password=darthjulian").sessionId();
 //		RestAssured.sessionId = sessionId;
-		spec = new RequestSpecBuilder().addQueryParam("access_token", "aa9c6f8ae7341c0380007062280b4b7a").build();
+		spec = new RequestSpecBuilder().addQueryParam("access_token", "25d4ab63e6b32f111b5962de2b1de747").build();
 //				
 //				setSessionId(sessionId).build();
 	}

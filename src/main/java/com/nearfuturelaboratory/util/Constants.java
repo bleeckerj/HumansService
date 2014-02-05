@@ -19,7 +19,7 @@ public class Constants /*extends PropertiesConfiguration*/ {
 
   /** Class-wide, webapp-wide cache for our constants */
   private static PropertiesConfiguration sProps = new PropertiesConfiguration();
-  private final static Logger logger = LogManager.getLogger("com.nearfuturelaboratory.util.Constants");
+  private final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.util.Constants.class);
 
 /*
   static {

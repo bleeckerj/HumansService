@@ -47,6 +47,8 @@ public class HumansUser extends BaseEntity {
     protected String email;
     @Indexed(name="access_token", unique = true, sparse = true)
     protected String access_token;
+    protected Boolean isAdmin = false;
+    protected Boolean isSuperuser = false;
 
     @Embedded("humans")
     protected List<Human> humans = new ArrayList<Human>();
@@ -742,7 +744,8 @@ public class HumansUser extends BaseEntity {
         DBCollection cache = cache_db.getCollection(cache_name);
 //        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("created")
 
-        return (int)cache.getCount();
+        // remember, there is one document in the collection that just contains metadata about the cache
+        return (int)cache.getCount()-1;
     }
 
     /**
@@ -1007,6 +1010,11 @@ public class HumansUser extends BaseEntity {
                 append("lastUpdated", new Date());
         //logger.debug("writing cache key for "+cache_name);
         cache.insert(doc);
+
+        //TODO limit the size of the write to the cache to keep things snappy?
+        if(aListOfStatus.size() > Constants.getInt("MAX_CACHE_DOCUMENT_COUNT", 250)) {
+            aListOfStatus = aListOfStatus.subList(0, 250);
+        }
         for(ServiceStatus status : aListOfStatus) {
             DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
             cache.save(obj);

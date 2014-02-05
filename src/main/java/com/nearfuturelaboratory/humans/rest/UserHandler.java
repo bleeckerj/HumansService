@@ -400,15 +400,9 @@ public class UserHandler {
 		}
 		return array_of_humans.toString();
 	}
-    @Deprecated
+
 	protected boolean doesUsernameExist(String aUsername) {
 		return HumansUser.doesUsernameExist(aUsername);
-//		HumansUser h = dao.findOneByUsername(aUsername);
-//		if(h != null) {
-//			return true;
-//		} else {
-//			return false;
-//		}
 	}
 
 	/**

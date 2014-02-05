@@ -1,0 +1,1 @@
+db.status.find({coordinates : {$exists:true}})

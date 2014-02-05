@@ -25,16 +25,16 @@
 				async:true,
 				type : "POST",
 				traditional : true,
-				url : '<%=request.getContextPath()%>/create.human.user',
+				url : '<%=request.getContextPath()%>/rest/user/new',
 				data : {
 					username : $('#username').val(),
 					password : $('#password').val(),
-					email : $('#email').val(),
+					email : $('#email').val()
 					
-				},
+				}
 			}).success(function(data) {
 				console.log(data);
-				window.location.replace("user.jsp");
+				window.location.replace("foo.jsp");
 			}).error(function(xhr, ajaxOptions, thrownError) {
 				console.log(thrownError + " "+ xhr.status+" "+ajaxOptions);
 //				$("#response").html(thrownError + " " + xhr.status + " " + ajaxOptions)
@@ -69,11 +69,11 @@
 				email : {
 					required : true,
 					email : true
-				},
+				}
 			},
 			messages : {
 				username : {
-					required : "Please enter a username",
+					required : "Please enter a human username",
 					minlength : "Your username must consist of at least 3 characters"
 				},
 				password : {
@@ -90,6 +90,33 @@
 		});
 
 	});
+
+
+    function addThisUser(obj) {
+        var username = parent.find('#username').text();
+        var password = parent.find("#password").text();
+        var email = parent.find("#email").text();
+        // now we have the parameters to create a ServiceUser and add it ot the HumansUser, which
+        // should be in the session for this page..
+        // we'll still need to give the new Human a name..
+
+        $.ajax({
+            type : "POST",
+            url : '<%=request.getContextPath()%>/fo',
+            data : {
+                username : $('#username').val(),
+                password : $('#password').val(),
+                email : $('#email').val()
+
+            }
+        }).success(function(data) {
+            console.log(data);
+            //window.location.replace("user.jsp");
+        }).error(function(xhr, ajaxOptions, thrownError) {
+            console.log(thrownError + " "+ xhr.status+" "+ajaxOptions);
+//				$("#response").html(thrownError + " " + xhr.status + " " + ajaxOptions)
+        });
+    }
 </script>
 </head>
 <body>
@@ -112,7 +139,7 @@
 				<label for="email">Email</label> <input id="email" name="email" type="email" />
 			</p>
 			<p>
-				<input class="submit" type="submit" value="Submit" />
+                <button type='button' onClick='addThisUser(this)' class="btn-info btn">Login</button>
 			</p>
 		</fieldset>
 	</form>

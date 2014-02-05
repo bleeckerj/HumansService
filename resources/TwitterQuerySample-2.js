@@ -1,0 +1,1 @@
+db.status.find({$and : [{'entities.media' : {$exists:true}}, {'user.screen_name' : 'rhysys'}]})

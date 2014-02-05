@@ -45,13 +45,14 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 		this.ensureIndexes();
 
 	}
-	
-//	public HumansUserDAO(Mongo mongo, Morphia morphia, String dbname) {
-//		super(mongo, morphia, dbname);
-//		this.ensureIndexes();
-//
-//		//initiate();
-//	}
+
+    //TODO For testing only..
+	public HumansUserDAO(Mongo mongo, Morphia morphia, String dbname) {
+		super(mongo, morphia, dbname);
+		this.ensureIndexes();
+
+		//initiate();
+	}
 	
 	
 	public List<HumansUser> findByUsername( String aUsername ) {

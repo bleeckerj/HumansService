@@ -26,7 +26,6 @@
 		<url-pattern>/rest/*</url-pattern>
 		<url-pattern>/oauth2/*</url-pattern>
         <url-pattern>/admin/*</url-pattern>
-
     </servlet-mapping>
     <listener>
         <listener-class>org.apache.logging.log4j.core.web.Log4jServletContextListener</listener-class>

@@ -1,0 +1,1 @@
+db.status.find({$and : [{'entities.urls' : {$exists:true}}, {'user.screen_name' : 'svanes'}]})
