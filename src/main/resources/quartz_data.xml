@@ -21,7 +21,7 @@
             <cron>
                 <name>ScheduledStatusFetcher</name>
                 <job-name>ScheduledStatusFetcher</job-name>
-                <cron-expression>0 0/15 * 1/1 * ? *</cron-expression>
+                <cron-expression>0 0/55 * 1/1 * ? *</cron-expression>
             </cron>
 
         </trigger>

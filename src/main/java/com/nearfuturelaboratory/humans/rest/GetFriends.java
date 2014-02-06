@@ -26,7 +26,6 @@ import com.nearfuturelaboratory.humans.entities.HumansUser;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 
 @Path("/friends")
-@Deprecated
 public class GetFriends {
 
 	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.GetFriends.class);

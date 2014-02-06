@@ -843,7 +843,12 @@ public class HumansUser extends BaseEntity {
                 }
             } catch (BadAccessTokenException e) {
                 logger.warn(e);
+            } catch (NullPointerException e) {
+                logger.error("huh.", e);
+                //logger.info("service_user="+service_user);
+                logger.info("humans_user="+this.getUsername());
             }
+
         }
 
         List<ServiceUser> service_users = aHuman.getServiceUsers();
@@ -865,6 +870,10 @@ public class HumansUser extends BaseEntity {
                     }
                 } catch (BadAccessTokenException e) {
                     logger.warn(e);
+                } catch (NullPointerException e) {
+                    logger.error("huh. this may happen. it happened i think when a user on a service was deleted on the service.", e);
+                    logger.info("service_user="+service_user);
+                    logger.info("humans_user="+this.getUsername());
                 }
             }
             if(service_name.equalsIgnoreCase("instagram")) {
@@ -876,6 +885,10 @@ public class HumansUser extends BaseEntity {
                     }
                 } catch (BadAccessTokenException e) {
                     logger.warn(e);
+                } catch (NullPointerException e) {
+                    logger.error("huh. this may happen. it happened i think when a user on a service was deleted on the service.", e);
+                    logger.info("service_user="+service_user);
+                    logger.info("humans_user="+this.getUsername());
                 }
 
             }
@@ -887,6 +900,10 @@ public class HumansUser extends BaseEntity {
                     }
                 } catch (BadAccessTokenException e) {
                     logger.warn(e);
+                } catch (NullPointerException e) {
+                    logger.error("huh. this may happen. it happened i think when a user on a service was deleted on the service.", e);
+                    logger.info("service_user="+service_user);
+                    logger.info("humans_user="+this.getUsername());
                 }
             }
         }
@@ -1012,8 +1029,9 @@ public class HumansUser extends BaseEntity {
         cache.insert(doc);
 
         //TODO limit the size of the write to the cache to keep things snappy?
-        if(aListOfStatus.size() > Constants.getInt("MAX_CACHE_DOCUMENT_COUNT", 250)) {
-            aListOfStatus = aListOfStatus.subList(0, 250);
+        int max_cache_document_count = Constants.getInt("MAX_CACHE_DOCUMENT_COUNT", 250);
+        if(aListOfStatus.size() > max_cache_document_count) {
+            aListOfStatus = aListOfStatus.subList(0, max_cache_document_count);
         }
         for(ServiceStatus status : aListOfStatus) {
             DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
@@ -1037,19 +1055,6 @@ public class HumansUser extends BaseEntity {
         return result;
 
     }
-
-    /**
-     * Get all of the services this Humans User has assigned - twitter,
-     * instagram, flickr, etc., etc.
-     *
-     * @return
-     * @deprecated use {@link getServiceNamesAssigned()}
-     */
-    //	@Deprecated
-    //	public List<String> getServicesAssigned() {
-    //		return getServiceNamesAssigned();
-    //	}
-
 
     /**
      *

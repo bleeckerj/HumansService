@@ -403,12 +403,12 @@ public class FlickrService {
 	//	}
 
 	
-	
+
 	/**
 	 * Get basic user info on a user
 	 * @param aUserID
 	 */
-	public void serviceRequestUserBasicByUserID(String aUserID) {
+	public FlickrUser serviceRequestUserBasicByUserID(String aUserID) {
 		OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
 		request.addQuerystringParameter("method", "flickr.people.getInfo");
 
@@ -426,6 +426,7 @@ public class FlickrService {
 
 
 		saveUser(user);
+        return user;
 	}
 
 

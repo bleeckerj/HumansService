@@ -8,12 +8,20 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.servlet.ServletContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.ws.rs.GET;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.xml.ws.Response;
 
+import com.google.gson.JsonObject;
+import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.json.simple.JSONObject;
@@ -48,9 +56,45 @@ public class InstagramLoginServlet extends HttpServlet {
 	protected JSONObject user;
 
 
-	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.servlets.InstagramLoginServlet.class);
+    static JsonObject invalid_user_error_response;
+    static JsonObject success_response;
+    static JsonObject fail_response;
+    static JsonObject no_such_human_for_user;
+    static JsonObject no_such_serviceuser_for_user;
 
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    static {
+
+        invalid_user_error_response = new JsonObject();
+        invalid_user_error_response.addProperty("result", "error");
+        invalid_user_error_response.addProperty("message", "invalid user");
+
+        success_response = new JsonObject();
+        success_response.addProperty("result", "success");
+
+        fail_response = new JsonObject();
+        fail_response.addProperty("result", "fail");
+
+        no_such_human_for_user = new JsonObject();
+        no_such_human_for_user.addProperty("result", "fail");
+        no_such_human_for_user.addProperty("message", "no such human for user");
+
+        no_such_serviceuser_for_user = new JsonObject();
+        no_such_serviceuser_for_user.addProperty("result", "fail");
+        no_such_serviceuser_for_user.addProperty("message", "no such service user for user");
+
+    }
+
+
+    final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.servlets.InstagramLoginServlet.class);
+
+    @Context
+    ServletContext context;
+
+    @Override
+    @GET
+    //@javax.ws.rs.Path("/get/humans/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		service = new ServiceBuilder()
 		.provider(InstagramApi.class)
 		.apiKey(apiKey)
@@ -60,8 +104,23 @@ public class InstagramLoginServlet extends HttpServlet {
 		.build();
 
 		//logger.debug("Request Parameters are "+req.getParameterMap());
-		
-		if(req.getParameter("code") != null) {
+
+//        String access_token = req.getParameter("access_token");
+//
+//        if(access_token == null) {
+//            fail_response.addProperty("message", "invalid or missing access token");
+//            //return fail_response.toString();
+//        }
+//
+//        HumansUser user_alt = getUserForAccessToken(context, access_token);
+//
+//        if(user_alt == null) {
+//            invalid_user_error_response.addProperty("message", "invalid access token");
+//            //return invalid_user_error_response.toString();
+//        }
+
+
+        if(req.getParameter("code") != null) {
 			logger.debug("now a response code="+req.getParameter("code"));
 			Verifier verifier = new Verifier(req.getParameter("code"));
 			accessToken = service.getAccessToken(EMPTY_TOKEN, verifier);
@@ -111,4 +170,27 @@ public class InstagramLoginServlet extends HttpServlet {
 
 	}
 
+    protected HumansUser getUserForAccessToken(ServletContext context, String access_token)
+    {
+
+        HumansUser user;
+
+        user = (HumansUser)context.getAttribute(access_token+"_user");
+        //logger.debug("context="+context);
+        HumansUserDAO dao = (HumansUserDAO)context.getAttribute("dao");
+        if(dao == null) {
+            dao = new HumansUserDAO();
+            context.setAttribute("dao", dao);
+
+        }
+        //		HttpSession session = request.getSession();
+        //		logger.debug(session.getId());
+        //		HumansUser user = (HumansUser)session.getAttribute(access_token);
+        //		if(user == null) {
+        user = dao.findOneByAccessToken(access_token);
+        //MongoUtil.getMongo().getConnector().close();
+        //logger.debug("dao = "+dao);
+
+        return user;
+    }
 }

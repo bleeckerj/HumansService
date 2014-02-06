@@ -159,7 +159,8 @@ public class InstagramService /*implements AbstractService*/ {
 	 * This will go to the service and get "self" for whoever's accessToken we have
 	 */
 	public InstagramUser serviceRequestUserBasic() {
-		return this.serviceRequestUserBasicForUserID("self");
+		this.user =  this.serviceRequestUserBasicForUserID("self");
+        return user;
 	}
 
 
@@ -172,7 +173,6 @@ public class InstagramService /*implements AbstractService*/ {
 	 * and save it.
 	 * 
 	 * @param aUserID
-	 * @param save
 	 * @return
 	 */
 	public InstagramUser serviceRequestUserBasicForUserID(String aUserID)

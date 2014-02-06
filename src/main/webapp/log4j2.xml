@@ -76,7 +76,7 @@
       <logger name="com.nearfuturelaboratory.humans.entities" level="debug">
           <appender-ref ref="HUMANS"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.rest" level="info">
+      <logger name="com.nearfuturelaboratory.humans.rest" level="debug">
           <appender-ref ref="HUMANS"/>
       </logger>
       <logger name="com.nearfuturelaboratory.humans.oauth" level="info">
