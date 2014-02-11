@@ -503,7 +503,7 @@ public class FlickrService {
 	}
 
 
-	public void serviceRequestUserInfo()
+	public FlickrUser serviceRequestUserInfo()
 	{
 		OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
 		request.addQuerystringParameter("method", "flickr.test.login");
@@ -518,7 +518,7 @@ public class FlickrService {
 		JSONObject user = (JSONObject)obj.get("user");
 		String id = user.get("id").toString();
 		//logger.debug("id="+id);
-		serviceRequestUserBasicByUserID(id);
+		return serviceRequestUserBasicByUserID(id);
 	}
 
 
@@ -691,7 +691,24 @@ public class FlickrService {
 	}
 
 
-	public void serializeToken(Token aToken) {
+    public static void serializeToken(Token aToken, FlickrUser aUser) {
+        ServiceTokenDAO dao = new ServiceTokenDAO("flickr");
+        ServiceToken tokenToSave = dao.findByExactUserId(aUser.getId()); //new ServiceToken();
+        if(tokenToSave == null) {
+            tokenToSave = new ServiceToken();
+        }
+        tokenToSave.setToken(aToken);
+        tokenToSave.setUser_id(aUser.getId());
+        tokenToSave.setUsername(aUser.getUsername());
+        //tokenToSave; aUser.getLargeImageURL()
+        tokenToSave.setServicename("twitter");
+
+        dao.save(tokenToSave);
+
+    }
+
+
+	public  void serializeToken(Token aToken) {
 		ServiceTokenDAO dao = new ServiceTokenDAO("flickr");
 		ServiceToken tokenToSave = dao.findByExactUserId(this.getThisUser().getId());new ServiceToken();
 		if(tokenToSave == null) {

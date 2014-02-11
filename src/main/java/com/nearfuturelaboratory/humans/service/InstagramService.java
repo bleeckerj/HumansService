@@ -329,8 +329,7 @@ public class InstagramService /*implements AbstractService*/ {
 	 * @param aBackMonthsAgo
 	 */
 	public List<InstagramStatus> serviceRequestStatusForUserIDToMonthsAgo(String aUserID, int aBackMonthsAgo) {
-		new ArrayList<InstagramStatus>();
-		Calendar ago =Calendar.getInstance();
+        Calendar ago =Calendar.getInstance();
 		ago.add(Calendar.MONTH, -1*aBackMonthsAgo);
 		//long year_ago = ago.getTimeInMillis();
 		if(aUserID == null || aUserID.equalsIgnoreCase("self")) {
@@ -342,14 +341,23 @@ public class InstagramService /*implements AbstractService*/ {
 		service.signRequest(accessToken, request);
 		Response response = request.send();
 
-		//TODO Something..
-		if(response.getCode() != 200) ;
+		//TODO Nasty..
+		if(response.getCode() != 200) {
+            logger.warn(this.getThisUser().getUsername()+" / "+this.getThisUser().getId()+" response.getCode()= "+response.getCode());
+            return new ArrayList<InstagramStatus>();
+        }
 
 		String s = response.getBody();
 		Object jsonResponse = JSONValue.parse(s);
 
 		JSONObject status = (JSONObject)jsonResponse;
 		JSONArray full_data = (JSONArray)status.get("data");
+        //TODO Nasty..
+        if(full_data.size() < 1) {
+            logger.warn("For "+this.getThisUser().getUsername()+ "no data found for "+this.getThisUser().getUsername()+" / "+this.getThisUser().getId());
+            logger.warn("Perhaps "+this.getThisUser().getUsername()+" is not authorized somehow to see this users status??");
+            return new ArrayList<InstagramStatus>();
+        }
 		JSONObject oldest = (JSONObject)full_data.get(full_data.size()-1);
 		long oldest_time = Long.parseLong(oldest.get("created_time").toString());
 		Calendar oldest_cal = Calendar.getInstance();
@@ -378,12 +386,12 @@ public class InstagramService /*implements AbstractService*/ {
 	}
 
 	@SuppressWarnings("unused")
-	List<InstagramStatus> saveStatusJson(JSONArray data) {
+    List<InstagramStatus> saveStatusJson(JSONArray data) {
 		gson = new Gson();
 		List<InstagramStatus>result = new ArrayList<InstagramStatus>();
 		// the way with morphia + DAO model..
-		@SuppressWarnings("unchecked")
-		Iterator<JSONObject> iter = data.iterator();
+		if(data != null) {
+        Iterator<JSONObject> iter = data.iterator();
 		while(iter.hasNext()) {
 			String i = iter.next().toString();
 			//logger.debug(i);
@@ -391,6 +399,9 @@ public class InstagramService /*implements AbstractService*/ {
 			result.add(istatus);
 			statusDAO.save(istatus);
 		}
+        } else {
+            logger.warn("No data found for "+this.getThisUser().getUsername()+" / "+this.getThisUser().getId());
+        }
 		return result;
 	}
 

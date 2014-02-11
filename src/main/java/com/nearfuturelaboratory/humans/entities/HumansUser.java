@@ -696,7 +696,8 @@ public class HumansUser extends BaseEntity {
     }
 
 
-    protected void refreshCache(Human aHuman)
+
+    public void refreshCache(Human aHuman)
     {
         //String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
 
@@ -846,7 +847,7 @@ public class HumansUser extends BaseEntity {
             } catch (NullPointerException e) {
                 logger.error("huh.", e);
                 //logger.info("service_user="+service_user);
-                logger.info("humans_user="+this.getUsername());
+                logger.error("humans_user="+this.getUsername());
             }
 
         }
@@ -872,8 +873,8 @@ public class HumansUser extends BaseEntity {
                     logger.warn(e);
                 } catch (NullPointerException e) {
                     logger.error("huh. this may happen. it happened i think when a user on a service was deleted on the service.", e);
-                    logger.info("service_user="+service_user);
-                    logger.info("humans_user="+this.getUsername());
+                    logger.error("service_user="+service_user);
+                    logger.error("humans_user="+this.getUsername());
                 }
             }
             if(service_name.equalsIgnoreCase("instagram")) {
@@ -887,8 +888,8 @@ public class HumansUser extends BaseEntity {
                     logger.warn(e);
                 } catch (NullPointerException e) {
                     logger.error("huh. this may happen. it happened i think when a user on a service was deleted on the service.", e);
-                    logger.info("service_user="+service_user);
-                    logger.info("humans_user="+this.getUsername());
+                    logger.error("service_user="+service_user);
+                    logger.error("humans_user="+this.getUsername());
                 }
 
             }
@@ -902,8 +903,8 @@ public class HumansUser extends BaseEntity {
                     logger.warn(e);
                 } catch (NullPointerException e) {
                     logger.error("huh. this may happen. it happened i think when a user on a service was deleted on the service.", e);
-                    logger.info("service_user="+service_user);
-                    logger.info("humans_user="+this.getUsername());
+                    logger.error("service_user="+service_user);
+                    logger.error("humans_user="+this.getUsername());
                 }
             }
         }

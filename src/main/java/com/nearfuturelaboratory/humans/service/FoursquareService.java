@@ -180,7 +180,8 @@ public class FoursquareService {
      */
     public FoursquareUser serviceRequestUserBasic() {
         //logger.debug("user here is = "+this.getThisUser());
-        return serviceRequestUserBasicForUserID("self");
+        this.user = serviceRequestUserBasicForUserID("self");
+        return this.getThisUser();
     }
 
 

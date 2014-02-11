@@ -7,7 +7,7 @@
     <Console name="CONSOLE" target="SYSTEM_OUT">
       <PatternLayout pattern="%highlight{%d{ISO8601} %-5p %c{1}.java:%line (%c{2}.java:%M:%line) - %m%n}"/>
     </Console>
-    <RollingFile name="RollingFile" fileName="/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/logs/the_app.log"
+    <RollingFile name="RollingFile" fileName="/Users/julian/Documents/workspace/HumansService/logs/the_app.log"
                  filePattern="humans_test_$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log">
       <PatternLayout>
         <Pattern>%highlight{%d{ISO8601} %-5p %c{1}.java:%line (%c{2}.java:%M()) - %m%n}</Pattern>
@@ -18,7 +18,7 @@
         <DefaultRolloverStrategy max="2"/>
       </Policies>
     </RollingFile>
-    <File name="TEMP" fileName="/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/logs/humans_test.log">
+    <File name="TEMP" fileName="/Users/julian/Documents/workspace/HumansService/logs/humans_test.log">
       <PatternLayout pattern="%highlight{%d{ISO8601} %-5p %c{1}.java:%line  (%c{2}.java:%M) - %m%n}"/>
     </File>
       <Async name="ASYNC" includeLocation="true">

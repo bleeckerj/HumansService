@@ -129,7 +129,7 @@ public class InstagramUser extends MinimalSocialServiceUser {
 
 	@Override
 	public String getUserID() {
-		return this.getUserID();
+		return id;
 	}
 
 	@Override

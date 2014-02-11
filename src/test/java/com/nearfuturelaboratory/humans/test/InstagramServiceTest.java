@@ -23,7 +23,7 @@ public class InstagramServiceTest {
 	public static void setUpBeforeClass() throws Exception {
 	
 		try {
-			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/dev.app.properties");
+			Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
 			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/WebContent/WEB-INF/lib/static-logger.properties");
 			//logger.debug("Hey Ho!");
 			instagram = InstagramService.createServiceOnBehalfOfUsername("darthjulian");
@@ -42,8 +42,22 @@ public class InstagramServiceTest {
 	public void test_freshenStatus() {
 		instagram.freshenStatus();
 	}
-	
-	
+
+    @Test
+    public void serviceRequestStatus()
+    {
+        List<InstagramStatus> status = instagram.serviceRequestStatus();
+        logger.debug(status);
+    }
+
+    @Test
+    public void serviceRequestStatusForUserID()
+    {
+        String userid = instagram.getThisUser().getId();
+        List<InstagramStatus> status = instagram.serviceRequestStatusForUserID(userid);
+        logger.debug(status);
+    }
+
 	@Ignore
 	public void test() {
 		//Token t = instagram.deserializeToken(aUser)

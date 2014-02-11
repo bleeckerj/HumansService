@@ -73,6 +73,9 @@
       </Async>
   </Appenders>
   <Loggers>
+      <logger name="com.nearfuturelaboratory.humans" level="warn">
+          <appender-ref ref="HUMANS_ERROR"/>
+      </logger>
       <logger name="com.nearfuturelaboratory.humans.entities" level="debug">
           <appender-ref ref="HUMANS"/>
       </logger>
