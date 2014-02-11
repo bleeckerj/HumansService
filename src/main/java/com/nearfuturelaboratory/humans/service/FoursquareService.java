@@ -462,7 +462,7 @@ public class FoursquareService {
     }
 
     public static void serializeToken(Token aToken, FoursquareUser aUser) {
-        ServiceTokenDAO dao = new ServiceTokenDAO("foursquae");
+        ServiceTokenDAO dao = new ServiceTokenDAO("foursquare");
         ServiceToken tokenToSave = dao.findByExactUserID(aUser.getId()); //new ServiceToken();
         if(tokenToSave == null) {
             tokenToSave = new ServiceToken();
