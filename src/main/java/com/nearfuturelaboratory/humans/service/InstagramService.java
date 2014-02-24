@@ -186,12 +186,18 @@ public class InstagramService /*implements AbstractService*/ {
 		// TODO Error check..
 		String s = response.getBody();
 		Object obj = JSONValue.parse(s);
+        try {
 		aUser = (JSONObject) ((JSONObject)obj).get("data");
+            saveUserBasicJson(aUser);
+            com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUser.toString(),
+                    com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
+            return iuser;
+        } catch(Exception e) {
+            logger.error("Bad response for "+aUserID+" "+this.getThisUser(), e);
+            return null;
+        }
 
-		saveUserBasicJson(aUser);
-		com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUser.toString(), 
-				com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
-		return iuser;
+
 	}
 
 
@@ -222,7 +228,17 @@ public class InstagramService /*implements AbstractService*/ {
 		return result;
 	}
 
-	/**
+    public InstagramStatus getMostRecentStatus() {
+        return statusDAO.findMostRecentStatusByExactUserID(this.getThisUser()
+                .getId());
+    }
+
+    public InstagramStatus getOldestStatus() {
+        return statusDAO.findOldestStatusByExactUserID(this.getThisUser().getId());
+    }
+
+
+    /**
 	 * Weird method to see if I can easily change the type of the created_time field to Long
 	 */
 	public void freshenStatus() {
@@ -525,6 +541,7 @@ public class InstagramService /*implements AbstractService*/ {
             // here's where we update a user if their local user basic is stale..
 			if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
 				friend = this.serviceRequestUserBasicForUserID(iub.getId());
+                logger.debug("serviceRequestUserBasicForUserID("+iub.getId()+")");
 			}
 			InstagramFriend iuf = new InstagramFriend(friend);
 			iuf.setFollower_id(getThisUser().getId());

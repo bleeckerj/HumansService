@@ -57,6 +57,14 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 		return result;
 	}
 
+    public InstagramStatus findOldestStatusByExactUserID(String aUserID) {
+        InstagramStatus result = null;
+        Query<InstagramStatus> q = this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).order("created_time").limit(1);
+        result = q.get();
+        return result;
+    }
+
+
     public long getStatusCountForUserID(String aUserID) {
         long result;
         result = this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).countAll();

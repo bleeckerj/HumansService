@@ -4,7 +4,7 @@
     <groupId>com.nearfuturelaboratory.humans</groupId>
     <artifactId>humans</artifactId>
     <packaging>war</packaging>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <name>Humans</name>
     <description>I had an idea to make a service that lets me focus on my normal human friends rather than internet friends</description>
     <inceptionYear>2011</inceptionYear>
@@ -44,6 +44,11 @@
                     <artifactId>jersey-servlet</artifactId>
                     <version>1.18</version>
                 </dependency>-->
+        <dependency>
+            <groupId>org.cryptonode.jncryptor</groupId>
+            <artifactId>jncryptor</artifactId>
+            <version>1.0.1</version>
+        </dependency>
         <dependency>
             <groupId>asm</groupId>
             <artifactId>asm-commons</artifactId>

@@ -28,7 +28,7 @@ public class FriendsPrefetcher implements Job {
 
     public static void main(String[] args) {
         try {
-            Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+            Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
             //PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
             FriendsPrefetcher prefetcher = new FriendsPrefetcher();
             List<HumansUser> users = HumansUser.getAllHumansUsers();
@@ -59,7 +59,7 @@ public class FriendsPrefetcher implements Job {
     protected void fetchFriendsForHumansUser(HumansUser humans_user) {
         List<MinimalSocialServiceUser> friends = new ArrayList<MinimalSocialServiceUser>();
         for(ServiceEntry service_entry : humans_user.getServices()) {
-            logger.info(service_entry);
+            logger.info("user="+humans_user.getUsername()+" service_entry="+service_entry);
             if(service_entry.getServiceName().equalsIgnoreCase("flickr")) {
                 FlickrService flickr;
                 try {

@@ -36,6 +36,7 @@ public class ScheduledStatusFetcher implements Job {
                 logger.info("=========== Fetch Status For "+humansUser.getUsername() +" ==============");
 
                 humansUser.refreshStatusForAllHumans();
+                logger.info("=========== Done Fetch Status For "+humansUser.getUsername() +" ==============");
             }
             logger.info("done fetchStatusForHumans");
 

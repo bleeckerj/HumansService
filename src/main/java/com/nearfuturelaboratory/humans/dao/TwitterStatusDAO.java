@@ -85,7 +85,7 @@ public class TwitterStatusDAO extends BasicDAO<TwitterStatus, ObjectId> {
      */
     public TwitterStatus findOldestStatusByExactUserID(String aUserID) {
         TwitterStatus result = null;
-        Query<TwitterStatus> q = this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).order("+createdAt").limit(1);
+        Query<TwitterStatus> q = this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).order("createdAt").limit(1);
         result = q.get();
         return result;
 

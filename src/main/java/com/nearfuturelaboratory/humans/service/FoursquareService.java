@@ -219,6 +219,16 @@ public class FoursquareService {
         return result;
     }
 
+    public FoursquareCheckin getMostRecentCheckin() {
+        return checkinDAO.findMostRecentCheckin(this.getThisUser()
+                .getId());
+    }
+
+    public FoursquareCheckin getOldestCheckin() {
+        return checkinDAO.findOldestCheckin(this.getThisUser().getId());
+    }
+
+
     /*	public void getLatestCheckins() {
         // get the last check in? get the ones since them somehow? or..who cares?
     }
@@ -236,7 +246,7 @@ public class FoursquareService {
     }
 
     public void serviceRequestLatestCheckins() {
-        FoursquareCheckin lastLocalCheckin = checkinDAO.findLatestCheckin(user.getId());
+        FoursquareCheckin lastLocalCheckin = checkinDAO.findMostRecentCheckin(user.getId());
 
         if(lastLocalCheckin != null) {
             Long lastLocalCheckinTime = lastLocalCheckin.getCreatedAt();
@@ -478,7 +488,7 @@ public class FoursquareService {
 
 
     public FoursquareCheckin getLatestCheckin() {
-        return checkinDAO.findLatestCheckin(user.getId());
+        return checkinDAO.findMostRecentCheckin(user.getId());
     }
 
     public String getDerivedUsername() {

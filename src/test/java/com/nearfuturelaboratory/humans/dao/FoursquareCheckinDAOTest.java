@@ -39,7 +39,7 @@ public class FoursquareCheckinDAOTest {
 	@Test
 	public void testFindLatestCheckin() {
 		// get a userid
-		FoursquareCheckin lastLocalCheckin = dao.findLatestCheckin("41");
+		FoursquareCheckin lastLocalCheckin = dao.findMostRecentCheckin("41");
 		List<FoursquareCheckin> checkins = dao.findByExactUserID("41");
 		
 		Collections.sort(checkins, new Comparator() {

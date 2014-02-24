@@ -143,6 +143,15 @@ public class FlickrService {
 
 	}
 
+    public FlickrStatus getMostRecentStatus() {
+        return getLatestStatus();
+    }
+
+    public FlickrStatus getOldestStatus() {
+        FlickrStatus oldest = statusDAO.findOldestStatusByExactUserID(this.getThisUser().getId());
+        return oldest;
+    }
+
 	public FlickrStatus getLatestStatus() {
 		FlickrStatus lastLocalStatus = statusDAO.findMostRecentStatusByExactUserID(this.getThisUser().getId());
 		return lastLocalStatus;

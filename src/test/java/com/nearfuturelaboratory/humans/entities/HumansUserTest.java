@@ -58,7 +58,7 @@ public class HumansUserTest {
 
 		try {
 
-			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+			Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
 			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 
             test_dao = new HumansUserDAO("humans-test");
@@ -114,7 +114,7 @@ public class HumansUserTest {
 	//	}
 
 	@Test
-	public void removeServiceUser() {
+	public void removeServiceUserById() {
 		ServiceEntry service_entry = new ServiceEntry("id_", "username_", "service_");
 		ServiceUser service_user = new ServiceUser("id__", "username__", "name__", "image_url__", service_entry);
 		ObjectId aId = new ObjectId(new Date(), 1);
@@ -446,12 +446,12 @@ public class HumansUserTest {
 	}
 
     @Test
-    public void getJsonStatusForHuman() {
+    public void getJsonCachedStatusForHuman() {
         HumansUser user = dev_dao.findOneByUsername("darthjulian");
         Human human = user.getHumanByName("anti");
-        JsonArray jsonStatusForHuman = user.getJsonStatusForHuman(human, -1);
+        JsonArray jsonStatusForHuman = user.getJsonCachedStatusForHuman(human, -1);
         assertThat(jsonStatusForHuman.size(), greaterThan(0));
-        int pages = user.getJsonStatusPageCountForHuman(human, 10);
+        int pages = user.getJsonCachedStatusPageCountForHuman(human, 10);
         int total = jsonStatusForHuman.size();
 
         assertThat(total/10, lessThanOrEqualTo(pages));
@@ -473,8 +473,8 @@ public class HumansUserTest {
     public void getJsonStatusPageCountForHuman() {
         HumansUser user = dev_dao.findOneByUsername("nicolas");
         Human human = user.getHumanByName("fabien");
-        int pages = user.getJsonStatusPageCountForHuman(human, 25);
-        int total = user.getJsonStatusCountForHuman(human);
+        int pages = user.getJsonCachedStatusPageCountForHuman(human, 25);
+        int total = user.getJsonCachedStatusCountForHuman(human);
         assertThat(total/25, lessThanOrEqualTo(pages));
         logger.debug("total="+total+" pages="+pages);
 
@@ -486,12 +486,47 @@ public class HumansUserTest {
 
 
     @Test
+    public void getTimeOfMostRecentStatusForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("nicolas");
+        Human human = user.getHumanByName("fabien");
+        long time = user.getTimeOfMostRecentStatusForHuman(human);
+        Date d = new Date(time);
+        //ServiceStatus status = user.getMostRecentStatusForHuman(human);
+    }
+
+    @Test
+    public void getTimeOfOldestCachedStatusForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("darthjulian");
+        Human human = user.getHumanByName("Nova");
+        long time = user.getTimeOfOldestCachedStatusForHuman(human);
+        Date d = new Date(time);
+    }
+
+    @Test
+    public void getTimeOfMostRecentCachedStatusForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("darthjulian");
+        Human human = user.getHumanByName("Nova");
+        long time = user.getTimeOfOldestCachedStatusForHuman(human);
+        Date d = new Date(time);
+
+    }
+
+    @Test
+    public void getTimeOfOldestStatusForHuman() {
+        HumansUser user = dev_dao.findOneByUsername("darthjulian");
+        Human human = user.getHumanByName("Nova");
+        long time = user.getTimeOfOldestStatusForHuman(human);
+        Date d = new Date(time);
+
+    }
+
+    @Test
     public void getJsonStatusCountForHuman() {
         HumansUser user = dev_dao.findOneByUsername("nicolas");
         Human human = user.getHumanByName("fabien");
-        long count = user.getJsonStatusCountForHuman(human);
+        long count = user.getJsonCachedStatusCountForHuman(human);
         int count_int = (int)count;
-        JsonArray all_status = user.getJsonStatusForHuman(human, -1);
+        JsonArray all_status = user.getJsonCachedStatusForHuman(human, -1);
         assertThat(all_status.size(), equalTo(count_int));
     }
 
@@ -500,8 +535,8 @@ public class HumansUserTest {
     public void __getJsonStatusCountForHuman() {
         HumansUser user = dev_dao.findOneByUsername("darthjulian");
         Human human = user.getHumanByName("Dawn Mike Ella");
-        long count = user.getJsonStatusCountForHuman(human);
-        JsonArray all_status = user.getJsonStatusForHuman(human, -1);
+        long count = user.getJsonCachedStatusCountForHuman(human);
+        JsonArray all_status = user.getJsonCachedStatusForHuman(human, -1);
         assertThat(all_status.size(), equalTo((int)count));
     }
 
@@ -602,12 +637,21 @@ public class HumansUserTest {
 		}
 	}
 
+    @Test
+    public void encryptThings() {
+        List<HumansUser> users = remote_dao.getAllHumansUsers();
+        //List<HumansUser> users = HumansUser.getAllHumansUsers();
+        for(HumansUser user : users) {
+            user.save(remote_dao);
+        }
+    }
+
+
 	@Test
-	public void test_getByHumanID() {
+	public void getHumanByID() {
 		try {
-			HumansUserDAO dao = new HumansUserDAO();
-			HumansUser h = dao.findOneByUsername("grignani");
-			Human human = h.getHumanByID("52925b5403640e801a76a84c");
+			HumansUser h = dev_dao.findOneByUsername("darthjulian");
+			Human human = h.getHumanByID("52df74850364e4bd329f50d5");
 			logger.debug(human);
 		} catch(Exception e) {
 			logger.error("", e);
@@ -632,6 +676,21 @@ public class HumansUserTest {
             fail(e.getMessage());
         }
 
+    }
+
+    @Test
+    public void refreshCache()
+    {
+        List<HumansUser> users = dev_dao.getAllHumansUsers();
+        if(users.size() > 0) {
+            HumansUser test_user = users.get(0);
+            if(test_user.getAllHumans() != null && test_user.getAllHumans().size() > 0) {
+                Human test_human = test_user.getAllHumans().get(0);
+
+                test_user.refreshCache(test_human);
+
+            }
+        }
     }
 
     @Test

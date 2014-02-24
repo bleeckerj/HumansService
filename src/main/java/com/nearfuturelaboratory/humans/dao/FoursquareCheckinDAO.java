@@ -31,9 +31,13 @@ public class FoursquareCheckinDAO extends BasicDAO<FoursquareCheckin, ObjectId> 
 		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).asList();
 	}
 	
-	public FoursquareCheckin findLatestCheckin( String aUserID ) {
+	public FoursquareCheckin findMostRecentCheckin( String aUserID ) {
 		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("-createdAt").limit(1).get();
 	}
+
+    public FoursquareCheckin findOldestCheckin( String aUserID ) {
+        return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).order("createdAt").limit(1).get();
+    }
 
     public long getStatusCountForUserID(String aUserID) {
         long result;

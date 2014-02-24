@@ -17,10 +17,7 @@ import java.io.ObjectOutputStream;
 public class ServiceToken extends BaseEntity {
 	final static Logger logger = LogManager
 			.getLogger(com.nearfuturelaboratory.humans.entities.ServiceToken.class);
-	private final static String key = "1234567890123456";
 
-	// @Serialized
-	// @Serialized
 	@Transient
 	Token token;
 	byte[] token_bytes;

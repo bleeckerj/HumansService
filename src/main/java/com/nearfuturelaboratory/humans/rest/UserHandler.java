@@ -1,7 +1,14 @@
 package com.nearfuturelaboratory.humans.rest;
 
+import java.security.Key;
+import java.security.spec.KeySpec;
 import java.util.List;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +23,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
+import com.nearfuturelaboratory.humans.entities.*;
 import com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,15 +38,18 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
-import com.nearfuturelaboratory.humans.entities.Human;
-import com.nearfuturelaboratory.humans.entities.HumansUser;
-import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 //import static com.google.common.collect.Lists.partition;
 import com.nearfuturelaboratory.util.Constants;
+import org.cryptonode.jncryptor.AES256JNCryptor;
+import org.cryptonode.jncryptor.JNCryptor;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.quartz.*;
 import org.quartz.ee.servlet.QuartzInitializerListener;
 import org.quartz.impl.StdSchedulerFactory;
+import org.scribe.model.Token;
+import sun.misc.BASE64Encoder;
+import sun.security.krb5.internal.crypto.Aes256;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -95,27 +107,90 @@ public class UserHandler {
     }
 
 
-    @GET
-    @Path("/gettyup/buildcache/{humanid}")
-    @Produces({"application/json"})
-    public Response buildCaches(
-            @Context HttpServletRequest request,
-            @Context HttpServletResponse response) {
-        // TODO Auto-generated method stub
-        //Trigger trigger = TriggerBuilder.newTrigger().withIdentity("ScheduledStatusFetcher").startNow().build();
-        try {
-            StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
-                    .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
 
-            Scheduler scheduler = stdSchedulerFactory.getScheduler();
-            JobKey jobKey = new JobKey("ScheduledStatusFetcher");
-            scheduler.triggerJob(jobKey);
-        } catch (SchedulerException e) {
-            logger.warn(e);
+//    @GET
+//    @Path("/gettyup/buildcache/{humanid}")
+//    @Produces({"application/json"})
+//    public Response buildCaches(
+//            @Context HttpServletRequest request,
+//            @Context HttpServletResponse response) {
+//        // TODO Auto-generated method stub
+//        //Trigger trigger = TriggerBuilder.newTrigger().withIdentity("ScheduledStatusFetcher").startNow().build();
+//        try {
+//            StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
+//                    .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
+//
+//            Scheduler scheduler = stdSchedulerFactory.getScheduler();
+//            JobKey jobKey = new JobKey("ScheduledStatusFetcher");
+//            scheduler.triggerJob(jobKey);
+//        } catch (SchedulerException e) {
+//            logger.warn(e);
+//        }
+//
+//        return Response.ok("{ok:ok}", MediaType.APPLICATION_JSON).build();
+//
+//    }
+
+    /**
+     * Retrieve useful user access parameters
+     * @param aServiceName
+     * @param aServiceUserId
+     * @param request
+     * @param response
+     * @return
+     */
+    @GET
+    @Path("/get/auth/{servicename}/{serviceuserid}")
+    public Response getAuthTokenByServiceUserId(
+            @PathParam("servicename") String aServiceName,
+            @PathParam("serviceuserid") String aServiceUserId,
+            @Context HttpServletRequest request,
+            @Context HttpServletResponse response)
+    {
+        String access_token = request.getParameter("access_token");
+        if(access_token == null) {
+            fail_response.addProperty("message", "invalid or missing access token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
         }
 
-        return Response.ok("{ok:ok}", MediaType.APPLICATION_JSON).build();
+        HumansUser user = getUserForAccessToken(context, access_token);
 
+        if(user == null) {
+            invalid_user_error_response.addProperty("message", "no such user. invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        ServiceTokenDAO dao = new ServiceTokenDAO(aServiceName);
+        ServiceToken service_token = dao.findByExactUserId(aServiceUserId);
+        Token token = service_token.getToken();
+//        Gson gson = new Gson();
+//        String token_str = gson.toJson(token.getToken());
+        JsonObject obj = new JsonObject();
+        obj.addProperty("token", token.getToken());
+        String pw_key_key = aServiceName.toUpperCase()+"_API_KEY";
+        String aw_key_key = aServiceName.toUpperCase()+"_CF_PV";
+//        StandardPBEStringEncryptor stringEncryptor = new StandardPBEStringEncryptor();
+//        stringEncryptor.setAlgorithm("AES");
+//        stringEncryptor.setPassword("abadbassword");
+//        stringEncryptor.initialize();
+
+        String api_key = Constants.getString(pw_key_key);
+        try {
+
+            JNCryptor cryptor = new AES256JNCryptor();
+            byte[] bytes = api_key.getBytes();
+            byte[] ciphertext = cryptor.encryptData(bytes, new String("humans-"+aw_key_key).toCharArray());
+
+            String encStr = new BASE64Encoder().encode(ciphertext);
+            obj.addProperty("ck", encStr);
+        } catch(Exception e) {
+            return Response.status(Response.Status.EXPECTATION_FAILED).entity(fail_response.toString()).build();
+
+        }
+        // obj.addProperty("ck", stringEncryptor.encrypt(Constants.getString(key_key)));
+//        return Response.ok().build();
+        return Response.ok(obj.toString(), MediaType.APPLICATION_JSON).header("Content-Length", obj.toString().length()).build();
+//        return Response.ok().entity(obj.toString()).build();
     }
 
     /**
@@ -244,8 +319,9 @@ public class UserHandler {
 
         try {
             ServiceEntry service = in_gson.fromJson(aServiceJson, ServiceEntry.class);
-            boolean result = user.removeService(service.getServiceUserID(), service.getServiceUsername(), service.getServiceName());
+            boolean result = user.removeService(service);
             if(result == true) {
+                user.save();
                 return success_response.toString();
             } else {
                 return fail_response.toString();
@@ -321,12 +397,12 @@ public class UserHandler {
 //			return invalid_user_error_response.toString();
 //		}
 //
-        try {
-            ObjectId o = new ObjectId(aServiceUserId);
-        } catch(IllegalArgumentException iae) {
-            logger.warn("", iae);
-            return fail_response.toString();
-        }
+//        try {
+//            ObjectId o = new ObjectId(aServiceUserId);
+//        } catch(IllegalArgumentException iae) {
+//            logger.warn("", iae);
+//            return fail_response.toString();
+//        }
 
 //		if(user == null) {
 //			return invalid_user_error_response.toString();
@@ -483,7 +559,7 @@ public class UserHandler {
 
     @POST @Path("/new")
     @Produces(MediaType.APPLICATION_JSON)
-    public String createNewUser(
+    public Response createNewUser(
             String minimalUserJson,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response
@@ -495,21 +571,27 @@ public class UserHandler {
 
         try {
             new_user = in_gson.fromJson(minimalUserJson, HumansUser.class);
-            if(new_user.getUsername() == null || new_user.getUsername().length() < 1) {
+            if(new_user.getUsername() == null || new_user.getUsername().length() < 2) {
                 fail_response.addProperty("message", "username missing.");
                 fail_response.addProperty("received", minimalUserJson);
-                return fail_response.toString();
+                return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
             }
             if(new_user.getPassword() == null || new_user.getPassword().length() < 5) {
                 fail_response.addProperty("message", "password missing or too short.");
                 fail_response.addProperty("received", minimalUserJson);
-                return fail_response.toString();
+                return Response.ok( fail_response.toString(), MediaType.APPLICATION_JSON).build();
             }
             if(doesUsernameExist(new_user.getUsername())) {
                 fail_response.addProperty("message", "username already exists.");
                 fail_response.addProperty("received", minimalUserJson);
-                return fail_response.toString();
+                return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
             }
+            if(new_user.getEmail() == null || new_user.getEmail().length() < 2 ) {
+                fail_response.addProperty("message", "email invalid.");
+                fail_response.addProperty("received", minimalUserJson);
+                return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
+            }
+
             // need to do this to get the password encrypted
             // TODO
             new_user.setPassword(new_user.getPassword());
@@ -520,10 +602,11 @@ public class UserHandler {
             logger.warn(minimalUserJson);
             fail_response.addProperty("message", "Received bad json for createNewUser");
             fail_response.addProperty("received", minimalUserJson);
-            return fail_response.toString();
+            return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
         }
-        return out_gson.toJson(new_user);
-
+        success_response.addProperty("message", "successfully created "+new_user.getUsername());
+        success_response.addProperty("user", new Gson().toJson(new_user));
+        return Response.ok(success_response.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     /**

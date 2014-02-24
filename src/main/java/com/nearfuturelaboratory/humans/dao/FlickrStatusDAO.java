@@ -31,7 +31,7 @@ public class FlickrStatusDAO extends BasicDAO<FlickrStatus, ObjectId> {
 	
 	public FlickrStatus findOldestStatusByExactUserID(String aUserID) {
 		FlickrStatus result = null;
-		Query<FlickrStatus> q = this.getDatastore().find(this.getEntityClass()).filter("owner", aUserID).order("dateupload").limit(1);
+		Query<FlickrStatus> q = this.getDatastore().find(this.getEntityClass()).filter("owner", aUserID).order("-dateupload").limit(1);
 		result = q.get();
 		return result;
 	}

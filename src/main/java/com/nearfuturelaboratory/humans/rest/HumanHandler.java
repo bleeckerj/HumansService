@@ -192,7 +192,8 @@ public class HumanHandler {
 
         int result = user.getStatusCountFromCache(human);
         success_response.addProperty("count", String.valueOf(result));
-        return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+        String response_str = success_response.toString();
+        return Response.ok().entity(response_str).type(MediaType.APPLICATION_JSON).build();
 
     }
 
@@ -268,9 +269,6 @@ public class HumanHandler {
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response) 
 	{
-		//		HttpSession session = request.getSession();
-		//		logger.debug("session="+session.getId());
-		//		logger.debug("jessionid="+request.getParameter("JSESSIONID"));
 		RestCommon common = new RestCommon();
 		HumansUser user;
 		try {
@@ -279,8 +277,6 @@ public class HumanHandler {
 			logger.warn("invalid or missing access token");
 			fail_response.addProperty("message", "invalid access token");
 			return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
-			//return fail_response.toString();
-			//e1.printStackTrace();
 		}
 
 		//logger.debug("humanid="+aHumanId+" and page="+aPage);
@@ -308,15 +304,18 @@ public class HumanHandler {
 
         //page-=1;
 
-        int pages = user.getJsonStatusPageCountForHuman(human, Constants.getInt("STATUS_CHUNK_SIZE", 25));
+        int pages = user.getJsonCachedStatusPageCountForHuman(human, Constants.getInt("STATUS_CHUNK_SIZE", 25));
         if(page > pages) {
             page = pages;
         }
-        int total_status = user.getJsonStatusCountForHuman(human);
+        int total_status = user.getJsonCachedStatusCountForHuman(human);
         //logger.debug("pages="+" total_status="+total_status);
 
         JsonArray array = new JsonArray();
-        JsonArray tmp = user.getJsonStatusForHuman(human, page);
+        JsonArray tmp = user.getJsonCachedStatusForHuman(human, page);
+        JsonElement newest = tmp.get(0);
+        JsonElement oldest = tmp.get(tmp.size()-1);
+
         if(tmp == null || tmp.size() < 1) {
             logger.warn("I got empty json status here for "+human+" "+page);
             fail_response.addProperty("message", "no status found right now for page="+page+" of "+pages+" for humanid="+aHumanId);
@@ -339,6 +338,7 @@ public class HumanHandler {
         head_m.addProperty("count", tmp.size());
         head_m.addProperty("human_name", human.getName());
         head_m.addProperty("human_id", human.getId());
+
         //head.add("head", head_m);
 
         data.add("head", head_m);
@@ -351,8 +351,8 @@ public class HumanHandler {
         data.add("status", tmp);
 
         //status.add(0, json_result.getAsString());
-
-        return Response.ok().type(MediaType.APPLICATION_JSON).entity(data.toString()).build();
+        String response_str = data.toString();
+        return Response.ok().type(MediaType.APPLICATION_JSON).entity(response_str).build();
 
 	}
 

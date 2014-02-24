@@ -22,19 +22,24 @@ import com.nearfuturelaboratory.util.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
+import org.jasypt.util.binary.BasicBinaryEncryptor;
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.utils.IndexDirection;
 import org.scribe.exceptions.OAuthConnectionException;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static ch.lambdaj.Lambda.*;
 import static ch.lambdaj.function.matcher.AndMatcher.and;
 import static org.hamcrest.CoreMatchers.equalTo;
 import org.apache.commons.collections4.ListUtils;
+import org.scribe.model.Token;
 
 @Entity(value="users",noClassnameStored = true)
 public class HumansUser extends BaseEntity {
@@ -44,11 +49,18 @@ public class HumansUser extends BaseEntity {
     @Indexed(value = IndexDirection.ASC, name = "username", unique = true, dropDups = true)
     private String username;
     private String password;
-    protected String email;
+    //protected String email;
+    protected Boolean emailVerified = false;
     @Indexed(name="access_token", unique = true, sparse = true)
     protected String access_token;
+    protected byte[] access_token_bytes;
+
     protected Boolean isAdmin = false;
     protected Boolean isSuperuser = false;
+
+    @Transient
+    String email;
+    byte[] email_bytes;
 
     @Embedded("humans")
     protected List<Human> humans = new ArrayList<Human>();
@@ -63,6 +75,79 @@ public class HumansUser extends BaseEntity {
     @Embedded("services")
     protected List<ServiceEntry> services = new ArrayList<ServiceEntry>();
     //protected List<Map<String,List<ServiceEntry>>> services;
+
+    @PrePersist
+    void prePersist() {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(email);
+            email_bytes =this.EncryptByteArray(baos.toByteArray());
+            logger.debug("email_bytes="+email_bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error(e);
+        }
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(access_token);
+            access_token_bytes =this.EncryptByteArray(baos.toByteArray());
+            logger.debug("access_token_bytes="+email_bytes);
+
+        } catch(Exception e) {
+            logger.error(e);
+        }
+
+    }
+
+    @PostLoad
+    void postLoad() {
+        try {
+            email_bytes = this.DecryptByteArray(email_bytes);
+            ObjectInputStream ois = new ObjectInputStream(
+                    new ByteArrayInputStream(email_bytes));
+            email = (String ) ois.readObject();
+        } catch (Exception e) {
+            // e.printStackTrace();
+
+            logger.error(
+                    "The email "+email+" address for "+this.getUsername()+" probably do not represent an encrypted String. You may need to encrypt "+this.getUsername()+"'s email address.",
+                    e);
+        }
+        try {
+            access_token_bytes = this.DecryptByteArray(access_token_bytes);
+            ObjectInputStream ois = new ObjectInputStream(
+                    new ByteArrayInputStream(access_token_bytes));
+            access_token = (String ) ois.readObject();
+        } catch (Exception e) {
+            // e.printStackTrace();
+
+            logger.error(
+                    "The access_token "+access_token+" for "+this.getUsername()+" probably do not represent an encrypted String. You may need to encrypt "+this.getUsername()+"'s access_token." );
+        }
+    }
+
+
+    protected byte[] EncryptByteArray(byte[] array) throws Exception {
+        BasicBinaryEncryptor binaryEncryptor = new BasicBinaryEncryptor();
+        binaryEncryptor.setPassword(Constants.getString("EMAIL_PW"));
+        byte[] myEncryptedBytes = binaryEncryptor.encrypt(array);
+        return myEncryptedBytes;
+    }
+
+    protected byte[] DecryptByteArray(byte[] array) throws Exception {
+        BasicBinaryEncryptor binaryEncryptor = new BasicBinaryEncryptor();
+        binaryEncryptor.setPassword(Constants.getString("EMAIL_PW"));
+        // byte[] myEncryptedBytes = binaryEncryptor.encrypt(array);
+        byte[] plainBytes = binaryEncryptor.decrypt(array);
+		/*
+		 * Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		 * aes.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key.getBytes(),
+		 * "AES")); byte[] ciphertext = aes.doFinal(array); return ciphertext;
+		 */
+        return plainBytes;
+    }
 
     public HumansUser() {
         super();
@@ -622,14 +707,13 @@ public class HumansUser extends BaseEntity {
     }
 
 
-
-
-    public int getJsonStatusCountForHuman(Human aHuman) {
+    public int getJsonCachedStatusCountForHuman(Human aHuman) {
         int result;
         String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
         DB cache_db = MongoUtil.getStatusCacheDB();
         if(cache_db.collectionExists(cache_name)) {
             DBCollection cache = cache_db.getCollection(cache_name);
+
             //DBCursor cursor;
             // don't count the "key" document
             long result_long = cache.count()-1;
@@ -647,13 +731,14 @@ public class HumansUser extends BaseEntity {
         return result;
     }
 
-    public int getJsonStatusPageCountForHuman(Human aHuman, int aPageSize) {
-        long count = getJsonStatusCountForHuman(aHuman);
+
+    public int getJsonCachedStatusPageCountForHuman(Human aHuman, int aPageSize) {
+        long count = getJsonCachedStatusCountForHuman(aHuman);
         return ((int)count + aPageSize - 1) / aPageSize;
     }
 
     //TODO Need better strategy for pre-fetching status. Or..basically need a strategy..
-    public JsonArray getJsonStatusForHuman(Human aHuman, int aPage) {
+    public JsonArray getJsonCachedStatusForHuman(Human aHuman, int aPage) {
         String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
 
         DB cache_db = MongoUtil.getStatusCacheDB();
@@ -676,7 +761,7 @@ public class HumansUser extends BaseEntity {
         if(result.size() < 1) {
             logger.warn("Why didn't we get any status for "+aHuman.getName()+" "+cache_name+" page="+aPage);
             logger.warn("cache exists="+cache_db.collectionExists(cache_name) + " cache status stale="+this.isCachedStatusStale(aHuman));
-            logger.warn("number of pages is probably "+getJsonStatusPageCountForHuman(aHuman, Constants.getInt("STATUS_CHUNK_SIZE", 25))+" Perhaps we're out of range?");
+            logger.warn("number of pages is probably "+getJsonCachedStatusPageCountForHuman(aHuman, Constants.getInt("STATUS_CHUNK_SIZE", 25))+" Perhaps we're out of range?");
         }
         return result;
     }
@@ -781,13 +866,182 @@ public class HumansUser extends BaseEntity {
             // the document that contains this 'key' field is the
             // key to the collection. we don't need it for status
             // it's used purely as metadata about the documents themselves.
-            if(obj.containsField("key")) continue;
+            if(obj.containsField("key")) {
+                continue;
+            }
 
             JsonElement elem = parser.parse(obj.toString());
             result_array.add(elem);
         }
         return result_array;
     }
+
+
+    /**
+     * Useful time stats good for display
+     * @param aHuman
+     * @return time in ms of the most recent status we have for a specific Human
+     */
+    protected long getTimeOfMostRecentStatusForHuman(Human aHuman)
+    {
+        List<ServiceStatus> status = new ArrayList<ServiceStatus>();
+        List<ServiceUser> service_users = aHuman.getServiceUsers();
+        for(ServiceUser service_user : service_users) {
+            String service_name = service_user.getServiceName();
+
+            try {
+                if(service_name.equalsIgnoreCase("twitter")) {
+
+                    TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
+                    status.add(twitter.getMostRecentStatus());
+                }
+                if(service_name.equalsIgnoreCase("foursquare")) {
+
+                    FoursquareService foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
+                    status.add(foursquare.getMostRecentCheckin());
+                }
+                if(service_name.equalsIgnoreCase("flickr")) {
+
+                    FlickrService flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
+                    status.add(flickr.getMostRecentStatus());
+                }
+                if(service_name.equalsIgnoreCase("instagram")) {
+
+                    InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
+                    status.add(instagram.getMostRecentStatus());
+                }
+            } catch (BadAccessTokenException e) {
+                logger.warn(e);
+            }
+        }
+        Collections.sort(status);
+        if(status.size() > 0) {
+            return status.get(0).getCreated();
+        } else {
+            logger.warn("No status to sort for most recent for "+this);
+            return 0;
+        }
+    }
+
+    /**
+     * Useful time stats good for display
+     * @param aHuman
+     * @return time in ms of the oldest status we have for a specific Human
+     */
+    protected long getTimeOfOldestStatusForHuman(Human aHuman)
+    {
+        List<ServiceStatus> status = new ArrayList<ServiceStatus>();
+        List<ServiceUser> service_users = aHuman.getServiceUsers();
+        for(ServiceUser service_user : service_users) {
+            String service_name = service_user.getServiceName();
+
+            try {
+                if(service_name.equalsIgnoreCase("twitter")) {
+
+                    TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
+                    status.add(twitter.getOldestStatus());
+                }
+                if(service_name.equalsIgnoreCase("foursquare")) {
+
+                    FoursquareService foursquare = FoursquareService.createFoursquareServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
+                    status.add(foursquare.getOldestCheckin());
+                }
+                if(service_name.equalsIgnoreCase("flickr")) {
+
+                    FlickrService flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
+                    status.add(flickr.getOldestStatus());
+                }
+                if(service_name.equalsIgnoreCase("instagram")) {
+
+                    InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
+                    status.add(instagram.getOldestStatus());
+                }
+            } catch (BadAccessTokenException e) {
+                logger.warn(e);
+            }
+        }
+        Collections.sort(status);
+        if(status.size() > 0) {
+            return status.get(status.size()-1).getCreated();
+        } else {
+            logger.warn("No status to sort for oldest for "+this);
+            return 0;
+        }
+
+    }
+
+
+    /**
+     * Useful time stats good for display
+     * @param aHuman
+     * @return time in ms of the oldest status IN THE CACHE ready to go we have for a specific Human
+     */
+    public long getTimeOfOldestCachedStatusForHuman(Human aHuman) {
+        Integer result = new Integer(0);
+        Object foo;
+        JsonArray result_array = new JsonArray();
+        JsonParser parser = new JsonParser();
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+
+        DB cache_db = MongoUtil.getStatusCacheDB();
+
+        DBCollection cache = cache_db.getCollection(cache_name);
+        //DBCursor cursor = cache.find(  );
+        DBCursor cursor;
+        DBObject obj = new BasicDBObject();
+        obj.put( "created", 1 );
+        cursor = cache.find().sort(obj);//.limit(1);
+        DBObject key = null;
+        while(cursor.hasNext()) {
+            key = cursor.next();
+            if(key.containsField("created")) {
+                result = (Integer)key.get("created");
+                break;
+            }
+        }
+
+        return result.longValue()*1000;
+    }
+
+    /**
+     * Useful time stats good for display
+     * @param aHuman
+     * @return time in ms of the most recent status IN THE CACHE ready to go we have for a specific Human
+     */
+
+    public long getTimeOfMostRecentCachedStatusForHuman(Human aHuman) {
+        Integer result = new Integer(0);
+        Object foo;
+        JsonArray result_array = new JsonArray();
+        JsonParser parser = new JsonParser();
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+
+        DB cache_db = MongoUtil.getStatusCacheDB();
+
+        DBCollection cache = cache_db.getCollection(cache_name);
+        //DBCursor cursor = cache.find(  );
+        DBCursor cursor;
+        DBObject obj = new BasicDBObject();
+        obj.put( "created", -1 );
+        cursor = cache.find().sort(obj);//.limit(1);
+        DBObject key = null;
+        while(cursor.hasNext()) {
+            key = cursor.next();
+            if(key.containsField("created")) {
+                result = (Integer)key.get("created");
+                break;
+            }
+        }
+
+        return result.longValue()*1000;
+    }
+
+/*
+    public long getTimeOfNewestCachedStatusForHuman(Human aHuman) {
+        return 0;
+
+    }
+*/
 
 
     protected int getStatusCountForHuman(Human aHuman)
@@ -831,7 +1085,6 @@ public class HumansUser extends BaseEntity {
      */
     public void serviceRefreshStatusForHuman(Human aHuman)
     {
-
         // if this particular HumansUser has foursquare accounts we may as well
         // get their service ID and get latest checkins
         List<ServiceEntry> serviceEntries = getServicesForServiceName("foursquare");
@@ -1017,23 +1270,35 @@ public class HumansUser extends BaseEntity {
         cache.drop();
         logger.info("writing cache, will rename and drop in a bit also " + cache);
         cache = cache_db.getCollection(cache_temp_name);
-        //Gson gson = new Gson();
+
+//        Date oldest = oldestStatusInList(aListOfStatus);
+//        Date newest = newestStatusInList(aListOfStatus);
+
+
         // the document that contains this 'key' field is the
         // key to the collection. we don't need it for status
         // it's used purely as metadata about the documents themselves.
-        BasicDBObject doc = new BasicDBObject
+        BasicDBObject meta = new BasicDBObject
                 ("user", this.toString()).
-                append("key", this.getId()+"_"+aHuman.getId()).
+                append("key", this.getId() + "_" + aHuman.getId()).
                 append("human", aHuman.toString()).
-                append("lastUpdated", new Date());
+//                append("newest", newest.getTime()).
+//                append("oldest", oldest.getTime()).
+        append("lastUpdated", new Date());
         //logger.debug("writing cache key for "+cache_name);
-        cache.insert(doc);
+
 
         //TODO limit the size of the write to the cache to keep things snappy?
         int max_cache_document_count = Constants.getInt("MAX_CACHE_DOCUMENT_COUNT", 250);
         if(aListOfStatus.size() > max_cache_document_count) {
             aListOfStatus = aListOfStatus.subList(0, max_cache_document_count);
         }
+
+//        meta.append("oldest-in-cache-doc", oldestStatusInList(aListOfStatus));
+//        meta.append("newest-in-cache-doc", newestStatusInList(aListOfStatus));
+
+        cache.insert(meta);
+
         for(ServiceStatus status : aListOfStatus) {
             DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
             cache.save(obj);
@@ -1044,7 +1309,42 @@ public class HumansUser extends BaseEntity {
         logger.info("writing cache is done");
     }
 
+    protected Date newestStatusInList(List<ServiceStatus> aListOfStatus)
+    {
+        // sort
+        Collections.sort(aListOfStatus, new Comparator<ServiceStatus>()
+        {
+            public int compare(ServiceStatus o1, ServiceStatus o2)
+            {
+                //				JsonObject j1 = (JsonObject)o1;
+                //				JsonObject j2 = (JsonObject)o2;
+                long u1 = o1.getCreated();
+                long u2 = o2.getCreated();
+                return u1<u2 ? -1 : (u1==u2 ? 0 : 1);
+            }
+        });
 
+        return aListOfStatus.get(aListOfStatus.size()-1).getCreatedDate();
+
+    }
+
+    protected Date oldestStatusInList(List<ServiceStatus> aListOfStatus)
+    {
+        // sort
+        Collections.sort(aListOfStatus, new Comparator<ServiceStatus>()
+        {
+            public int compare(ServiceStatus o1, ServiceStatus o2)
+            {
+                //				JsonObject j1 = (JsonObject)o1;
+                //				JsonObject j2 = (JsonObject)o2;
+                long u1 = o1.getCreated();
+                long u2 = o2.getCreated();
+                return u1>u2 ? -1 : (u1==u2 ? 0 : 1);
+            }
+        });
+
+        return aListOfStatus.get(aListOfStatus.size()-1).getCreatedDate();
+    }
     protected List<String> getServiceNamesAssigned() {
         List<String> result = new ArrayList<String>();
         //List<ServiceEntry> services = this.getServices();
@@ -1116,8 +1416,14 @@ public class HumansUser extends BaseEntity {
         return result;
     }
 
-
-
+    /**
+     *
+     * @param aServiceEntry
+     * @return whether it succeeded
+     */
+    public boolean removeService(ServiceEntry aServiceEntry) {
+        return removeService(aServiceEntry.serviceUserID, aServiceEntry.getServiceUsername(), aServiceEntry.getServiceName());
+    }
 
     /**
      *
@@ -1126,7 +1432,7 @@ public class HumansUser extends BaseEntity {
      * @param aServiceTypeName
      * @return whether it succeded
      */
-    public boolean removeService(String aServiceUserID, String aServiceUsername, String aServiceTypeName) {
+    protected boolean removeService(String aServiceUserID, String aServiceUsername, String aServiceTypeName) {
         ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceTypeName);
         boolean result = services.remove(service_entry);
         //logger.debug("removing service entry "+service_entry);
@@ -1195,7 +1501,7 @@ public class HumansUser extends BaseEntity {
         if(onBehalfOf == null) {
             return;
         }
-
+        logger.debug("removeServiceUsersRelyingOn ", onBehalfOf);
         List<ServiceUser> services_to_remove = new ArrayList<ServiceUser>();
 
         List<Human> humans = this.getAllHumans();

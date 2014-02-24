@@ -220,6 +220,10 @@ public class TwitterService {
                 .getId());
     }
 
+    public TwitterStatus getOldestStatus() {
+        return statusDAO.findOldestStatusByExactUserID(this.getThisUser().getId());
+    }
+
     public TwitterStatus getOldestStatus(String aUserID) {
         return statusDAO.findOldestStatusByExactUserID(aUserID);
     }
