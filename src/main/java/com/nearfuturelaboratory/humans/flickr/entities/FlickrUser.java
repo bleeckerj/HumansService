@@ -93,6 +93,7 @@ public class FlickrUser extends MinimalSocialServiceUser {
 		return id;
 	}
 
+    public String getIdStr() {return id;}
 
 	public void setId(String aId) {
 		id = aId;

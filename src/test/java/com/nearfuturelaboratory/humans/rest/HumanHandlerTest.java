@@ -38,7 +38,7 @@ public class HumanHandlerTest {
 //		RestAssured.basePath = "/rest";
 		RestAssured.port     = 8443;
 		RestAssured.basePath = "/rest";
-		RestAssured.keystore("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit");
+		RestAssured.keystore("/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit");
 		//spec = new RequestSpecBuilder().setSessionId(sessionId).build();
 		spec = new RequestSpecBuilder().addQueryParam("access_token", "aa9c6f8ae7341c0380007062280b4b7a").build();
 

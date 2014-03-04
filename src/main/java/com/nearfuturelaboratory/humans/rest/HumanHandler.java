@@ -22,16 +22,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.gson.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
@@ -157,6 +152,31 @@ public class HumanHandler {
 		return this.getStatus(aHumanId, aPage, request, response);
 	}
 
+
+    @GET @Path("/status/count")
+    public Response getStatusCount(@Context HttpServletRequest request,
+                                   @Context HttpServletResponse response)
+    {
+        RestCommon common = new RestCommon();
+        HumansUser user;
+        try {
+            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+        } catch (InvalidAccessTokenException e1) {
+            logger.warn("invalid or missing access token");
+            fail_response.addProperty("message", "invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
+            //return fail_response.toString();
+            //e1.printStackTrace();
+        }
+
+        List<Human> allUserHumans = user.getAllHumans();
+        for(Human human : allUserHumans) {
+            int result = user.getStatusCountFromCache(human);
+            success_response.addProperty(human.getId(), String.valueOf(result));
+
+        }
+        return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+    }
 
     @GET @Path("/status/count/{humanid}")
     public Response getStatusCount(
@@ -502,37 +522,54 @@ request.getParameter("access_token"));
 	@Path("{humanid}/add/serviceuser/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String addServiceUserToHuman(
+	public Response addServiceUserToHuman(
 			String aServiceUserJson,
 			@PathParam("humanid") String aHumanId, 
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		HttpSession session = request.getSession();
-		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser h = dao.findByHumanID(aHumanId);
+        HumansUser user;
+        RestCommon common = new RestCommon();
+        Gson exc_gson = new GsonBuilder()
+                .setExclusionStrategies(new ExclusionStrategy() {
 
-		if(isValidUser(request, user) == false) {
-			return invalid_user_error_response.toString();
-		}
+                public boolean shouldSkipField(FieldAttributes f) {
+                        if(f.getName().equals("id") || f.getName().equals("lastUpdated") || f.getName().equals("version")) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                    public boolean shouldSkipClass(Class<?> arg0) {
+                        return false;
+                    }
+                }).create();
+
+        try {
+            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+        } catch (InvalidAccessTokenException e1) {
+            logger.warn("invalid or missing access token");
+            fail_response.addProperty("message", "invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
+        }
 		logger.debug(aHumanId);
 		logger.debug("aServiceUser "+aServiceUserJson);
 
-		Human human = h.getHumanByID(aHumanId);
+		Human human = user.getHumanByID(aHumanId);
 
 		JsonParser parser = new JsonParser();
 		JsonElement e = parser.parse(aServiceUserJson);
+        ServiceUser aServiceUser;
 		if(e.isJsonArray()) {
 			user.removeHuman(human);
 			JsonArray service_user_array = e.getAsJsonArray();
 			for(JsonElement service_user : service_user_array) {
-				ServiceUser aServiceUser = gson.fromJson(service_user, ServiceUser.class);
+				aServiceUser = exc_gson.fromJson(service_user, ServiceUser.class);
 				human.addServiceUser(aServiceUser);
 			}
 			user.addHuman(human);
 		} else {
-			ServiceUser aServiceUser = gson.fromJson(aServiceUserJson, ServiceUser.class);
+			aServiceUser = exc_gson.fromJson(aServiceUserJson, ServiceUser.class);
 			// get the human with this aHumanId
 			user.removeHuman(human);
 			human.addServiceUser(aServiceUser);
@@ -540,7 +577,9 @@ request.getParameter("access_token"));
 		}
 
 		user.save();
-		return gson.toJson(user);
+        success_response.addProperty("message", "Added new service user");
+        success_response.addProperty("user", gson.toJson(user, HumansUser.class));
+		return Response.ok(success_response.toString()).build();
 	}
 
 

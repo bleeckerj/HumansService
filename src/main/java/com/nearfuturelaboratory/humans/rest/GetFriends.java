@@ -43,12 +43,11 @@ public class GetFriends {
 	@SuppressWarnings("unused")
 	@GET @Path("/get")
 	@Produces({"application/json"})
-	public String getFriends(
+	public String   getFriends(
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response
 			) 
 	{
-		logger.debug("HELLO??");
 	    try {
 		OAuthAccessResourceRequest oauthRequest = new OAuthAccessResourceRequest(request,
                 ParameterStyle.BODY);        

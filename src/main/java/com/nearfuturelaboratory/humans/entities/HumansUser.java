@@ -3,12 +3,15 @@ package com.nearfuturelaboratory.humans.entities;
 import com.google.gson.*;
 import com.mongodb.*;
 import com.mongodb.util.JSON;
+import com.nearfuturelaboratory.humans.dao.FlickrUserDAO;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
+import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.service.FlickrService;
 import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.InstagramService;
@@ -285,7 +288,7 @@ public class HumansUser extends BaseEntity {
     }
 
 
-    /**
+     /**
      *
      * @param aUpdatedServiceUser
      * @param aServiceUserId
@@ -441,7 +444,10 @@ public class HumansUser extends BaseEntity {
 
     }
 
-
+    /**
+     * Get Friends as Json
+     * @return
+     */
     public JsonArray getFriendsAsJson() {
         Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
         //JSONObject result = new JSONObject();
@@ -453,6 +459,11 @@ public class HumansUser extends BaseEntity {
         for(MinimalSocialServiceUser friend : friends) {
 
             JsonObject obj = new JsonObject();
+            try {
+            obj.addProperty("id", friend.getIdStr());
+            } catch(Exception e) {
+                logger.error("error", e);
+            }
             obj.addProperty("serviceUserID", friend.getUserID());
             obj.addProperty("username", friend.getUsername());
             obj.addProperty("serviceName", friend.getServiceName());
@@ -460,39 +471,20 @@ public class HumansUser extends BaseEntity {
             obj.addProperty("largeImageURL", friend.getLargeImageURL());
             obj.addProperty("fullname", friend.getFullName());
             obj.addProperty("lastUpdated", String.valueOf(friend.getLastUpdated().getTime()));
-//            obj.addProperty("firstname", friend.getFirstName());
-//            obj.addProperty("lastname", friend.getLastName());
-
-//            OnBehalfOf o = new OnBehalfOf();
-//            o.setServiceUserID(friend.getOnBehalfOf().getServiceUserID());
-//            o.setServiceUsername(friend.getOnBehalfOf().getServiceUsername());
-//            o.setService(friend.getServiceName());
-//            obj.add("onBehalfOf", new JsonParser().parse(gson.toJson(o)));
 
             JsonObject onBehalfOf = new JsonObject();
             onBehalfOf.addProperty("serviceName", friend.getServiceName());
             onBehalfOf.addProperty("serviceUserID", friend.getOnBehalfOf().getServiceUserID());
             onBehalfOf.addProperty("serviceUsername", friend.getOnBehalfOf().getServiceUsername());
             obj.add("onBehalfOf", onBehalfOf);
-
-
-            //			obj.addProperty("on_behalf_of_username", friend.getOnBehalfOf().getServiceUsername());
-            //			obj.addProperty("on_behalf_of_userid", friend.getOnBehalfOf().getServiceUserID());
-            //obj.a ("on_behalf_of", friend.getOnBehalfOf());
-            //friend_json. (gson.toJson(obj));
-            //logger.debug(gson.toJson(obj));
             f.add(obj);
 
         }
-
-        //		List<JsonObject> byUsername = sort(f, on(JsonObject.class).get("user_id"));
 
         Collections.sort(f, new Comparator<JsonObject>()
         {
             public int compare(JsonObject o1, JsonObject o2)
             {
-                //				JsonObject j1 = (JsonObject)o1;
-                //				JsonObject j2 = (JsonObject)o2;
                 String u1 = o1.get("username").toString();
                 String u2 = o2.get("username").toString();
                 int v = u1.compareTo(u2);

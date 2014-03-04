@@ -32,10 +32,11 @@ public class ScheduledHumanStatusFetcher implements Job {
         HumansUserDAO dao = new HumansUserDAO();
         HumansUser user = dao.findOneByAccessToken(access_token);
         if(user != null) {
-            logger.info("Found user="+user);
             Human human = user.getHumanByID(human_id);
+            logger.info("started fetching individual status for "+human.getName()+" for "+user.getUsername());
             user.serviceRefreshStatusForHuman(human);
             user.refreshCache(human);
+            logger.info("done fetching individual status for "+human.getName()+" for "+user.getUsername());
         }
     }
 

@@ -32,7 +32,9 @@ public class InstagramFriend extends MinimalSocialServiceUser {
 	public ObjectId getId() {
 		return id;
 	}
-	
+
+    public String getIdStr() { return id.toString(); }
+
 	public Long getVersion() {
 		return version;
 	}

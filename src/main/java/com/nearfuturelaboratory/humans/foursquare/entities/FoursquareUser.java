@@ -71,6 +71,7 @@ public class FoursquareUser extends MinimalSocialServiceUser {
 	public String getId() {
 		return id;
 	}
+    public String getIdStr() { return id; }
 	public void setId(String aId) {
 		id = aId;
 	}

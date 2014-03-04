@@ -1,14 +1,8 @@
 package com.nearfuturelaboratory.humans.rest;
 
-import java.security.Key;
-import java.security.spec.KeySpec;
+import java.util.Date;
 import java.util.List;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +19,9 @@ import javax.ws.rs.core.Response;
 
 import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.entities.*;
+import com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher;
 import com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher;
+import com.sun.java_cup.internal.runtime.lr_parser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -43,13 +39,11 @@ import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 import com.nearfuturelaboratory.util.Constants;
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.quartz.*;
-import org.quartz.ee.servlet.QuartzInitializerListener;
 import org.quartz.impl.StdSchedulerFactory;
 import org.scribe.model.Token;
-import sun.misc.BASE64Encoder;
-import sun.security.krb5.internal.crypto.Aes256;
+//import sun.misc.BASE64Encoder;
+import org.apache.commons.codec.binary.Base64;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -145,17 +139,16 @@ public class UserHandler {
             @PathParam("servicename") String aServiceName,
             @PathParam("serviceuserid") String aServiceUserId,
             @Context HttpServletRequest request,
-            @Context HttpServletResponse response)
-    {
+            @Context HttpServletResponse response) {
         String access_token = request.getParameter("access_token");
-        if(access_token == null) {
+        if (access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
             return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
         }
 
         HumansUser user = getUserForAccessToken(context, access_token);
 
-        if(user == null) {
+        if (user == null) {
             invalid_user_error_response.addProperty("message", "no such user. invalid access token");
             return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response).type(MediaType.APPLICATION_JSON).build();
         }
@@ -166,34 +159,147 @@ public class UserHandler {
 //        Gson gson = new Gson();
 //        String token_str = gson.toJson(token.getToken());
         JsonObject obj = new JsonObject();
-        obj.addProperty("token", token.getToken());
-        String pw_key_key = aServiceName.toUpperCase()+"_API_KEY";
-        String aw_key_key = aServiceName.toUpperCase()+"_CF_PV";
+        String pw_key_key = aServiceName.toUpperCase() + "_API_KEY";
+        String cs_key_key = aServiceName.toUpperCase() + "_API_SECRET";
+        String aw_key_key = aServiceName.toUpperCase() + "_CF_PV";
 //        StandardPBEStringEncryptor stringEncryptor = new StandardPBEStringEncryptor();
 //        stringEncryptor.setAlgorithm("AES");
 //        stringEncryptor.setPassword("abadbassword");
 //        stringEncryptor.initialize();
 
         String api_key = Constants.getString(pw_key_key);
+        String api_secret = Constants.getString(cs_key_key);
+        JsonObject result;
         try {
 
             JNCryptor cryptor = new AES256JNCryptor();
             byte[] bytes = api_key.getBytes();
-            byte[] ciphertext = cryptor.encryptData(bytes, new String("humans-"+aw_key_key).toCharArray());
+            byte[] ciphertext = cryptor.encryptData(bytes, new String("humans-" + aw_key_key).toCharArray());
 
-            String encStr = new BASE64Encoder().encode(ciphertext);
+            String encStr = Base64.encodeBase64String(ciphertext);  //  new BASE64Encoder().encode(ciphertext);
             obj.addProperty("ck", encStr);
-        } catch(Exception e) {
+
+
+            bytes = api_secret.getBytes();
+            ciphertext = cryptor.encryptData(bytes, new String("humans-" + aw_key_key).toCharArray());
+
+            encStr = Base64.encodeBase64String(ciphertext);
+            obj.addProperty("cs", encStr);
+
+
+            bytes = token.getToken().getBytes();
+            ciphertext = cryptor.encryptData(bytes, new String("humans-" + aw_key_key).toCharArray());
+
+            encStr = Base64.encodeBase64String(ciphertext);
+            obj.addProperty("tk", encStr);
+
+            bytes = token.getSecret().getBytes();
+            ciphertext = cryptor.encryptData(bytes, new String("humans-" + aw_key_key).toCharArray());
+
+            encStr = Base64.encodeBase64String(ciphertext);
+            obj.addProperty("ts", encStr);
+
+
+            bytes = obj.toString().getBytes();
+            byte[] parcel_bytes = cryptor.encryptData(bytes, new String("client-" + aw_key_key).toCharArray());
+            String parcel = Base64.encodeBase64String(parcel_bytes);
+            result = new JsonObject();
+            result.addProperty("parcel", parcel);
+        } catch (Exception e) {
+            logger.error(e);
             return Response.status(Response.Status.EXPECTATION_FAILED).entity(fail_response.toString()).build();
 
         }
         // obj.addProperty("ck", stringEncryptor.encrypt(Constants.getString(key_key)));
 //        return Response.ok().build();
-        return Response.ok(obj.toString(), MediaType.APPLICATION_JSON).header("Content-Length", obj.toString().length()).build();
+        return Response.ok(result.toString(), MediaType.APPLICATION_JSON).header("Content-Length", result.toString().length()).build();
 //        return Response.ok().entity(obj.toString()).build();
     }
 
     /**
+     * This is a way to "gettyup" and get friends quickly for a new user after they've authenticated
+     * with services.
+     *
+     * @see com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher
+     *
+     * @param request
+     * @param response
+     * @return Not much, cause it'll just spin up a job to execute once
+     */
+    @GET
+    @Path("/getty/update/friends")
+    public Response updateFriends(
+           @Context HttpServletRequest request,
+           @Context HttpServletResponse response)
+    {
+        String access_token = request.getParameter("access_token");
+        if(access_token == null) {
+            fail_response.addProperty("message", "invalid or missing access token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        HumansUser user = getUserForAccessToken(context, access_token);
+
+        if(user == null) {
+            invalid_user_error_response.addProperty("message", "no such user. invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        try {
+            logger.info("gettyup/update/friends for "+user.getUsername());
+
+            SchedulerFactory sf = new StdSchedulerFactory();
+            Scheduler sched = sf.getScheduler();
+            sched.start();
+
+            JobDataMap data = new JobDataMap();
+            data.put("user", user);
+            data.put("access_token", access_token);
+
+            JobDetail job = newJob(ScheduledFriendsPrefetcher.class)
+                    .withIdentity("updateFriends."+user.getUsername(), "group."+context)
+                    .setJobData(data)
+                    .build();
+
+            //sched.start();
+
+            ScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.
+                    simpleSchedule().
+                    withRepeatCount(0);
+
+            //JobDetail details = JobBuilder.newJob().setJobData(data).build();
+            Trigger trigger = newTrigger()
+                    .withDescription("updateFriends."+user.getUsername()+ " group."+context)
+                    .withIdentity("updateFriends." + user.getUsername(), "group." + context)
+                    .withSchedule(scheduleBuilder).forJob(job)
+                    .startNow().build();
+            
+            sched.scheduleJob(job, trigger);
+            success_response.addProperty("message", "started job "+trigger.getDescription());
+            //return Response.ok("{}", MediaType.APPLICATION_JSON).build();
+        }catch(Exception e) {
+            String msg = "Exception attempting to schedule updateFriendsPrefetcher="+user.getUsername()+" user="+user.getUsername();
+            logger.error(e);
+            logger.error(msg);
+            fail_response.addProperty("message", msg);
+            return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
+        }
+
+
+        return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+    }
+
+
+    /**
+     * This is a way to "gettyup" and update status quickly for a new human, with alls it
+     * This really should only ever be called when a new human is created otherwise it could
+     * possibly clobber a running status updater by crashing into database writes or something, especially
+     * when it refreshes the cache..
+     *
+     * Also, if this instance is far away from the database, it could take a bit of time to
+     * write the database, it seems. Maybe best to run it on an instance surrounding the DB (eg on the same
+     * instance as the DB) or figure out how to move the application instance nearby.
+     *
      * @see com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher
      *
      * @param aHumanId
@@ -201,7 +307,7 @@ public class UserHandler {
      * @param response
      * @return
      */
-    @GET @Path("/gettyup/update/{humanid}")
+    @GET @Path("/getty/update/{humanid}")
     public Response updateStatusAndCacheForHuman(
             @PathParam("humanid") String aHumanId,
             @Context HttpServletRequest request,
@@ -226,22 +332,36 @@ public class UserHandler {
             // take the user and put it off somewhre to update?
             //user.serviceRefreshStatusForHuman(aHuman);
             try {
+                //schedule the job
+                logger.info("gettyup/update/{"+aHuman.getId()+"}="+aHuman.getName()+" for "+user.getUsername());
                 SchedulerFactory sf = new StdSchedulerFactory();
                 Scheduler sched = sf.getScheduler();
-                JobDetail job = newJob(ScheduledHumanStatusFetcher.class)
-                        .withIdentity("fetchHumanStatus."+aHumanId, "group."+context)
-                        .build();
+                sched.start();
+
                 JobDataMap data = new JobDataMap();
                 data.put("humanid", aHumanId);
                 data.put("access_token", access_token);
 
-                JobDetail details = JobBuilder.newJob().setJobData(data).build();
-                Trigger trigger = newTrigger()
+                JobDetail job = newJob(ScheduledHumanStatusFetcher.class)
                         .withIdentity("fetchHumanStatus."+aHumanId, "group."+context)
-                        .withSchedule(simpleSchedule().withRepeatCount(0)).forJob(details)
+                        .setJobData(data)
+                        .build();
+
+                ScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.
+                        simpleSchedule().
+                        withRepeatCount(0);
+
+                //JobDetail details = JobBuilder.newJob().setJobData(data).build();
+                Trigger trigger = newTrigger()
+                        .withDescription("getty.update.fetchHumanStatus."+aHuman.getName() +" group."+context)
+                        .withIdentity("getty.update.fetchHumanStatus."+aHumanId, "group."+context)
+                        .withSchedule(scheduleBuilder).forJob(job)
                         .startNow().build();
+
+                sched.scheduleJob(job, trigger);
+
                 success_response.addProperty("message", "started job "+trigger.getDescription());
-                return Response.ok("{}", MediaType.APPLICATION_JSON).build();
+                //return Response.ok("{}", MediaType.APPLICATION_JSON).build();
             }catch(Exception e) {
                 String msg = "Exception attempting to schedule fetcher for human status, human_id="+aHumanId+" user="+user.getUsername();
                 logger.error(msg);
@@ -252,6 +372,8 @@ public class UserHandler {
             fail_response.addProperty("message", "invalid id for human");
             return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
         }
+
+        return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
     }
 
 
@@ -371,6 +493,13 @@ public class UserHandler {
         }
     }
 
+    /**
+     *TODO  Weird. SHouldn't we remove a service user at the "human" level? Oh well..
+     * @param aServiceUserId
+     * @param request
+     * @param response
+     * @return
+     */
     @GET @Path("/rm/{serviceuserid}/serviceuser")
     @Produces({"application/json"})
     public String removeServiceUser(

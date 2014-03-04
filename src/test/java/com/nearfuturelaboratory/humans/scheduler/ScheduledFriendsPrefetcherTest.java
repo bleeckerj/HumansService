@@ -34,7 +34,7 @@ import static org.hamcrest.collection.IsArrayContaining.hasItemInArray;
 /**
  * Created by julian on 1/2/14.
  */
-public class FriendsPrefetcherTest {
+public class ScheduledFriendsPrefetcherTest {
     @Before
     public void setUp() throws Exception {
 

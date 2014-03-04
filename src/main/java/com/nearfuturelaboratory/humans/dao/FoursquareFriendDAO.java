@@ -29,7 +29,12 @@ public class FoursquareFriendDAO extends BasicDAO<FoursquareFriend, ObjectId> {
 		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).filter("friend_id", aFriendID).get();
 
 	}
-	
+
+    public FoursquareFriend findByExactUserID(String aUserID) {
+        return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).limit(1).get();
+
+    }
+
 	public List<FoursquareFriend> findForUserID(String aUserID) {
 		return this.getDatastore().find(this.getEntityClass()).filter("user_id", aUserID).asList();
 

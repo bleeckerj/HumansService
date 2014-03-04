@@ -117,7 +117,7 @@ public class StartupServlet extends HttpServlet {
 
 
 
-                JobKey jobKey_2 = new JobKey("FriendsPrefetcher");
+                JobKey jobKey_2 = new JobKey("ScheduledFriendsPrefetcher");
                 scheduler.triggerJob(jobKey_2);
 
 
@@ -158,7 +158,7 @@ public class StartupServlet extends HttpServlet {
 //		super.destroy();
 //	}
 
-    @GET
+/*    @GET
     @Path("/gettyup")
     @Produces({"application/json"})
     public Response buildCaches(
@@ -168,6 +168,6 @@ public class StartupServlet extends HttpServlet {
         Trigger trigger = TriggerBuilder.newTrigger().withIdentity("ScheduledStatusFetcher").startNow().build();
         return Response.ok("{ok:ok}", MediaType.APPLICATION_JSON).build();
 
-    }
+    }*/
 }
 

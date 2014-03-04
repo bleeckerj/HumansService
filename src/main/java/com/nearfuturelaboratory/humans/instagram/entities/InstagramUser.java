@@ -46,7 +46,11 @@ public class InstagramUser extends MinimalSocialServiceUser {
 		return id;
 	}
 
-	public void setId(String aId) {
+    public String getIdStr() {
+        return id;
+    }
+
+    public void setId(String aId) {
 		id = aId;
 	}
 

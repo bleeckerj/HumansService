@@ -186,6 +186,7 @@ public class TwitterFriend extends MinimalSocialServiceUser {
 	public ObjectId getId() {
 		return id;
 	}
+    public String getIdStr() { return id.toString(); }
 
 	/**
 	 * @param aId the id to set

@@ -74,6 +74,7 @@ public class FoursquareFriend extends MinimalSocialServiceUser {
 	public ObjectId getId() {
 		return id;
 	}
+    public String getIdStr() { return id.toString(); }
 	public String getUser_id() {
 		return user_id;
 	}

@@ -121,6 +121,8 @@ public class FlickrFriend extends MinimalSocialServiceUser {
 		return id;
 	}
 
+    public String getIdStr() { return id.toString(); }
+
 	public void setId(ObjectId aId) {
 		id = aId;
 	}

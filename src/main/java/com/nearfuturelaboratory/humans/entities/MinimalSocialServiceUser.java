@@ -8,7 +8,9 @@ public abstract class MinimalSocialServiceUser {
 
 	@Embedded
 	protected ServiceEntry onBehalfOf;
-		
+
+    public abstract String getIdStr();
+
 	public abstract String getImageURL();
 	
 	public abstract String getUserID();

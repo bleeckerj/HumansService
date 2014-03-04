@@ -19,10 +19,10 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-public class FriendsPrefetcher implements Job {
-    final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.scheduler.FriendsPrefetcher.class);
+public class ScheduledFriendsPrefetcher implements Job {
+    final static Logger logger = LogManager.getLogger(ScheduledFriendsPrefetcher.class);
 
-    public FriendsPrefetcher() {
+    public ScheduledFriendsPrefetcher() {
         // TODO Auto-generated constructor stub
     }
 
@@ -30,7 +30,7 @@ public class FriendsPrefetcher implements Job {
         try {
             Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
             //PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
-            FriendsPrefetcher prefetcher = new FriendsPrefetcher();
+            ScheduledFriendsPrefetcher prefetcher = new ScheduledFriendsPrefetcher();
             List<HumansUser> users = HumansUser.getAllHumansUsers();
             logger.debug("Hey Ho!");
 
@@ -46,12 +46,16 @@ public class FriendsPrefetcher implements Job {
 
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
-        logger.info("Fetch Status for Humans " + context);
-        List<HumansUser> users = HumansUser.getAllHumansUsers();
-        logger.debug("Hey Ho!");
+        logger.info("Fetch Friends For " + context);
+        HumansUser singleUser = (HumansUser)context.getMergedJobDataMap().get("user");
+        if(singleUser != null) {
+            fetchFriendsForHumansUser(singleUser);
+        } else {
+            List<HumansUser> users = HumansUser.getAllHumansUsers();
 
-        for(HumansUser user : users) {
-            fetchFriendsForHumansUser(user);
+            for(HumansUser user : users) {
+                fetchFriendsForHumansUser(user);
+            }
         }
     }
 

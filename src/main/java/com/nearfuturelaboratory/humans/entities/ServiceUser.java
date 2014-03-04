@@ -1,6 +1,12 @@
 package com.nearfuturelaboratory.humans.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.nearfuturelaboratory.humans.dao.*;
+import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
+import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
+import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.*;
 
@@ -25,11 +31,17 @@ public class ServiceUser extends MinimalSocialServiceUser {
 	@Id
 	protected ObjectId id;
 
+
+
+    @Reference
+    protected ServiceEntry serviceEntry;
+
 	protected String username;
 	protected String serviceUserID;
 	protected String serviceName;
-	//	@Embedded
-	//	protected ServiceEntry onBehalfOf;
+
+//    @Embedded
+//	protected ServiceEntry onBehalfOf;
 
 	public ServiceUser() {
 		super();
@@ -39,9 +51,23 @@ public class ServiceUser extends MinimalSocialServiceUser {
 		setUsername(aUsername);
 		setServiceUserID(aServiceUserID);
 		setServiceName(aServiceName);
+
+
 		this.setImageURL(aImageURL);
 		this.setOnBehalfOf(onBehalfOf);
 	}
+
+    public ServiceUser(ServiceEntry aServiceEntry) {
+        this.setServiceEntry(aServiceEntry);
+    }
+
+    public ServiceEntry getServiceEntry() {
+        return serviceEntry;
+    }
+
+    public void setServiceEntry(ServiceEntry serviceEntry) {
+        this.serviceEntry = serviceEntry;
+    }
 
     public Date getLastUpdated() {
         return lastUpdated;
@@ -51,13 +77,67 @@ public class ServiceUser extends MinimalSocialServiceUser {
 	 * This is the service icon/avatar image for this user for this service
 	 */
 	protected String imageURL;
+
+
+    @PostLoad
+    void postLoad() {
+        updateHygenic();
+
+    }
+
+
+
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
 		if(id == null) {
 			id = new ObjectId();
 		}
+        updateHygenic();
 
-	}
+    }
+
+    /**
+     * Since this class isn't directly from the respective "user" collection, eg InstagramUser
+     * we may not have the most up-to-date things like imageURL if the user has changed it
+     * This ensures that we pull the latest as updated from the scheduled thingie that gets
+     * the latest goodness.
+     * TODO The thing is this guy should really be a reference to the actual entry in the friends collections
+     */
+    protected void updateHygenic()
+    {
+       if(serviceName.equalsIgnoreCase("instagram")) {
+           InstagramUserDAO dao = new InstagramUserDAO();
+           InstagramUser user = dao.findByExactUserID(serviceUserID);
+           setImageURL(user.getImageURL());
+           setUsername(user.getUsername());
+       }
+        // Flickr profileImage URL is formulated..
+//        if(serviceName.equalsIgnoreCase("flickr")) {
+//            FlickrFollowsDAO dao = new FlickrFollowsDAO();
+//
+//            setImageURL(user.getImageURL());
+//            setUsername(user.getUsername());
+//
+//        }
+        if(serviceName.equalsIgnoreCase("twitter")) {
+            TwitterUserDAO dao = new TwitterUserDAO();
+            TwitterUser user = dao.findByExactUserID(serviceUserID);
+            setImageURL(user.getImageURL());
+            setUsername(user.getUsername());
+
+        }
+//        if(serviceName.equalsIgnoreCase("foursquare")) {
+//            FoursquareFriendDAO dao = new FoursquareFriendDAO();
+//            FoursquareFriend friend = dao.findByExactUserID(serviceUserID);
+//            setImageURL(friend.getImageURL());
+//            setUsername(friend.getUsername());
+//
+//        }
+        if(serviceName.equalsIgnoreCase("tumblr")) {
+
+        }
+
+    }
 
 	/**
 	 * @return the id
@@ -66,6 +146,9 @@ public class ServiceUser extends MinimalSocialServiceUser {
 		return id;
 	}
 
+    public String getIdStr() {
+        return id.toString();
+    }
 	public void setId(ObjectId aId) {
 		id = aId;
 	}
