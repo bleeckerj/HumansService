@@ -140,7 +140,9 @@ public class UserHandler {
             @PathParam("serviceuserid") String aServiceUserId,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response) {
-        String access_token = request.getParameter("access_token");
+
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
+
         if (access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
             return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
@@ -229,10 +231,10 @@ public class UserHandler {
     @GET
     @Path("/getty/update/friends")
     public Response updateFriends(
-           @Context HttpServletRequest request,
-           @Context HttpServletResponse response)
+            @Context HttpServletRequest request,
+            @Context HttpServletResponse response)
     {
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
             return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response).type(MediaType.APPLICATION_JSON).build();
@@ -273,7 +275,7 @@ public class UserHandler {
                     .withIdentity("updateFriends." + user.getUsername(), "group." + context)
                     .withSchedule(scheduleBuilder).forJob(job)
                     .startNow().build();
-            
+
             sched.scheduleJob(job, trigger);
             success_response.addProperty("message", "started job "+trigger.getDescription());
             //return Response.ok("{}", MediaType.APPLICATION_JSON).build();
@@ -314,7 +316,7 @@ public class UserHandler {
             @Context HttpServletResponse response)
     {
         //Response response = ResponseBuilder;
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
             return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response).type(MediaType.APPLICATION_JSON).build();
@@ -390,7 +392,7 @@ public class UserHandler {
 //			return invalid_user_error_response.toString();
 //		}
 
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);//request.getHeader("Authorization");//request.getParameter("access_token");
 
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -425,7 +427,7 @@ public class UserHandler {
 //			return no_such_human_for_user.toString();
 //		}
 
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
 
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -466,7 +468,7 @@ public class UserHandler {
         //HumansUserDAO dao = new HumansUserDAO();
         //HumansUser user = dao.findByHumanID(aHumanId);
 
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
 
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -508,7 +510,7 @@ public class UserHandler {
             @Context HttpServletResponse response)
     {
         //HumansUserDAO dao = new HumansUserDAO();
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
 
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -561,7 +563,9 @@ public class UserHandler {
             String aHumanJson,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response) {
-        String access_token = request.getParameter("access_token");
+
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
+
 
         if (access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -623,7 +627,7 @@ public class UserHandler {
             @Context HttpServletResponse response
     )
     {
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);// request.getParameter("access_token");
 
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -670,9 +674,9 @@ public class UserHandler {
         JsonElement elem = in_gson.fromJson(usernameJson, JsonElement.class);
         if(elem.isJsonObject()) {
             JsonObject obj = elem.getAsJsonObject();
-            String check_username = obj.get("check_username").getAsString();
+            String username = obj.get("username").getAsString();
 
-            if(HumansUser.doesUsernameExist(check_username)) {
+            if(HumansUser.doesUsernameExist(username)) {
                 success_response.addProperty("exists", Boolean.TRUE);
                 return success_response.toString();
             } else {
@@ -754,7 +758,7 @@ public class UserHandler {
             @Context HttpServletResponse response
     )
     {
-        String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
 
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -829,12 +833,12 @@ public class UserHandler {
     public Response getFriends(
             @QueryParam("name-like") String aHumanId,
             @Context HttpServletRequest request,
-            @Context HttpServletResponse response,
             @Context ServletContext context
     )
     {
-        String access_token = request.getParameter("access_token");
-        logger.debug("Friends Get", this);
+        // String access_token = request.getParameter("access_token");
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
+
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
             return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
@@ -852,6 +856,8 @@ public class UserHandler {
         JsonArray result = user.getFriendsAsJson();
         return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
     }
+
+
+
+
 }
-
-

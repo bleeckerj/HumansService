@@ -75,7 +75,7 @@ public class ScheduledFriendsPrefetcher implements Job {
                 }
             }
             if(service_entry.getServiceName().equalsIgnoreCase("instagram")) {
-                InstagramService instagram = new InstagramService();
+                InstagramService instagram;// = new InstagramService();
                 try {
                     instagram = InstagramService.createServiceOnBehalfOfUsername(service_entry.getServiceUsername());
                     logger.info(instagram.getThisUser().getUsername()+" service request friends for instagram");
@@ -87,7 +87,7 @@ public class ScheduledFriendsPrefetcher implements Job {
             }
             if(service_entry.getServiceName().equalsIgnoreCase("twitter")) {
 
-                TwitterService twitter = new TwitterService();
+                TwitterService twitter;// = new TwitterService();
                 try {
                     twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_entry.getServiceUsername());
                     logger.info(twitter.getThisUser().getUsername()+" service request friends for twitter");

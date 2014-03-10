@@ -446,15 +446,15 @@ public class TwitterService {
     }
 
 
-    public List<TwitterFriend> serviceRequestFollows() {
-        return serviceRequestFollowsForUserID((String) user.getId_str());
+    public void serviceRequestFollows() {
+         serviceRequestFollowsForUserID((String) user.getId_str());
     }
 
 
 
 
     @SuppressWarnings("unchecked")
-    public List<TwitterFriend> serviceRequestFollowsForUserID(String aUserID) {
+    public void serviceRequestFollowsForUserID(String aUserID) {
 
         List<TwitterFriend> follows = null;
 
@@ -558,7 +558,7 @@ public class TwitterService {
             logger.warn("Do something about rate limit errors, etc."
                     + map.toString());
         }
-        return follows;
+        //return follows;
     }
     //TODO we should delete all the friends of follower_id first..
     protected List<TwitterFriend> saveFollows(List<JSONObject> list_of_friends, String follower_id) {

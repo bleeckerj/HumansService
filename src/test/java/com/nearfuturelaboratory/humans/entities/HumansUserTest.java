@@ -68,24 +68,24 @@ public class HumansUserTest {
             remote_dao = null;
             Mongo remote_mongo;
 
-            try {
-
-                MongoClientOptions mco = new MongoClientOptions.Builder()
-                        .connectionsPerHost(10)
-                        .threadsAllowedToBlockForConnectionMultiplier(10)
-                        .build();
-                //MongoClient client = new MongoClient(addresses, mco);
-                ServerAddress address = new ServerAddress("localhost", 29017);
-                remote_mongo = new MongoClient(address, mco);
-                remote_dao = new HumansUserDAO(remote_mongo, new Morphia(), "humans");
-
-            } catch (UnknownHostException e) {
-                logger.error(e.getMessage());
-            } catch(MongoException e) {
-                logger.error(e.getMessage());
-
-            }
-
+//            try {
+//
+//                MongoClientOptions mco = new MongoClientOptions.Builder()
+//                        .connectionsPerHost(10)
+//                        .threadsAllowedToBlockForConnectionMultiplier(10)
+//                        .build();
+//                //MongoClient client = new MongoClient(addresses, mco);
+//                ServerAddress address = new ServerAddress("localhost", 29017);
+//                remote_mongo = new MongoClient(address, mco);
+//                remote_dao = new HumansUserDAO(remote_mongo, new Morphia(), "humans");
+//
+//            } catch (UnknownHostException e) {
+//                logger.error(e.getMessage());
+//            } catch(MongoException e) {
+//                logger.error(e.getMessage());
+//
+//            }
+//
 
 
             logger.debug("Hey Ho!");

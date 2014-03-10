@@ -58,7 +58,7 @@ public class FoursquareCheckin extends ServiceStatus {
 	protected String shout;
 	protected Map<String, String>source;
 	@Embedded
-	protected FoursquareFriend user;
+	protected FoursquareUser user;
 	@Embedded
 	protected FoursquareVenue venue;
 	protected FoursquareLocation location;
@@ -83,7 +83,8 @@ public class FoursquareCheckin extends ServiceStatus {
 	public void setUsername(String aUsername) {
 		username = aUsername;
 	}
-	
+	public void setUser(FoursquareUser aUser) { user = aUser;}
+
 	public Date getCreatedAtDate() {
 		return new java.util.Date(createdAt*1000l);
 	}
@@ -115,7 +116,7 @@ public class FoursquareCheckin extends ServiceStatus {
 	public Map<String, String> getSource() {
 		return source;
 	}
-	public FoursquareFriend getUser() {
+	public FoursquareUser getUser() {
 		return user;
 	}
 	public FoursquareVenue getVenue() {
