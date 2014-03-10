@@ -187,6 +187,9 @@ public class FoursquareService {
 
     public boolean localServiceStatusIsFresh() {
         boolean result = false;
+        if(this.getLatestCheckin() == null) {
+            return false;
+        }
         Date d = this.getLatestCheckin().getLastUpdated();
         long then = d.getTime();
         long now = new Date().getTime();
@@ -336,6 +339,7 @@ public class FoursquareService {
             JSONObject o = (JSONObject)JSONValue.parse(s);
             FoursquareCheckin checkin = gson.fromJson(o.toJSONString(), FoursquareCheckin.class);
             checkin.setUserID(this.getThisUser().getId());
+            checkin.setUser(this.getThisUser());
             checkinDAO.save(checkin);
         }
     }

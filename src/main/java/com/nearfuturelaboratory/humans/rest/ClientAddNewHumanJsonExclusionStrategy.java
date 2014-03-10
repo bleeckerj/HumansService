@@ -4,6 +4,8 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
+import com.nearfuturelaboratory.humans.entities.ServiceUser;
+import org.bson.types.ObjectId;
 
 /**
  * Created by julian on 1/21/14.
@@ -15,9 +17,13 @@ public class ClientAddNewHumanJsonExclusionStrategy implements ExclusionStrategy
                 (aField.getName().equals("lastUpdated"))
                 ) {
             return true;
-        } else {
-            return false;
+
         }
+        if( (aField.getDeclaringClass() == ServiceUser.class && aField.getName().equals("id"))) {
+            return true;
+        }
+
+        return false;
 
 
     }

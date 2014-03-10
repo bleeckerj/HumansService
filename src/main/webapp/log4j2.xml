@@ -32,6 +32,15 @@
         </Policies>
         <DefaultRolloverStrategy max="5"/>
     </RollingFile>
+      <RollingFile name="HUMANS-REST-DEBUG" fileName="${sys:catalina.home}/logs/humans_rest_debug.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_app-%d{MM-dd-yyyy}-%i.log">
+          <PatternLayout pattern="%highlight{%d{ISO8601} %thread %-5p %c{1}.java:%line %M() - %m%n}"/>
+          <Policies>
+              <TimeBasedTriggeringPolicy />
+              <SizeBasedTriggeringPolicy size="20 MB"/>
+          </Policies>
+          <DefaultRolloverStrategy max="1"/>
+      </RollingFile>
+
       <RollingFile name="HUMANS_DB" fileName="${sys:catalina.home}/logs/humans_db.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_app-%d{MM-dd-yyyy}-%i.log">
           <PatternLayout pattern="%highlight{%d{ISO8601} %thread %-5p %c{1}.java:%line %M() - %m%n}"/>
           <Policies>
@@ -76,6 +85,13 @@
       <!--<logger name="com.nearfuturelaboratory.humans" level="warn">-->
           <!--<appender-ref ref="HUMANS_ERROR"/>-->
       <!--</logger>-->
+      <logger name="com.nearfuturelaboratory.humans.rest" level="debug">
+          <appender-ref ref="HUMANS-REST-DEBUG"/>
+      </logger>
+      <logger name="com.nearfuturelaboratory.humans.oauth" level="debug">
+          <appender-ref ref="HUMANS-REST-DEBUG"/>
+      </logger>
+
       <logger name="com.nearfuturelaboratory.humans.entities" level="debug">
           <appender-ref ref="HUMANS"/>
       </logger>

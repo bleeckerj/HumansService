@@ -481,19 +481,22 @@ public class HumansUser extends BaseEntity {
 
         }
 
-        Collections.sort(f, new Comparator<JsonObject>()
-        {
-            public int compare(JsonObject o1, JsonObject o2)
-            {
-                String u1 = o1.get("username").toString();
-                String u2 = o2.get("username").toString();
-                int v = u1.compareTo(u2);
-                return v;
-            }
-        });
+//        Collections.sort(f, new Comparator<JsonObject>()
+//        {
+//            public int compare(JsonObject o1, JsonObject o2)
+//            {
+//                String u1 = o1.get("username").toString();
+//                String u2 = o2.get("username").toString();
+//                int v = u1.compareTo(u2);
+//                return v;
+//            }
+//        });
         for(JsonObject o : f) {
             result.add(o);
         }
+
+        // now cache it..
+
         return result;
     }
 
@@ -1240,7 +1243,7 @@ public class HumansUser extends BaseEntity {
         Collections.sort(result);
 
 
-        /////cacheStatusForHuman(aHuman, result);
+        cacheStatusForHuman(aHuman, result);
 
         return result;
     }

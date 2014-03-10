@@ -1,27 +1,6 @@
 package com.nearfuturelaboratory.humans.service;
 
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.mongodb.morphia.Key;
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.model.OAuthRequest;
-import org.scribe.model.Response;
-import org.scribe.model.Token;
-import org.scribe.model.Verb;
-import org.scribe.oauth.OAuthService;
-
 import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import com.mongodb.DB;
@@ -35,10 +14,26 @@ import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramUserBriefly;
-//import com.nearfuturelaboratory.humans.service.status.InstagramStatus;
 import com.nearfuturelaboratory.humans.serviceapi.InstagramApi;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.util.Constants;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.mongodb.morphia.Key;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
+
+import java.util.*;
+
+//import com.nearfuturelaboratory.humans.service.status.InstagramStatus;
 
 public class InstagramService /*implements AbstractService*/ {
 
@@ -158,8 +153,8 @@ public class InstagramService /*implements AbstractService*/ {
 	/**
 	 * This will go to the service and get "self" for whoever's accessToken we have
 	 */
-	public InstagramUser serviceRequestUserBasic() {
-		this.user =  this.serviceRequestUserBasicForUserID("self");
+    public InstagramUser serviceRequestUserBasic() throws BadAccessTokenException {
+        this.user =  this.serviceRequestUserBasicForUserID("self");
         return user;
 	}
 
@@ -175,9 +170,8 @@ public class InstagramService /*implements AbstractService*/ {
 	 * @param aUserID
 	 * @return
 	 */
-	public InstagramUser serviceRequestUserBasicForUserID(String aUserID)
-	{
-		//JSONObject result = __serviceRequestUserBasicForUserID(aUserID);
+    public InstagramUser serviceRequestUserBasicForUserID(String aUserID) throws BadAccessTokenException {
+        //JSONObject result = __serviceRequestUserBasicForUserID(aUserID);
 		JSONObject aUser;
 		String userURL = String.format(USER_URL, aUserID);
 		OAuthRequest request = new OAuthRequest(Verb.GET, userURL);
@@ -193,7 +187,10 @@ public class InstagramService /*implements AbstractService*/ {
                     com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
             return iuser;
         } catch(Exception e) {
-            logger.error("Bad response for "+aUserID+" "+this.getThisUser(), e);
+            logger.error("Bad response for " + aUserID + " " + this.getThisUser() + " " + response.getBody(), e);
+            if (response.getCode() == 400 && response.getBody().contains("OAuthAccessTokenException")) {
+                throw new BadAccessTokenException("Bad response for " + aUserID + " " + this.getThisUser() + " " + response.getBody());
+            }
             return null;
         }
 
@@ -370,7 +367,8 @@ public class InstagramService /*implements AbstractService*/ {
 		JSONArray full_data = (JSONArray)status.get("data");
         //TODO Nasty..
         if(full_data.size() < 1) {
-            logger.warn("For "+this.getThisUser().getUsername()+ "no data found for "+this.getThisUser().getUsername()+" / "+this.getThisUser().getId());
+            logger.warn("For " + this.getThisUser().getUsername() + " no data found for " + this.getThisUser().getUsername() + " / " + this.getThisUser().getId());
+            logger.warn("onBehalfOf " + this.getThisUser().getOnBehalfOf());
             logger.warn("Perhaps "+this.getThisUser().getUsername()+" is not authorized somehow to see this users status??");
             return new ArrayList<InstagramStatus>();
         }
@@ -455,16 +453,20 @@ public class InstagramService /*implements AbstractService*/ {
 	 *  
 	 */
 	public void serviceRequestFriends() {
-		serviceRequestFriends(this.getThisUser().getId());
-	}
+        try {
+            serviceRequestFriends(this.getThisUser().getId());
+        } catch (BadAccessTokenException e) {
+            logger.warn(e);
+        }
+    }
 
 
-	/**
-	 * 
-	 * @param aUserID
-	 */
-	protected List<InstagramFriend> serviceRequestFriends(String aUserID) {
-		InstagramUser aUser;
+    /**
+     *
+     * @param aUserID
+     */
+    protected List<InstagramFriend> serviceRequestFriends(String aUserID) throws BadAccessTokenException {
+        InstagramUser aUser;
 		List<InstagramFriend> result = new ArrayList<InstagramFriend>();
 
 		if(aUserID == null || aUserID.equalsIgnoreCase("self")) {
@@ -533,8 +535,8 @@ public class InstagramService /*implements AbstractService*/ {
 	//TODO or find the ones we would be deleting in the overlap exclusion?
 	//TODO InstagramService passes the id of the user to this method
 	protected void saveFollowsJson(List<JSONObject> data, String follower_id) {
-
-		List<InstagramFriend> new_friends = new ArrayList<InstagramFriend>();
+        try {
+            List<InstagramFriend> new_friends = new ArrayList<InstagramFriend>();
 		for(JSONObject j : data) {
 			InstagramUserBriefly iub = gson.fromJson(j.toString(), InstagramUserBriefly.class);
 			InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
@@ -573,7 +575,10 @@ public class InstagramService /*implements AbstractService*/ {
 		}
 
 		//		Iterator<JSONObject> iter = data.iterator();
-	}
+        } catch (BadAccessTokenException bate) {
+            logger.error(bate);
+        }
+    }
 
 	public static void serializeToken(Token aToken, InstagramUser aUser) {
 		ServiceTokenDAO dao = new ServiceTokenDAO("instagram");

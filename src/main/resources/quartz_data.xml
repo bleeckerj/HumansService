@@ -6,14 +6,14 @@
     xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData http://www.quartz-scheduler.org/xml/job_scheduling_data_2_0.xsd"
     version="1.8">
 
-    <schedule>
+<!--    <schedule>
         <job>
             <name>ScheduledStatusFetcher</name>
             <job-class>com.nearfuturelaboratory.humans.scheduler.ScheduledStatusFetcher</job-class>
         </job>
         <job>
             <name>FriendsPrefetcher</name>
-            <job-class>com.nearfuturelaboratory.humans.scheduler.FriendsPrefetcher</job-class>
+            <job-class>com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher</job-class>
         </job>
 
 
@@ -21,7 +21,7 @@
             <cron>
                 <name>ScheduledStatusFetcher</name>
                 <job-name>ScheduledStatusFetcher</job-name>
-                <cron-expression>0 0/10 * 1/1 * ? *</cron-expression>
+                <cron-expression>0 0/15 * 1/1 * ? *</cron-expression>
             </cron>
 
         </trigger>
@@ -37,6 +37,6 @@
 
 
 
-    </schedule>
+    </schedule>-->
 
 </job-scheduling-data>

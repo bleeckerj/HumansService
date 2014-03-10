@@ -85,7 +85,7 @@ public class HumanHandler {
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		RestCommon common = new RestCommon();
+		//RestCommon common = new RestCommon();
 		//		HttpSession session = request.getSession();
 		//		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
 		//		HumansUserDAO dao = new HumansUserDAO();
@@ -94,7 +94,8 @@ public class HumanHandler {
 
 		HumansUser user;
 		try {
-			user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+
+			user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
 		} catch (InvalidAccessTokenException e) {
 			logger.warn("invalid or missing access token", e);
 			fail_response.addProperty("message", "invalid access token");
@@ -157,10 +158,10 @@ public class HumanHandler {
     public Response getStatusCount(@Context HttpServletRequest request,
                                    @Context HttpServletResponse response)
     {
-        RestCommon common = new RestCommon();
+        //RestCommon common = new RestCommon();
         HumansUser user;
         try {
-            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+            user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
         } catch (InvalidAccessTokenException e1) {
             logger.warn("invalid or missing access token");
             fail_response.addProperty("message", "invalid access token");
@@ -187,7 +188,7 @@ public class HumanHandler {
         RestCommon common = new RestCommon();
         HumansUser user;
         try {
-            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+            user = common.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
         } catch (InvalidAccessTokenException e1) {
             logger.warn("invalid or missing access token");
             fail_response.addProperty("message", "invalid access token");
@@ -220,14 +221,14 @@ public class HumanHandler {
     @GET @Path("/status/count/{humanid}/after/{timestamp}")
     public Response getStatusCountAfter(
             @PathParam("humanid") String aHumanId,
-            @PathParam("timestamp") long aTimestamp,
+            @PathParam("timestamp") String aTimestamp,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response)
     {
-        RestCommon common = new RestCommon();
+       // RestCommon common = new RestCommon();
         HumansUser user;
         try {
-            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+            user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
         } catch (InvalidAccessTokenException e1) {
             logger.warn("invalid or missing access token");
             fail_response.addProperty("message", "invalid access token");
@@ -251,9 +252,9 @@ public class HumanHandler {
         }
         int count;
         try {
-        //long timestamp = Long.parseLong(aTimestamp);
+        long timestamp = Long.parseLong(aTimestamp);
 
-        count = user.getStatusCountFromCacheAfterTimestamp(human, aTimestamp);
+        count = user.getStatusCountFromCacheAfterTimestamp(human, timestamp);
         } catch(Exception nfe) {
             logger.warn("Bad parameter passed as a timestamp "+aTimestamp, nfe);
             fail_response.addProperty("Bad parameter passed as a timestamp", aTimestamp);
@@ -289,10 +290,10 @@ public class HumanHandler {
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response) 
 	{
-		RestCommon common = new RestCommon();
+		//RestCommon common = new RestCommon();
 		HumansUser user;
 		try {
-			user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+			user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
 		} catch (InvalidAccessTokenException e1) {
 			logger.warn("invalid or missing access token");
 			fail_response.addProperty("message", "invalid access token");
@@ -465,13 +466,15 @@ request.getParameter("access_token"));
 			@Context HttpServletRequest request,
 			@Context HttpServletResponse response)
 	{
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser user = dao.findByHumanID(aHumanId);
-
-		if(isValidUser(request, user) == false) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("invalid access token").build();
-			//return invalid_user_error_response.toString();
-		}
+		//HumansUserDAO dao = new HumansUserDAO();
+        HumansUser user;
+        try {
+            user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
+        } catch (InvalidAccessTokenException e1) {
+            logger.warn("invalid or missing access token");
+            fail_response.addProperty("message", "invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
+        }
 
 		ServiceUser aServiceUser = gson.fromJson(aServiceUserJson, ServiceUser.class);
 		boolean result = user.updateServiceUserById(aServiceUser, aServiceUserId);
@@ -480,6 +483,7 @@ request.getParameter("access_token"));
 			return Response.ok(success_response).build();
 			//return success_response.toString();
 		} else {
+            fail_response.addProperty("message", "failed to update");
 			return Response.status(Response.Status.NOT_ACCEPTABLE).entity(fail_response).build();//.toString();
 		}
 	}
@@ -487,7 +491,7 @@ request.getParameter("access_token"));
 	@GET
 	@Path("{humanid}/rm/serviceuser/{serviceuserid}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String removeServiceUserFromHuman(
+	public Response removeServiceUserFromHuman(
 			@PathParam("humanid") String aHumanId,
 			@PathParam("serviceuserid") String aServiceUserId,
 			@Context HttpServletRequest request,
@@ -496,12 +500,14 @@ request.getParameter("access_token"));
 
 		//		HttpSession session = request.getSesxfwebsion();
 		//		HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
-		HumansUserDAO dao = new HumansUserDAO();
-		HumansUser user = dao.findByHumanID(aHumanId);
-
-		if(isValidUser(request, user) == false) {
-			return invalid_user_error_response.toString();
-		}
+        HumansUser user;
+        try {
+            user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
+        } catch (InvalidAccessTokenException e1) {
+            logger.warn("invalid or missing access token");
+            fail_response.addProperty("message", "invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
+        }
 
 		boolean success = user.removeServiceUserById(aServiceUserId);
 
@@ -510,9 +516,9 @@ request.getParameter("access_token"));
 		//		boolean success = human.removeServiceUserById(aServiceUserId);
 
 		if(success) {
-			return success_response.toString();
+			return Response.ok().entity(success_response.toString()).build();//success_response.toString();
 		} else {
-			return fail_response.toString();
+			return Response.ok().entity(fail_response.toString()).build();
 		}
 
 	}
@@ -529,7 +535,7 @@ request.getParameter("access_token"));
 			@Context HttpServletResponse response)
 	{
         HumansUser user;
-        RestCommon common = new RestCommon();
+        //RestCommon common = new RestCommon();
         Gson exc_gson = new GsonBuilder()
                 .setExclusionStrategies(new ExclusionStrategy() {
 
@@ -546,7 +552,7 @@ request.getParameter("access_token"));
                 }).create();
 
         try {
-            user = common.getUserForAccessToken(/*context, */request.getParameter("access_token"));
+            user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
         } catch (InvalidAccessTokenException e1) {
             logger.warn("invalid or missing access token");
             fail_response.addProperty("message", "invalid access token");
@@ -586,20 +592,21 @@ request.getParameter("access_token"));
 
 
 
-	protected boolean isValidUser(HttpServletRequest request, HumansUser h) {
-		HumansUser user = getSessionUser(request);
-		boolean result = false;
-		if(user == null || h == null || false == h.getId().equals(user.getId())) {
-			result = false;
-		} else {
-			result = true;
-		}
-		return result;
-	}
+//	protected boolean isValidUser(HttpServletRequest request, HumansUser h) {
+//		HumansUser user = getSessionUser(request);
+//		boolean result = false;
+//		if(user == null || h == null || false == h.getId().equals(user.getId())) {
+//			result = false;
+//		} else {
+//			result = true;
+//		}
+//		return result;
+//	}
+//
+//	protected HumansUser getSessionUser(HttpServletRequest request) {
+//		return (HumansUser)request.getSession().getAttribute("logged-in-user");
+//	}
 
-	protected HumansUser getSessionUser(HttpServletRequest request) {
-		return (HumansUser)request.getSession().getAttribute("logged-in-user");
-	}
 }
 
 /**
