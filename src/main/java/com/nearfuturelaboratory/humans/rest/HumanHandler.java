@@ -1,38 +1,23 @@
 package com.nearfuturelaboratory.humans.rest;
 
-import static com.google.common.collect.Lists.partition;
-
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.google.gson.*;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.bson.types.ObjectId;
-
-import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.entities.Human;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
 import com.nearfuturelaboratory.humans.entities.ServiceUser;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 import com.nearfuturelaboratory.util.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.bson.types.ObjectId;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.List;
 
 
 @Path("/human")
@@ -41,27 +26,27 @@ import com.nearfuturelaboratory.util.Constants;
 public class HumanHandler {
 
 	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.HumanHandler.class);
-	static JsonObject invalid_user_error_response;
-	static JsonObject success_response;
-	static JsonObject fail_response;
-	static JsonObject no_such_human_for_user;
+	 JsonObject invalid_user_error_response;
+	 JsonObject success_response;
+	 JsonObject fail_response;
+	 JsonObject no_such_human_for_user;
 
-	static {
-		invalid_user_error_response = new JsonObject();
-		invalid_user_error_response.addProperty("result", "error");
-		invalid_user_error_response.addProperty("message", "invalid user");
-
-		success_response = new JsonObject();
-		success_response.addProperty("result", "success");
-
-		fail_response = new JsonObject();
-		fail_response.addProperty("result", "fail");
-
-		no_such_human_for_user = new JsonObject();
-		no_such_human_for_user.addProperty("result", "fail");
-		no_such_human_for_user.addProperty("message", "no such human for user");
-
-	}
+//	static {
+//		invalid_user_error_response = new JsonObject();
+//		invalid_user_error_response.addProperty("result", "error");
+//		invalid_user_error_response.addProperty("message", "invalid user");
+//
+//		success_response = new JsonObject();
+//		success_response.addProperty("result", "success");
+//
+//		fail_response = new JsonObject();
+//		fail_response.addProperty("result", "fail");
+//
+//		no_such_human_for_user = new JsonObject();
+//		no_such_human_for_user.addProperty("result", "fail");
+//		no_such_human_for_user.addProperty("message", "no such human for user");
+//
+//	}
 
 	@Context ServletContext context;
 	Gson gson;
@@ -69,7 +54,21 @@ public class HumanHandler {
 	public HumanHandler() {
 		//logger.debug("Constructor " + context);  // null here   
 		gson = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
-	}
+        invalid_user_error_response = new JsonObject();
+        invalid_user_error_response.addProperty("result", "error");
+        invalid_user_error_response.addProperty("message", "invalid user");
+
+        success_response = new JsonObject();
+        success_response.addProperty("result", "success");
+
+        fail_response = new JsonObject();
+        fail_response.addProperty("result", "fail");
+
+        no_such_human_for_user = new JsonObject();
+        no_such_human_for_user.addProperty("result", "fail");
+        no_such_human_for_user.addProperty("message", "no such human for user");
+
+    }
 
 
 	/**
@@ -160,6 +159,7 @@ public class HumanHandler {
     {
         //RestCommon common = new RestCommon();
         HumansUser user;
+
         try {
             user = RestCommon.getUserForAccessToken(RestCommon.getAccessTokenFromRequestHeader(request));
         } catch (InvalidAccessTokenException e1) {
@@ -170,11 +170,28 @@ public class HumanHandler {
             //e1.printStackTrace();
         }
 
+
+
         List<Human> allUserHumans = user.getAllHumans();
         for(Human human : allUserHumans) {
-            int result = user.getStatusCountFromCache(human);
-            success_response.addProperty(human.getId(), String.valueOf(result));
+            String human_id = human.getId();
+            try {
+                human = user.getHumanByID(human_id);
+            } catch(java.lang.IllegalArgumentException iae) {
+                logger.warn(iae);
+            }
+            if(human ==  null) {
+                fail_response.addProperty("message", "none such human found for humanid="+human_id);
+                return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
+            }
 
+            int result = user.getStatusCountFromCache(human);
+
+            success_response.addProperty(human_id, String.valueOf(result));
+
+            success_response.addProperty(human.getId(), String.valueOf(result));
+            success_response.add(human.getId() + "_period", user.getStatusDetailsFromCache(human, Constants.getInt("STATUS_CHUNK_SIZE", 25)));
+            success_response.add(human.getId() + "_cached", user.getStatusDetailsFromCache(human));
         }
         return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
     }
@@ -212,7 +229,10 @@ public class HumanHandler {
         }
 
         int result = user.getStatusCountFromCache(human);
-        success_response.addProperty("count", String.valueOf(result));
+        success_response.addProperty(aHumanId, String.valueOf(result));
+
+        success_response.add(aHumanId + "_period", user.getStatusDetailsFromCache(human, Constants.getInt("STATUS_CHUNK_SIZE", 25)));
+
         String response_str = success_response.toString();
         return Response.ok().entity(response_str).type(MediaType.APPLICATION_JSON).build();
 
@@ -241,26 +261,31 @@ public class HumanHandler {
         Human human = null;
         try {
             human = user.getHumanByID(aHumanId);
-        } catch(java.lang.IllegalArgumentException iae) {
-            logger.warn(iae);
-        }
+
         if(human ==  null) {
             fail_response.addProperty("message", "none such human found for humanid="+aHumanId);
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(fail_response.toString()).build();
-
-            //return fail_response.toString();
         }
-        int count;
-        try {
-        long timestamp = Long.parseLong(aTimestamp);
 
-        count = user.getStatusCountFromCacheAfterTimestamp(human, timestamp);
-        } catch(Exception nfe) {
+        long timestamp = Long.parseLong(aTimestamp);
+            int result = user.getStatusCountFromCache(human);
+            success_response.addProperty(aHumanId, String.valueOf(result));
+
+            //success_response.add(aHumanId + "_period", user.getStatusDetailFromCacheAfterTimestamp(human, timestamp));
+            success_response.add(aHumanId + "_period", user.getStatusDetailsFromCacheAfterTimestamp(human, timestamp));
+
+            //count = user.getStatusCountFromCacheAfterTimestamp(human, timestamp);
+        } catch(NumberFormatException nfe) {
             logger.warn("Bad parameter passed as a timestamp "+aTimestamp, nfe);
             fail_response.addProperty("Bad parameter passed as a timestamp", aTimestamp);
-            return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
+            return Response.status(500).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
+        } catch(Exception e) {
+            logger.error("While getting status count for "+human+" "+aHumanId);
+            fail_response.addProperty("Exception while getting status count for "+aHumanId, e.getMessage());
+            return Response.status(500).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
+
         }
-        success_response.addProperty("count", count);
+        //success_response.addProperty("count", count);
         return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
     }
 
@@ -531,8 +556,7 @@ request.getParameter("access_token"));
 	public Response addServiceUserToHuman(
 			String aServiceUserJson,
 			@PathParam("humanid") String aHumanId, 
-			@Context HttpServletRequest request,
-			@Context HttpServletResponse response)
+			@Context HttpServletRequest request)
 	{
         HumansUser user;
         //RestCommon common = new RestCommon();
@@ -559,7 +583,7 @@ request.getParameter("access_token"));
             return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON).entity(fail_response.getAsJsonObject().toString()).build();
         }
 		logger.debug(aHumanId);
-		logger.debug("aServiceUser "+aServiceUserJson);
+		logger.debug("aServiceUser(s) "+aServiceUserJson);
 
 		Human human = user.getHumanByID(aHumanId);
 
@@ -571,7 +595,7 @@ request.getParameter("access_token"));
 			JsonArray service_user_array = e.getAsJsonArray();
 			for(JsonElement service_user : service_user_array) {
 				aServiceUser = exc_gson.fromJson(service_user, ServiceUser.class);
-				human.addServiceUser(aServiceUser);
+				user.addServiceUserToHuman(aServiceUser, human);// .addServiceUser(aServiceUser);
 			}
 			user.addHuman(human);
 		} else {
@@ -584,8 +608,8 @@ request.getParameter("access_token"));
 
 		user.save();
         success_response.addProperty("message", "Added new service user");
-        success_response.addProperty("user", gson.toJson(user, HumansUser.class));
-		return Response.ok(success_response.toString()).build();
+        //success_response.addProperty("user", gson.toJson(user, HumansUser.class));
+		return Response.ok(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
 	}
 
 

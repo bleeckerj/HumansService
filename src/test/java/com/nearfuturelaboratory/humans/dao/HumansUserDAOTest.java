@@ -31,7 +31,7 @@ public class HumansUserDAOTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-        Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+        Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
 
         dao = new HumansUserDAO("test-humans-user");
         dao_dev = new HumansUserDAO("humans");
@@ -55,7 +55,11 @@ public class HumansUserDAOTest {
 
 	@Test
 	public void testFindOneByUsername() {
-		fail("Not yet implemented"); // TODO
+        HumansUser user = dao_dev.findOneByUsername("darthjulian");
+
+
+
+		//fail("Not yet implemented"); // TODO
 	}
 
     @Test

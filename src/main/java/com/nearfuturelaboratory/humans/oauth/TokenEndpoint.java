@@ -126,7 +126,7 @@ public class TokenEndpoint {
             if (request.getParameter(OAuth.OAUTH_GRANT_TYPE)
                     .equals(GrantType.PASSWORD.toString())) {
                 HumansUserDAO dao = new HumansUserDAO();
-                HumansUser user = dao.findOneByUsername(username); //new HumansUser(oauthRequest.getUsername(), oauthRequest.getPassword());
+                HumansUser user =  dao.findOneByUsername(username); //new HumansUser(oauthRequest.getUsername(), oauthRequest.getPassword());
                 if(user == null) {
 //                    OAuthResponse response = OAuthASResponse
 //                            .errorResponse(HttpServletResponse.SC_UNAUTHORIZED)

@@ -57,6 +57,7 @@ public class ScheduledFriendsPrefetcher implements Job {
                 fetchFriendsForHumansUser(user);
             }
         }
+        logger.info("Done Fetch Friends For "+context);
     }
 
 

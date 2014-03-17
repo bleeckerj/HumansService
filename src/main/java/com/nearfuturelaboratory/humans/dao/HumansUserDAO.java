@@ -94,7 +94,16 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
         }
         return result;
 	}
-	
+
+    /**
+     * TODO this one will throw an invocation something exception if the data in Mongo does not conform to
+     * what HumansUser expects. I had this happen when HumansUser's from an oldish model were hand copied
+     * and the ServiceUser within the humans of the humans array had old property names. With no clear indication
+     * as to what was happening. In any case..perhaps we should make a data checker thing or something..
+     *
+     * @param aUsername
+     * @return
+     */
 	public HumansUser findOneByUsername(String aUsername) {		
 		Query<HumansUser> q = this.createQuery().field("username").equal(aUsername);
 		return this.findOne(q);

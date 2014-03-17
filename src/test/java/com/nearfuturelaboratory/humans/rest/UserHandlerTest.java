@@ -63,7 +63,7 @@ public class UserHandlerTest {
 		RestAssured.baseURI  = "https://localhost";
 		RestAssured.port     = 8443;
 		RestAssured.basePath = "/rest";
-		RestAssured.keystore("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit");
+		RestAssured.keystore("/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit");
 //		String sessionId = get("/login?username=darthjulian&password=darthjulian").sessionId();
 //		RestAssured.sessionId = sessionId;
 		spec = new RequestSpecBuilder().addQueryParam("access_token", "25d4ab63e6b32f111b5962de2b1de747").build();
@@ -218,7 +218,7 @@ public class UserHandlerTest {
 		// if we change the password *really* then the next time this unit test class runs
 		// it won't have the new password, won't be able to login in the top setup class method
 		// and then won't get a session id and then will explode all over itself
-		req.addProperty("password", "darthjulian"); // need to paramaterize this stuff better
+		req.addProperty("password", "don"); // need to paramaterize this stuff better
 		String str = req.toString();
 		
 		given()

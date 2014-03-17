@@ -55,13 +55,32 @@ import static org.quartz.TriggerBuilder.newTrigger;
 //@Produces(MediaType.APPLICATION_JSON)
 public class UserHandler {
     final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.UserHandler.class);
-    static JsonObject invalid_user_error_response;
-    static JsonObject success_response;
-    static JsonObject fail_response;
-    static JsonObject no_such_human_for_user;
-    static JsonObject no_such_serviceuser_for_user;
+     JsonObject invalid_user_error_response;
+     JsonObject success_response;
+     JsonObject fail_response;
+     JsonObject no_such_human_for_user;
+     JsonObject no_such_serviceuser_for_user;
 
     static {
+
+
+    }
+
+    @Context ServletContext context;
+    Gson in_gson;
+    Gson out_gson;
+    Gson gson_get_humans;//// = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+    Gson gson_add_humans;
+    public UserHandler() {
+        //logger.debug("Constructor " + context);  // null here
+        in_gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+        out_gson = new GsonBuilder().
+                setExclusionStrategies(new UserJsonExclusionStrategy()).
+                registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+
+        gson_get_humans = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
+        gson_add_humans = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).
+                setExclusionStrategies(new ClientAddNewHumanJsonExclusionStrategy()).create();
 
         invalid_user_error_response = new JsonObject();
         invalid_user_error_response.addProperty("result", "error");
@@ -83,47 +102,8 @@ public class UserHandler {
 
     }
 
-    @Context ServletContext context;
-    Gson in_gson;
-    Gson out_gson;
-    Gson gson_get_humans;//// = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
-    Gson gson_add_humans;
-    public UserHandler() {
-        //logger.debug("Constructor " + context);  // null here
-        in_gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
-        out_gson = new GsonBuilder().
-                setExclusionStrategies(new UserJsonExclusionStrategy()).
-                registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
-
-        gson_get_humans = new GsonBuilder().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).create();
-        gson_add_humans = new GsonBuilder().registerTypeAdapter(ObjectId.class, new MyObjectIdSerializer()).
-                setExclusionStrategies(new ClientAddNewHumanJsonExclusionStrategy()).create();
-    }
 
 
-
-//    @GET
-//    @Path("/gettyup/buildcache/{humanid}")
-//    @Produces({"application/json"})
-//    public Response buildCaches(
-//            @Context HttpServletRequest request,
-//            @Context HttpServletResponse response) {
-//        // TODO Auto-generated method stub
-//        //Trigger trigger = TriggerBuilder.newTrigger().withIdentity("ScheduledStatusFetcher").startNow().build();
-//        try {
-//            StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
-//                    .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
-//
-//            Scheduler scheduler = stdSchedulerFactory.getScheduler();
-//            JobKey jobKey = new JobKey("ScheduledStatusFetcher");
-//            scheduler.triggerJob(jobKey);
-//        } catch (SchedulerException e) {
-//            logger.warn(e);
-//        }
-//
-//        return Response.ok("{ok:ok}", MediaType.APPLICATION_JSON).build();
-//
-//    }
 
     /**
      * Retrieve useful user access parameters
@@ -237,14 +217,14 @@ public class UserHandler {
         String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
         if(access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
-            return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response).type(MediaType.APPLICATION_JSON).build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
         }
 
         HumansUser user = getUserForAccessToken(context, access_token);
 
         if(user == null) {
             invalid_user_error_response.addProperty("message", "no such user. invalid access token");
-            return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response).type(MediaType.APPLICATION_JSON).build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response.toString()).type(MediaType.APPLICATION_JSON).build();
         }
 
         try {
@@ -372,6 +352,7 @@ public class UserHandler {
             }
         } else {
             fail_response.addProperty("message", "invalid id for human");
+            logger.warn("invalid id for human "+aHumanId);
             return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
         }
 
@@ -509,6 +490,9 @@ public class UserHandler {
             @Context HttpServletRequest request,
             @Context HttpServletResponse response)
     {
+        fail_response.addProperty("message", "deprecated endpoint. use the human");
+        return fail_response.toString();
+        /*
         //HumansUserDAO dao = new HumansUserDAO();
         String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
 
@@ -552,6 +536,7 @@ public class UserHandler {
         } else {
             return fail_response.toString();
         }
+        */
     }
 
     // TODO if you add a human and it contains a service that does not yet exist..
@@ -596,13 +581,16 @@ public class UserHandler {
 
             if (result) {
                 user.save();
-
+                // we'll save and the human should now have an ID
+                Human new_human =  user.getHumanByName(human.getName());
                 //Process p = new ProcessBuilder("java", "com.nearfuturelaboratory.humans.util.RefreshHuman")
 
-                this.clearContextOfUser(context, access_token);
+                //this.clearContextOfUser(context, access_token);
                 //String bar = success_response.
                 //Response foo = Response.status(Response.Status.OK).entity(success_response).build();
                 //Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+                success_response.addProperty("human.id", new_human.getId());
+                success_response.addProperty("human.name", new_human.getName());
                 return Response.ok(success_response.toString(), MediaType.APPLICATION_JSON).build(); //Response.OK.build();//success_response.toString();
             } else {
                 fail_response.addProperty("message", "couldn't save human");

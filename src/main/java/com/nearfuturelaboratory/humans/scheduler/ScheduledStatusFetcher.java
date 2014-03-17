@@ -27,23 +27,23 @@ public class ScheduledStatusFetcher implements Job {
 
     protected void fetchStatusForHumans()
     {
-        logger.info("Trying to fetch status for humans");
-        try {
-            HumansUserDAO dao = new HumansUserDAO();
-            List<HumansUser> all = dao.getAllHumansUsers();
-            logger.info("starting fetchStatusForHumans count="+all.size());
-            for (HumansUser humansUser : all) {
-                logger.info("=========== Fetch Status For "+humansUser.getUsername() +" ==============");
+        //logger.info("Trying to fetch status for humans");
 
+        HumansUserDAO dao = new HumansUserDAO();
+        List<HumansUser> all = dao.getAllHumansUsers();
+        logger.info("****** Starting fetchStatusForHumans count="+all.size());
+        for (HumansUser humansUser : all) {
+            logger.info("=========== Fetch Status For "+humansUser.getUsername() +" ==============");
+
+            try {
                 humansUser.refreshStatusForAllHumans();
-                logger.info("=========== Done Fetch Status For "+humansUser.getUsername() +" ==============");
+            } catch (Exception e) {
+                logger.warn("Something bad happened whilst fetching status for "+humansUser.getUsername()+" "+humansUser.getId());
             }
-            logger.info("done fetchStatusForHumans");
-
-        }catch (Exception e) {
-            logger.error("woops", e);
+            logger.info("=========== Done Fetch Status For "+humansUser.getUsername() +" ==============");
         }
-        logger.info("Done fetching status for humans");
+
+        logger.info("****** Done fetching status for humans");
     }
 
 }

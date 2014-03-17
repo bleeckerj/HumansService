@@ -18,7 +18,7 @@ import static ch.lambdaj.Lambda.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 
-@Entity(value="humans",noClassnameStored = true)
+@Entity(value="humans",noClassnameStored = false)
 // compound index
 //@Indexes(@Index(name = "nameAndID", value = "name, id", unique = true))
 public class Human  /*extends BaseEntity*/ {

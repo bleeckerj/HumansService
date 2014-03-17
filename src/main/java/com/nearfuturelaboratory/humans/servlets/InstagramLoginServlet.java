@@ -22,6 +22,7 @@ import javax.xml.ws.Response;
 
 import com.google.gson.JsonObject;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
+import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.json.simple.JSONObject;
@@ -103,31 +104,17 @@ public class InstagramLoginServlet extends HttpServlet {
 		.scope("basic,likes")
 		.build();
 
-		//logger.debug("Request Parameters are "+req.getParameterMap());
-
-//        String access_token = req.getParameter("access_token");
-//
-//        if(access_token == null) {
-//            fail_response.addProperty("message", "invalid or missing access token");
-//            //return fail_response.toString();
-//        }
-//
-//        HumansUser user_alt = getUserForAccessToken(context, access_token);
-//
-//        if(user_alt == null) {
-//            invalid_user_error_response.addProperty("message", "invalid access token");
-//            //return invalid_user_error_response.toString();
-//        }
-
 
         if(req.getParameter("code") != null) {
 			logger.debug("now a response code="+req.getParameter("code"));
 			Verifier verifier = new Verifier(req.getParameter("code"));
 			accessToken = service.getAccessToken(EMPTY_TOKEN, verifier);
 			logger.debug("and access token "+accessToken);
-			
+
+            try {
 			InstagramService instagramService = new InstagramService(accessToken);
 			instagramService.serviceRequestUserBasic();
+
 			String keyForUser = instagramService.getThisUser().getId()+"-"+instagramService.getThisUser().getUsername();
 			logger.debug("instagram user="+instagramService.getThisUser());
 			logger.debug("keyForUser="+keyForUser);
@@ -160,6 +147,10 @@ public class InstagramLoginServlet extends HttpServlet {
 			InstagramService.serializeToken(accessToken, instagramService.getThisUser());
 			resp.sendRedirect(req.getContextPath()+"/services.jsp");
 			instagramService.getFriends();
+            } catch(BadAccessTokenException bate) {
+                fail_response.addProperty("error", bate.getMessage());
+                resp.setStatus(400);
+            }
 		} else {
 			
 			String authorizationUrl = service.getAuthorizationUrl(EMPTY_TOKEN);

@@ -179,6 +179,7 @@ public class AuthServices {
     public Response authenticateInstagramForUser(@Context HttpServletRequest request,
                                                  @Context HttpServletResponse response)
     {
+        //TODO THis should be new style using RestCommon
         String humans_access_token = request.getParameter("access_token");
         if(humans_access_token == null && request.getParameter("code") == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -217,7 +218,7 @@ public class AuthServices {
 
 
         if(request.getParameter("code") != null) {
-
+        try {
             logger.debug("now a response code="+request.getParameter("code"));
             Verifier verifier = new Verifier(request.getParameter("code"));
             accessToken = service.getAccessToken(EMPTY_TOKEN, verifier);
@@ -249,6 +250,10 @@ public class AuthServices {
             //instagramService.getFriends();
             //return Response.ok(userJson, MediaType.APPLICATION_JSON).build();
             return Response.ok().entity(userJson).type(MediaType.APPLICATION_JSON).build();
+        } catch(BadAccessTokenException bate) {
+            fail_response.addProperty("error", bate.getMessage());
+            return Response.status(400).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
+        }
         } else {
             try {
 

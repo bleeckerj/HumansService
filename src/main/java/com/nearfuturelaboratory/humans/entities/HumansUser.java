@@ -3,15 +3,11 @@ package com.nearfuturelaboratory.humans.entities;
 import com.google.gson.*;
 import com.mongodb.*;
 import com.mongodb.util.JSON;
-import com.nearfuturelaboratory.humans.dao.FlickrUserDAO;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
-import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
-import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
-import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.service.FlickrService;
 import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.InstagramService;
@@ -27,8 +23,8 @@ import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.jasypt.util.binary.BasicBinaryEncryptor;
 import org.jasypt.util.password.StrongPasswordEncryptor;
+import org.joda.time.*;
 import org.mongodb.morphia.annotations.*;
-import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.utils.IndexDirection;
 import org.scribe.exceptions.OAuthConnectionException;
 
@@ -41,8 +37,6 @@ import java.util.*;
 import static ch.lambdaj.Lambda.*;
 import static ch.lambdaj.function.matcher.AndMatcher.and;
 import static org.hamcrest.CoreMatchers.equalTo;
-import org.apache.commons.collections4.ListUtils;
-import org.scribe.model.Token;
 
 @Entity(value="users",noClassnameStored = true)
 public class HumansUser extends BaseEntity {
@@ -54,8 +48,9 @@ public class HumansUser extends BaseEntity {
     private String password;
     //protected String email;
     protected Boolean emailVerified = false;
-    @Indexed(name="access_token", unique = true, sparse = true)
+    // @Indexed(name="access_token", unique = true, sparse = true)
     protected String access_token;
+
     protected byte[] access_token_bytes;
 
     protected Boolean isAdmin = false;
@@ -86,7 +81,7 @@ public class HumansUser extends BaseEntity {
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(email);
             email_bytes =this.EncryptByteArray(baos.toByteArray());
-            logger.debug("email_bytes="+email_bytes);
+            logger.debug(this.getUsername()+"email_bytes="+email_bytes);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e);
@@ -96,7 +91,7 @@ public class HumansUser extends BaseEntity {
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(access_token);
             access_token_bytes =this.EncryptByteArray(baos.toByteArray());
-            logger.debug("access_token_bytes="+email_bytes);
+            logger.debug((this.getUsername()+"access_token_bytes="+email_bytes));
 
         } catch(Exception e) {
             logger.error(e);
@@ -115,8 +110,7 @@ public class HumansUser extends BaseEntity {
             // e.printStackTrace();
 
             logger.error(
-                    "The email "+email+" address for "+this.getUsername()+" probably do not represent an encrypted String. You may need to encrypt "+this.getUsername()+"'s email address.",
-                    e);
+                    "The email "+email+" address for "+this.getUsername()+" probably do not represent an encrypted String. You may need to encrypt "+this.getUsername()+"'s email address.");
         }
         try {
             access_token_bytes = this.DecryptByteArray(access_token_bytes);
@@ -131,6 +125,14 @@ public class HumansUser extends BaseEntity {
         }
     }
 
+    /*
+    @PreLoad
+    void preLoad() {
+
+            logger.debug("preload..");
+
+    }
+    */
 
     protected byte[] EncryptByteArray(byte[] array) throws Exception {
         BasicBinaryEncryptor binaryEncryptor = new BasicBinaryEncryptor();
@@ -253,6 +255,7 @@ public class HumansUser extends BaseEntity {
 
     public void removeHuman(Human aHuman) {
         humans.remove(aHuman);
+        removeCacheForHuman(aHuman);
     }
 
     /**
@@ -288,7 +291,7 @@ public class HumansUser extends BaseEntity {
     }
 
 
-     /**
+    /**
      *
      * @param aUpdatedServiceUser
      * @param aServiceUserId
@@ -338,6 +341,9 @@ public class HumansUser extends BaseEntity {
             if(service_user != null) {
                 container = human;
                 result = container.removeServiceUserById(aServiceUserId);
+                if(result == true) {
+                    removeCacheForHuman(human);
+                }
                 if(container.getServiceUsers().size() < 1) {
                     empty_humans.add(container);
                 }
@@ -347,10 +353,12 @@ public class HumansUser extends BaseEntity {
             }
         }
 
-        for(Human human : empty_humans) {
-            this.removeHuman(human);
+//        for(Human human : empty_humans) {
+//            this.removeHuman(human);
+//        }
+        if(result) {
+            this.save();
         }
-
         return result;
         //		ServiceUser service_user = selectFirst(
         //											flatten(
@@ -399,14 +407,17 @@ public class HumansUser extends BaseEntity {
 
     }
 
-    public boolean addServiceUserToHuman(ServiceUser aServiceUser, String aHumanId) {
+    public boolean addServiceUserToHuman(ServiceUser aServiceUser, Human aHuman) {
         boolean result = false;
-        Human human = getHumanByID(aHumanId);
-        if(human != null) {
-            result = human.addServiceUser(aServiceUser);
+        if(aHuman != null) {
+            result = aHuman.addServiceUser(aServiceUser);
+            if(result) {
+                this.removeCacheForHuman(aHuman);
+            }
         }
         return result;
     }
+
 
     public List<Human> getAllHumans() {
         return this.humans;
@@ -460,7 +471,7 @@ public class HumansUser extends BaseEntity {
 
             JsonObject obj = new JsonObject();
             try {
-            obj.addProperty("id", friend.getIdStr());
+                obj.addProperty("id", friend.getIdStr());
             } catch(Exception e) {
                 logger.error("error", e);
             }
@@ -701,6 +712,7 @@ public class HumansUser extends BaseEntity {
 
     }
 
+//TODO There's no way any DB classes/methods/expectations should be in this class at all..
 
     public int getJsonCachedStatusCountForHuman(Human aHuman) {
         int result;
@@ -732,7 +744,6 @@ public class HumansUser extends BaseEntity {
         return ((int)count + aPageSize - 1) / aPageSize;
     }
 
-    //TODO Need better strategy for pre-fetching status. Or..basically need a strategy..
     public JsonArray getJsonCachedStatusForHuman(Human aHuman, int aPage) {
         String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
 
@@ -779,13 +790,6 @@ public class HumansUser extends BaseEntity {
 
     public void refreshCache(Human aHuman)
     {
-        //String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
-
-        //DB cache_db = MongoUtil.getStatusCacheDB();
-
-        //DBCollection cache = cache_db.getCollection(cache_name);
-
-        //logger.info("Dropping cached status named="+cache.getName()+" for human="+aHuman.getName());
         List<ServiceStatus> statuses = getStatusForHuman(aHuman, false);
 
         cacheStatusForHuman(aHuman, statuses);
@@ -813,6 +817,214 @@ public class HumansUser extends BaseEntity {
 
     }
 
+    /**
+     *
+     * @param aHuman
+     * @param aTimestamp milliseconds after that we're checking for status. this'll try to normalize to milliseconds in case you send seconds
+     *                   if you send anything else, bad things..
+     * @return
+     */
+    public JsonObject getStatusDetailsFromCacheAfterTimestamp(Human aHuman, long aTimestamp)
+    {
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+        DB cache_db = MongoUtil.getStatusCacheDB();
+        DBCollection cache = cache_db.getCollection(cache_name);
+        BasicDBObject query = new BasicDBObject("created", new BasicDBObject("$gt", aTimestamp));
+        DBCursor cursor = cache.find(query);
+        int max = cursor.count();
+        // List<DBObject> objects = cursor.toArray();
+
+        return getStatusDetailsFromDBCursor(cursor, max);
+    }
+
+
+    public JsonObject getStatusDetailsFromCache(Human aHuman) {
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+
+        DB cache_db = MongoUtil.getStatusCacheDB();
+
+        DBCollection cache = cache_db.getCollection(cache_name);
+        DBCursor cursor = cache.find();
+        int max = cursor.count();
+        return getStatusDetailsFromCache(aHuman, max);
+    }
+
+    public JsonObject getStatusDetailsFromCache(Human aHuman, int aMaxIndex) {
+        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+
+        DB cache_db = MongoUtil.getStatusCacheDB();
+
+        DBCollection cache = cache_db.getCollection(cache_name);
+
+        DBCursor cursor = cache.find();
+
+        JsonObject period_details = this.getStatusDetailsFromDBCursor(cursor, aMaxIndex);
+        period_details.addProperty("human", aHuman.toString());
+
+        return period_details;
+    }
+
+
+//    protected JsonObject getStatusDetailsFromDBCursor(DBCursor cursor)
+//    {
+//        DBCursor noHeader = cursor.skip(1);
+//
+//        List<DBObject> objects = noHeader.toArray();
+//        int _last = objects.size();
+//        return getStatusDetailsFromDBCursor(cursor, _last);
+//    }
+
+    protected JsonObject getStatusDetailsFromDBCursor(DBCursor cursor, int aMaxIndex)
+    {
+        JsonObject result = new JsonObject();
+        //result.addProperty("human", this.toString());
+        int count = cursor.count();
+
+        DBObject first = null;
+        DBObject last = null;
+        DBCursor noHeader = cursor.skip(1);
+
+        List<DBObject> objects = noHeader.toArray();
+        int _last = objects.size();
+        if(aMaxIndex < objects.size()) {
+            _last = aMaxIndex;
+        }
+        if(objects != null && objects.size() > 0) {
+            first = objects.get(0);
+
+            last = objects.get(_last -1);
+        }
+
+        Duration duration = null;
+        Period period = null;
+        long first_time = 0, last_time = 0;
+
+        try {
+            if(count > 0 && first != null && last != null) {
+                Number first_n, last_n;
+                first_n = (Number)first.get("created");
+                first_time = first_n.longValue();
+
+                last_n = (Number)last.get("created");
+                last_time= last_n.longValue();
+
+                // make sure we're getting milliseconds
+                if(Math.log10(first_time) < 10) {
+                    first_time *= 1000L;
+                }
+
+                if(Math.log10(last_time) < 10) {
+                    last_time *= 1000L;
+                }
+//                if(first.get("created") instanceof Long) {
+//                    first_time = (Long)first.get("created");
+//                } else {
+//                    first_time = ((Integer)first.get("created")).longValue()*1000L;
+//                }
+//                if(last.get("created") instanceof Long) {
+//                    last_time = (Long)last.get("created");
+//                } else {
+//                    last_time = ((Integer)last.get("created")).longValue()*1000L;
+//                }
+
+                if(last_time == first_time) {
+                    first_time = Instant.now().getMillis();
+                }
+                period = new Period(last_time, first_time);
+                duration = new Duration(last_time, first_time);
+                Period since = new Period(last_time, Instant.now().getMillis());
+
+                result.addProperty("first.created", first_time);
+                result.addProperty("last.created", last_time);
+
+                result.addProperty("last.since.seconds", since.getSeconds());
+                result.addProperty("last.since.minutes", since.getMinutes());
+                result.addProperty("last.since.hours", since.getHours());
+                result.addProperty("last.since.days", since.getDays());
+                result.addProperty("last.since.weeks", since.getWeeks());
+                result.addProperty("last.since.months", since.getMonths());
+                result.addProperty("last.since.years", since.getYears());
+
+                result.addProperty("period.seconds", period.getSeconds());
+                result.addProperty("period.minutes", period.getMinutes());
+                result.addProperty("period.hours", period.getHours());
+                result.addProperty("period.days", period.getDays());
+                result.addProperty("period.weeks", period.getWeeks());
+                result.addProperty("period.months", period.getMonths());
+                result.addProperty("period.years", period.getYears());
+                result.addProperty("period", period.toString());
+
+                // the duration betwix last_time and first_time should be roughly the same
+                // as the period - so duration.hours should equal period.days * 24 + period.hours
+                result.addProperty("duration.hours", duration.getStandardHours());
+                result.addProperty("duration.days", duration.getStandardDays());
+                result.addProperty("duration.minutes", duration.getStandardMinutes());
+                result.addProperty("duration.seconds", duration.getStandardSeconds());
+                result.addProperty("duration.khz", duration.getStandardSeconds()*1000L);
+                result.addProperty("duration.mhz", duration.getStandardSeconds()*1000000L);
+                //result.addProperty("time-span",)
+            }
+            //logger.warn("weird first="+first+" last="+last+" with "+this);
+
+            Hashtable<String, Integer> service_counts = new Hashtable<String, Integer>();
+            JsonObject counts = new JsonObject();
+            int x = 0;
+            int total = 0;
+            //for(DBObject object : objects) {
+            for(int i=0; i<_last; i++) {
+                DBObject object = objects.get(i);
+                if(object.containsField("service")) {
+                    total++;
+                    String service_name = object.get("service").toString();
+                    if(service_counts.containsKey(service_name)) {
+                        Integer countInteger = (Integer) service_counts.get(service_name);
+                        x = countInteger.intValue();
+                        x++;
+                        service_counts.put(service_name, Integer.valueOf(x));
+                    } else {
+                        x = 1;
+                        service_counts.put(service_name, Integer.valueOf(x));
+
+                    }
+                    counts.addProperty(service_name, Integer.valueOf(x));
+                }
+            }
+
+            result.addProperty("service.count.total", total);
+
+            if(service_counts.isEmpty() == false) {
+                Iterator e = (Iterator) service_counts.keys();
+                while(e.hasNext()) {
+                    String s = (String)e.next();
+                    Integer c = (Integer)service_counts.get(s);
+                    result.addProperty("service."+s+".count", c);
+                    if(duration != null) {
+                        result.addProperty("service."+s+".khzp",  duration.getStandardSeconds()*1000L/(float)c.floatValue() );
+                        result.addProperty("service."+s+".mhzp", duration.getStandardSeconds()*1000000L/(float)c.floatValue());
+                        if(duration.getStandardHours() > 0) {
+                            result.addProperty("service."+s+".pph", (float)c.floatValue() / duration.getStandardHours());
+                        }
+                        if(duration.getStandardDays() > 0) {
+                            result.addProperty("service."+s+".ppd", (float)c.floatValue() / duration.getStandardDays());
+
+                        }
+                        result.addProperty("service."+s+".hzp", duration.getStandardSeconds()/(float)c.floatValue() );
+                        if(period != null && period.getWeeks() > 0) {
+                            result.addProperty("service."+s+".ppw", (float)c.floatValue() / period.getWeeks());
+                        }
+                    }
+                }
+            }
+//            result.addProperty("service."+service_name)
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("", e);
+
+            result.addProperty("ex-message", e.toString());
+        }
+        return result;
+    }
 
 
     public int getStatusCountFromCache(Human aHuman)
@@ -823,6 +1035,20 @@ public class HumansUser extends BaseEntity {
         DB cache_db = MongoUtil.getStatusCacheDB();
 
         DBCollection cache = cache_db.getCollection(cache_name);
+
+        DBCursor cursor = cache.find();
+        int count = cursor.count();
+
+        DBObject first = null;
+        DBObject last = null;
+        DBCursor noHeader = cursor.skip(1);
+
+        List<DBObject> objects = noHeader.toArray();
+        if(objects != null && objects.size() > 0) {
+            first = objects.get(0);
+            last = objects.get(objects.size() -1);
+        }
+        //logger.debug(first+" "+last);
 //        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("created")
 
         // remember, there is one document in the collection that just contains metadata about the cache
@@ -1378,12 +1604,12 @@ public class HumansUser extends BaseEntity {
         return result;
     }
 
-    public void removeServiceUser(ServiceUser aServiceUser) {
-        List<Human> allHumans = this.getAllHumans();
-        for(Human human : allHumans) {
-            human.removeServiceUser(aServiceUser);
-        }
-    }
+//    public void removeServiceUser(ServiceUser aServiceUser) {
+//        List<Human> allHumans = this.getAllHumans();
+//        for(Human human : allHumans) {
+//            human.removeServiceUser(aServiceUser);
+//        }
+//    }
 
 
     public List<ServiceUser> getServiceUsersForAllHumans() {
@@ -1424,11 +1650,11 @@ public class HumansUser extends BaseEntity {
      *
      * @param aServiceUserID
      * @param aServiceUsername
-     * @param aServiceTypeName
+     * @param aServiceName
      * @return whether it succeded
      */
-    protected boolean removeService(String aServiceUserID, String aServiceUsername, String aServiceTypeName) {
-        ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceTypeName);
+    protected boolean removeService(String aServiceUserID, String aServiceUsername, String aServiceName) {
+        ServiceEntry service_entry = new ServiceEntry(aServiceUserID, aServiceUsername, aServiceName);
         boolean result = services.remove(service_entry);
         //logger.debug("removing service entry "+service_entry);
         logger.debug("Removing service_entry "+service_entry.hashCode()+" from "+this+" result="+result);
@@ -1501,7 +1727,10 @@ public class HumansUser extends BaseEntity {
 
         List<Human> humans = this.getAllHumans();
         for(Human human : humans) {
-            human.removeServiceUsersByServiceEntry(onBehalfOf);
+            boolean result = human.removeServiceUsersByServiceEntry(onBehalfOf);
+            if(result) {
+                this.removeCacheForHuman(human);
+            }
         }
 
         Iterator<Human> iter = this.getAllHumans().iterator();

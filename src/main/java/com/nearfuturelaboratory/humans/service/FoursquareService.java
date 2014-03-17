@@ -272,6 +272,7 @@ public class FoursquareService {
     protected void serviceRequestCheckins(long afterTimeStamp)
     {
         //List<JSONObject> checkinsAll;
+
         JSONArray checkinsAll;
         String checkinsURL = String.format(CHECKINS_URL, accessToken.getToken());
         OAuthRequest request = new OAuthRequest(Verb.GET, checkinsURL );
@@ -283,7 +284,11 @@ public class FoursquareService {
         Response response = request.send();
         //TODO Error checking
         String s = response.getBody();
-
+        if(response.getCode() != 200 || s == null || s.isEmpty()) {
+            logger.warn("weird response " + response);
+            logger.warn("response code "+response.getCode()+" is not 200 for "+this.getThisUser()+" "+this.getThisUser().getUserID());
+            return;
+        }
         JSONObject obj = (JSONObject)JSONValue.parse(s);
         JSONObject checkins = JsonPath.read(obj, "response.checkins");
         //TODO no error checking..fix that

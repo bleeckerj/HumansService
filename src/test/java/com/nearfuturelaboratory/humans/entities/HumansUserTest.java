@@ -46,7 +46,7 @@ public class HumansUserTest {
 
 
     }
-	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.entities.HumanTest.class);
+	final static Logger logger = LogManager.getLogger(HumansUserTest.class);
 	static HumansUserDAO test_dao;
     static HumansUserDAO dev_dao;
     static HumansUserDAO remote_dao;
@@ -250,7 +250,7 @@ public class HumansUserTest {
 
 		String human_id = user.getHumanByName("addServiceUserToHuman").getId();
 
-		boolean result = user.addServiceUserToHuman(service_user, human_id);
+		boolean result = user.addServiceUserToHuman(service_user, human);
 
 		assertThat(result, is(true));
 		user.save(test_dao);
@@ -321,7 +321,7 @@ public class HumansUserTest {
 		int count = service_users.size();
 		System.out.println(service_users);
 		assertThat(service_users.isEmpty(), is(false));
-		assertThat(count, greaterThan(1));
+		assertThat(count, equalTo(1));
 		
 		boolean result = user.removeServiceBy(service.getServiceName(), service.getServiceUserID());
 		assertThat(result, equalTo(true));
@@ -329,7 +329,7 @@ public class HumansUserTest {
 //		
 		service_users = user.getServiceUsersForAllHumansByServiceName(service.getServiceName());
 		
-		assertThat(service_users.size(), lessThan(count));
+		assertThat(service_users.size(), equalTo(0));
 		
 		//HumansUserDAO foo = new HumansUserDAO("test");
 		user.save();
@@ -691,6 +691,38 @@ public class HumansUserTest {
 
             }
         }
+    }
+
+    @Test
+    public void getStatusDetailsFromCache()
+    {
+        List<HumansUser> users = dev_dao.getAllHumansUsers();
+        if(users.size() > 0) {
+            HumansUser test_user = users.get(0);
+            if(test_user.getAllHumans() != null && test_user.getAllHumans().size() > 0) {
+                Human test_human = test_user.getAllHumans().get(2);
+
+                test_user.refreshCache(test_human);
+
+                JsonObject result = test_user.getStatusDetailsFromCache(test_human);
+
+                String cache_name = "status_cache_"+test_user.getId()+"_"+test_human.getId();
+
+                DB cache_db = MongoUtil.getStatusCacheDB();
+
+                //DBCollection cache = cache_db.getCollection(cache_name);
+
+                //assertThat((int)cache.count(), is(equalTo(cache_count)));
+
+            } else {
+                fail("HumansUser has no humans!");
+            }
+
+
+        } else {
+            fail("No HumansUsers to run test.");
+        }
+
     }
 
     @Test

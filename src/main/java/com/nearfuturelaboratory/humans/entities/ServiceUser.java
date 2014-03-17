@@ -19,7 +19,7 @@ import java.util.Date;
  *
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
-@Entity(value="serviceUsers",noClassnameStored = true)
+@Entity(value="serviceUsers",noClassnameStored = false)
 public class ServiceUser extends MinimalSocialServiceUser {
 
 
