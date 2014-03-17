@@ -6,7 +6,7 @@
     xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData http://www.quartz-scheduler.org/xml/job_scheduling_data_2_0.xsd"
     version="1.8">
 
-    <schedule>
+<!--    <schedule>
         <job>
             <name>ScheduledStatusFetcher</name>
             <job-class>com.nearfuturelaboratory.humans.scheduler.ScheduledStatusFetcher</job-class>
@@ -37,6 +37,6 @@
 
 
 
-    </schedule>
+    </schedule>-->
 
 </job-scheduling-data>
