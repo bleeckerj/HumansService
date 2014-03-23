@@ -651,7 +651,7 @@ public class UserHandler {
      *
      */
     @POST @Path("/username/exists")
-    @Consumes(MediaType.APPLICATION_JSON)
+    //@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String usernameExists(
             String usernameJson,

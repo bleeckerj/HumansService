@@ -82,9 +82,9 @@
       </Async>
   </Appenders>
   <Loggers>
-      <!--<logger name="com.nearfuturelaboratory.humans" level="warn">-->
-          <!--<appender-ref ref="HUMANS_ERROR"/>-->
-      <!--</logger>-->
+      <logger name="com.nearfuturelaboratory.humans" level="warn">
+          <appender-ref ref="HUMANS_ERROR"/>
+      </logger>
       <logger name="com.nearfuturelaboratory.humans.rest" level="debug">
           <appender-ref ref="HUMANS-REST-DEBUG"/>
       </logger>
@@ -112,7 +112,7 @@
           <appender-ref ref="HUMANS_DB"/>
       </logger>
       <logger name="com.nearfuturelaboratory.humans.scheduler" level="info">
-          <!--appender-ref ref="HUMANS_BOLD"/-->
+          <appender-ref ref="HUMANS_BOLD"/>
           <appender-ref ref="QUARTZ"/>
       </logger>
       <logger name="org.mongodb.morphia" level="error">
@@ -127,8 +127,8 @@
           <AppenderRef ref="QUARTZ"/>
       </Logger>
     <Root level="error">
-      <AppenderRef ref="HUMANS_ERROR" level="error"/>
-        <AppenderRef ref="CONSOLE" level="error"/>
+      <AppenderRef ref="HUMANS_ERROR" level="warn"/>
+        <AppenderRef ref="CONSOLE" level="warn"/>
 
     </Root>
 

@@ -9,6 +9,7 @@ import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 import org.bson.types.ObjectId;
+import org.jvnet.hk2.annotations.Optional;
 import org.mongodb.morphia.annotations.*;
 
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class Human  /*extends BaseEntity*/ {
 	protected String name;
 
 	//@Indexed(value = IndexDirection.ASC, name = "humanid", unique = true/*, sparse = true, dropDups = true*/)
+    protected Boolean isYouMan = Boolean.FALSE;
 
 	@Id 
 	@Property("humanid")
@@ -152,36 +154,31 @@ public class Human  /*extends BaseEntity*/ {
 	@Override
 	public String toString() {
 		return "Human [name=" + name + ", humanid=" + humanid
-				+ ", serviceUsers=" + serviceUsers + "]";
+				+ ", serviceUsers=" + serviceUsers + ", isYouMan="+isYouMan+"]";
 	}
 
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Human other = (Human) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
+        Human human = (Human) o;
 
-	public ServiceUser fixImageUrls(ServiceUser aServiceUser) {
+        if (!humanid.equals(human.humanid)) return false;
+        if (!isYouMan.equals(human.isYouMan)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = isYouMan.hashCode();
+        result = 31 * result + humanid.hashCode();
+        return result;
+    }
+
+    public ServiceUser fixImageUrls(ServiceUser aServiceUser) {
 		ServiceUser result = aServiceUser;
 		ServiceEntry se = aServiceUser.getOnBehalfOf();
 		if(aServiceUser.getServiceName().equalsIgnoreCase("instagram")) {
