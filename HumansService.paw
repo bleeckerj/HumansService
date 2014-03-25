@@ -5,7 +5,7 @@
     <databaseInfo>
         <version>134481920</version>
         <UUID>F73C2AA7-2594-434C-9820-67B117218B35</UUID>
-        <nextObjectID>209</nextObjectID>
+        <nextObjectID>212</nextObjectID>
         <metadata>
             <plist version="1.0">
                 <dict>
@@ -97,7 +97,7 @@
     </object>
     <object type="LMREQUEST" id="z111">
         <attribute name="uuid" type="string">E841CE7A-48DA-4AA4-9DB3-D8F8BB8BC18A</attribute>
-        <attribute name="url" type="string">["http:\\/\\/localhost:8080\\/rest\\/human\\/get\\/",{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405061C1D582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A607081112131455246E756C6CD4090A0B0C0D0E0F105624636C617373576B657950617468577265717565737456666F726D617480058003800280045F102444463336303636392D443738372D343344462D413636362D3034323933343435364538365F10155B2268756D616E735B315D2E68756D616E6964225D1001D2151617185A24636C6173736E616D655824636C61737365735F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C7565A3191A1B5F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C75655E4C4D44796E616D696356616C7565584E534F626A6563745F100F4E534B657965644172636869766572D11E1F54726F6F74800100080011001A0023002D00320037003E0044004D0054005C0064006B006D006F00710073009A00B200B400B900C400CD00EE00F201130122012B013D014001450000000000000201000000000000002000000000000000000000000000000147"}]</attribute>
+        <attribute name="url" type="string">["http:\\/\\/localhost:8080\\/rest\\/human\\/get\\/",{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405061C1D582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A607081112131455246E756C6CD4090A0B0C0D0E0F105624636C617373576B657950617468577265717565737456666F726D617480058003800280045F102444463336303636392D443738372D343344462D413636362D3034323933343435364538365F10155B2268756D616E735B305D2E68756D616E6964225D1001D2151617185A24636C6173736E616D655824636C61737365735F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C7565A3191A1B5F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C75655E4C4D44796E616D696356616C7565584E534F626A6563745F100F4E534B657965644172636869766572D11E1F54726F6F74800100080011001A0023002D00320037003E0044004D0054005C0064006B006D006F00710073009A00B200B400B900C400CD00EE00F201130122012B013D014001450000000000000201000000000000002000000000000000000000000000000147"}]</attribute>
         <attribute name="timeoutinterval" type="float">30</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
         <attribute name="redirectauthorization" type="bool">0</attribute>
@@ -267,7 +267,7 @@
         <attribute name="order" type="int64">1</attribute>
         <attribute name="name" type="string">EC2</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z154 z116 z205 z150 z188 z208 z129 z201 z156 z132 z164 z158 z185 z144"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z132 z150 z144 z158 z154 z116 z211 z208 z129 z188 z164 z156 z201 z205 z185"></relationship>
         <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
@@ -288,7 +288,7 @@
     </object>
     <object type="LMREQUEST" id="z133">
         <attribute name="uuid" type="string">32EF99F3-2F32-40CB-B01B-0F7FC246B94C</attribute>
-        <attribute name="url" type="string">["https:\\/\\/localhost:8443\\/rest\\/human\\/status?humanid=",{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405062324582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A707081112161D1E55246E756C6CD4090A0B0C0D0E0F105624636C617373576B657950617468577265717565737456666F726D617480068003800280055F102444463336303636392D443738372D343344462D413636362D303432393334343536453836D209131415594E532E737472696E6780045F101168756D616E735B315D2E68756D616E6964D21718191A5A24636C6173736E616D655824636C61737365735F100F4E534D757461626C65537472696E67A3191B1C584E53537472696E67584E534F626A6563741001D217181F205F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C7565A321221C5F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C75655E4C4D44796E616D696356616C75655F100F4E534B657965644172636869766572D1252654726F6F74800100080011001A0023002D00320037003F0045004E0055005D0065006C006E007000720074009B00A000AA00AC00C000C500D000D900EB00EF00F80101010301080129012D014E015D016F017201770000000000000201000000000000002700000000000000000000000000000179"},"\u2600page=1"]</attribute>
+        <attribute name="url" type="string">["https:\\/\\/localhost:8443\\/rest\\/human\\/status?humanid=",{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405061C1D582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A607081112131455246E756C6CD4090A0B0C0D0E0F105624636C617373576B657950617468577265717565737456666F726D617480058003800280045F102444463336303636392D443738372D343344462D413636362D3034323933343435364538365F10155B2268756D616E735B305D2E68756D616E6964225D1001D2151617185A24636C6173736E616D655824636C61737365735F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C7565A3191A1B5F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C75655E4C4D44796E616D696356616C7565584E534F626A6563745F100F4E534B657965644172636869766572D11E1F54726F6F74800100080011001A0023002D00320037003E0044004D0054005C0064006B006D006F00710073009A00B200B400B900C400CD00EE00F201130122012B013D014001450000000000000201000000000000002000000000000000000000000000000147"},"\u2600page=1"]</attribute>
         <attribute name="timeoutinterval" type="float">30</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
         <attribute name="redirectauthorization" type="bool">0</attribute>
@@ -481,10 +481,10 @@
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="body" type="string">["{\\n  \\"username\\": \\"wcrtr\\",\\n  \\"password\\": \\"wcrtr\\",\\n\\"email\\": \\"will.carter@gmail.com\\"\\n}"]</attribute>
         <attribute name="order" type="int64">9</attribute>
-        <attribute name="name" type="string">User Add Human</attribute>
+        <attribute name="name" type="string">Add New User</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z131"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z194 z151"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z151 z194"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z151">
         <attribute name="value" type="string"></attribute>
@@ -529,7 +529,7 @@
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="body" type="string">["{\\n  \\"username\\": \\"foofa\\",\\n  \\"password\\": \\"barbaz\\",\\n\\"email\\": \\"dens@teendrama.com\\"\\n}"]</attribute>
-        <attribute name="order" type="int64">10</attribute>
+        <attribute name="order" type="int64">11</attribute>
         <attribute name="name" type="string">User Get Service Access Token Duplicate</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z131"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -553,8 +553,8 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">["{\\"check_username\\" : \\"darthjulian\\"}"]</attribute>
-        <attribute name="order" type="int64">11</attribute>
+        <attribute name="body" type="string">["{\\"username\\" : \\"darthjulian\\"}"]</attribute>
+        <attribute name="order" type="int64">12</attribute>
         <attribute name="name" type="string">Username Exists</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z131"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -578,7 +578,7 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">12</attribute>
+        <attribute name="order" type="int64">13</attribute>
         <attribute name="name" type="string">User Get Service Access Token</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z131"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -701,7 +701,7 @@
         <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z123"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z169">
-        <attribute name="value" type="string">[{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405061C1D582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A607081112131455246E756C6CD4090A0B0C0D0E0F1058757365726E616D655870617373776F726457636861727365745624636C61737380038004800280055875732D61736369695B64617274686A756C69616E5B64617274686A756C69616ED2151617185A24636C6173736E616D655824636C61737365735F10174C4D42617369634175746844796E616D696356616C7565A3191A1B5F10174C4D42617369634175746844796E616D696356616C75655E4C4D44796E616D696356616C7565584E534F626A6563745F100F4E534B657965644172636869766572D11E1F54726F6F74800100080011001A0023002D00320037003E0044004D0056005F0067006E0070007200740076007F008B0097009C00A700B000CA00CE00E800F7010001120115011A000000000000020100000000000000200000000000000000000000000000011C"}]</attribute>
+        <attribute name="value" type="string">[{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405061C1D582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A607081112131455246E756C6CD4090A0B0C0D0E0F1058757365726E616D655870617373776F726457636861727365745624636C61737380038004800280055875732D61736369695666616269656E5666616269656ED2151617185A24636C6173736E616D655824636C61737365735F10174C4D42617369634175746844796E616D696356616C7565A3191A1B5F10174C4D42617369634175746844796E616D696356616C75655E4C4D44796E616D696356616C7565584E534F626A6563745F100F4E534B657965644172636869766572D11E1F54726F6F74800100080011001A0023002D00320037003E0044004D0056005F0067006E0070007200740076007F0086008D0092009D00A600C000C400DE00ED00F60108010B01100000000000000201000000000000002000000000000000000000000000000112"}]</attribute>
         <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Authorization</attribute>
         <attribute name="enabled" type="bool">1</attribute>
@@ -1085,11 +1085,11 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">13</attribute>
+        <attribute name="order" type="int64">14</attribute>
         <attribute name="name" type="string">GettyUpdate Friends for Human</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z131"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z204 z206"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z206 z204"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z206">
         <attribute name="value" type="string"></attribute>
@@ -1123,7 +1123,7 @@
         <attribute name="name" type="string">Get Status Count For Human By Id After</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z131"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z209 z207"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z207 z209"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z209">
         <attribute name="value" type="string"></attribute>
@@ -1134,5 +1134,40 @@
         <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
         <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
         <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z208"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z210">
+        <attribute name="value" type="string">[{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405062324582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A707081112161D1E55246E756C6CD4090A0B0C0D0E0F105624636C617373576B657950617468577265717565737456666F726D617480068003800280055F102446363234393233382D423533342D343338322D384238422D434333423333313645384430D209131415594E532E737472696E6780045C6163636573735F746F6B656ED21718191A5A24636C6173736E616D655824636C61737365735F100F4E534D757461626C65537472696E67A3191B1C584E53537472696E67584E534F626A6563741001D217181F205F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C7565A321221C5F101E4C4D526573706F6E7365426F64795061746844796E616D696356616C75655E4C4D44796E616D696356616C75655F100F4E534B657965644172636869766572D1252654726F6F74800100080011001A0023002D00320037003F0045004E0055005D0065006C006E007000720074009B00A000AA00AC00B900BE00C900D200E400E800F100FA00FC010101220126014701560168016B01700000000000000201000000000000002700000000000000000000000000000172"}]</attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string">Authorization</attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z211"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z211">
+        <attribute name="uuid" type="string">B8FA1C8D-1A80-4E39-A98F-FC01990F21CA</attribute>
+        <attribute name="url" type="string">https://humans.nearfuturelaboratory.com:8443/rest/user/add/human</attribute>
+        <attribute name="timeoutinterval" type="float">30</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">POST</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="body" type="string">["{\\n  \\"name\\": \\"Test2\\",\\n  \\"serviceUsers\\": [\\n    {\\n      \\"imageURL\\": \\"http:\\/\\/farm1.staticflickr.com\\/4\\/buddyicons\\/94858220@N00.jpg\\",\\n      \\"onBehalfOf\\": {\\n        \\"serviceName\\": \\"flickr\\",\\n        \\"serviceUserID\\": \\"66854529@N00\\",\\n        \\"serviceUsername\\": \\"JulianBleecker\\"\\n      },\\n      \\"service\\": \\"flickr\\",\\n      \\"serviceUserID\\": \\"94858220@N00\\",\\n      \\"username\\": \\"Rhys' Eyes\\"\\n    },\\n    {\\n      \\"imageURL\\": \\"http:\\/\\/pbs.twimg.com\\/profile_images\\/57166721\\/2273953063_f6c1259d0a_b_normal.jpg\\",\\n      \\"onBehalfOf\\": {\\n        \\"serviceName\\": \\"twitter\\",\\n        \\"serviceUserID\\": \\"185383\\",\\n        \\"serviceUsername\\": \\"darthjulian\\"\\n      },\\n      \\"service\\": \\"twitter\\",\\n      \\"serviceUserID\\": \\"14715186\\",\\n      \\"username\\": \\"rhysys\\"\\n    },\\n    {\\n      \\"imageURL\\": \\"http:\\/\\/farm3.staticflickr.com\\/2841\\/buddyicons\\/91902047@N02.jpg\\",\\n      \\"onBehalfOf\\": {\\n        \\"serviceName\\": \\"flickr\\",\\n        \\"serviceUserID\\": \\"66854529@N00\\",\\n        \\"serviceUsername\\": \\"JulianBleecker\\"\\n      },\\n      \\"service\\": \\"flickr\\",\\n      \\"serviceUserID\\": \\"91902047@N02\\",\\n      \\"username\\": \\"Mike Dawn \u2600 Ella\\"\\n    }\\n  ]\\n}"]</attribute>
+        <attribute name="order" type="int64">10</attribute>
+        <attribute name="name" type="string">User Add Human</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z131"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z210 z212"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z212">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">1</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z211"></relationship>
     </object>
 </database>

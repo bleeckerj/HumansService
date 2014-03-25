@@ -550,7 +550,7 @@ public class UserHandler {
             @Context HttpServletResponse response) {
 
         String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
-
+        logger.warn("This is a test");
 
         if (access_token == null) {
             fail_response.addProperty("message", "invalid or missing access token");
@@ -576,15 +576,16 @@ public class UserHandler {
             // the onBehalfOf component?
             List<ServiceEntry> x = human.getServicesThisHumanReliesUpon();
             human.getServiceUsers();
-
+            logger.warn("WTF?");
             boolean result = user.addHuman(human);
 
             if (result) {
+                logger.debug("user?"+user);
                 user.save();
                 // we'll save and the human should now have an ID
                 Human new_human =  user.getHumanByName(human.getName());
                 //Process p = new ProcessBuilder("java", "com.nearfuturelaboratory.humans.util.RefreshHuman")
-
+                logger.debug("new_human?"+new_human);
                 //this.clearContextOfUser(context, access_token);
                 //String bar = success_response.
                 //Response foo = Response.status(Response.Status.OK).entity(success_response).build();
@@ -594,12 +595,15 @@ public class UserHandler {
                 return Response.ok(success_response.toString(), MediaType.APPLICATION_JSON).build(); //Response.OK.build();//success_response.toString();
             } else {
                 fail_response.addProperty("message", "couldn't save human");
+                logger.warn("add human failed because user.addHuman "+human);
                 return Response.status(Response.Status.OK).entity(fail_response.getAsString()).build();//.toString();
             }
         } catch (Exception e) {
-            logger.error("in /user/add/human with " + human+" "+e.getCause().getMessage(), e);
+            e.printStackTrace();
+            logger.debug("in /user/add/human with " + human+" "+e.getCause(), e);
+            logger.warn("", e);
             fail_response.addProperty("exception", e.getCause().getMessage());
-
+            e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(fail_response.toString()).type( MediaType.APPLICATION_JSON).build();
             //Response.status()
             //return Response.status(Response.Status.NOT_ACCEPTABLE).entity(fail_response).build();

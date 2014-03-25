@@ -164,7 +164,8 @@ public class Human  /*extends BaseEntity*/ {
         if (o == null || getClass() != o.getClass()) return false;
 
         Human human = (Human) o;
-
+        if(humanid == null) return false;
+        if(human.humanid == null) return false;
         if (!humanid.equals(human.humanid)) return false;
         if (!isYouMan.equals(human.isYouMan)) return false;
 

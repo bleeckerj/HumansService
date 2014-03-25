@@ -280,7 +280,7 @@ public class HumanHandler {
             fail_response.addProperty("Bad parameter passed as a timestamp", aTimestamp);
             return Response.status(500).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
         } catch(Exception e) {
-            logger.error("While getting status count for "+human+" "+aHumanId);
+            logger.error("While getting status count for "+human+" "+aHumanId, e);
             fail_response.addProperty("Exception while getting status count for "+aHumanId, e.getMessage());
             return Response.status(500).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
 

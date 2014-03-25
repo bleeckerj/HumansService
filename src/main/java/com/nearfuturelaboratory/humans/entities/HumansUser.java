@@ -81,7 +81,7 @@ public class HumansUser extends BaseEntity {
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(email);
             email_bytes =this.EncryptByteArray(baos.toByteArray());
-            logger.debug(this.getUsername()+"email_bytes="+email_bytes);
+            //logger.debug(this.getUsername()+"email_bytes="+email_bytes);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e);
@@ -91,7 +91,7 @@ public class HumansUser extends BaseEntity {
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(access_token);
             access_token_bytes =this.EncryptByteArray(baos.toByteArray());
-            logger.debug((this.getUsername()+"access_token_bytes="+email_bytes));
+            //logger.debug((this.getUsername()+"access_token_bytes="+email_bytes));
 
         } catch(Exception e) {
             logger.error(e);

@@ -82,7 +82,8 @@ public class FlickrLoginServlet extends HttpServlet {
 			// this'll go first in the authentication flow
 			requestToken = service.getRequestToken();
 			logger.debug("Now Request Token is "+requestToken);
-			String authUrl = service.getAuthorizationUrl(requestToken);
+            String authUrl = service.getAuthorizationUrl(requestToken)+"&perms=write";
+            logger.debug("And authURL is "+authUrl);
 			resp.sendRedirect(authUrl);
 			//		Verifier verifier = new Verifier()
 		}

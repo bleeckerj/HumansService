@@ -112,6 +112,8 @@ public class AuthServices {
         HttpSession session = request.getSession(true);
 
         logger.debug("now session="+session.getId());
+        logger.debug("session contents="+session.getAttributeNames());
+        logger.debug("session(logged-in-user)="+session.getAttribute("logged-in-user"));
         if(humans_access_token != null) {
             user = getUserForAccessToken(context, humans_access_token);
             // it might be that mobile browser is holding onto the cookie/session id
@@ -147,6 +149,9 @@ public class AuthServices {
             accessToken = service.getAccessToken(requestToken, verifier);
             twitter = new TwitterService(accessToken);
             TwitterUser twitterUser = twitter.serviceRequestUserBasic();
+
+            logger.info("just got access token for twitter - "+twitter.getThisUser());
+
 
             twitter.serviceRequestFollows();
             //logger.debug("screen_name is "+twitter.getThisUser().getScreen_name()+" "+twitter.getThisUser().getId());
@@ -228,7 +233,7 @@ public class AuthServices {
             InstagramUser instagramUser = instagramService.serviceRequestUserBasic();
 
 
-            logger.debug("instagram user="+instagramUser);
+            logger.debug("just got access for instagram user="+instagramUser);
 
             logger.info("just got access token for instagram - "+instagramService.getThisUser());
             InstagramService.serializeToken(accessToken, instagramService.getThisUser());
@@ -282,6 +287,8 @@ public class AuthServices {
                                                   @Context HttpServletResponse response)
     {
         String humans_access_token = request.getParameter("access_token");
+        logger.debug("access_token = "+humans_access_token);
+
         if(humans_access_token == null && request.getParameter("code") == null) {
             fail_response.addProperty("message", "invalid or missing access token");
             return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
@@ -291,6 +298,9 @@ public class AuthServices {
         HttpSession session = request.getSession(true);
 
         logger.debug("now session="+session.getId());
+        logger.debug("session contents="+session.getAttributeNames());
+        logger.debug("session(logged-in-user)="+session.getAttribute("logged-in-user"));
+
         if(humans_access_token != null) {
             user = getUserForAccessToken(context, humans_access_token);
             // it might be that mobile browser is holding onto the cookie/session id
@@ -330,10 +340,8 @@ public class AuthServices {
             FoursquareUser foursquareUser = foursquareService.serviceRequestUserBasic();
 
 
-            logger.debug("foursquare user="+foursquareUser);
-
-
-            logger.info("just got access token for foursquare - "+foursquareService.getThisUser());
+            logger.info("just got access for foursquare user="+foursquareUser);
+            //logger.info("just got access token for foursquare - "+foursquareService.getThisUser());
             FoursquareService.serializeToken(accessToken, foursquareService.getThisUser());
             //HttpSession session = request.getSession(true);
 
@@ -382,6 +390,7 @@ public class AuthServices {
                                                @Context HttpServletResponse response)
     {
         String humans_access_token = request.getParameter("access_token");
+        logger.debug("access_token = "+humans_access_token);
         if(humans_access_token == null && (request.getParameter("oauth_token") == null && request.getParameter("oauth_verifier") == null)) {
             fail_response.addProperty("message", "invalid or missing access token");
             fail_response.addProperty("parameters", request.getParameterMap().toString());
@@ -393,6 +402,8 @@ public class AuthServices {
         FlickrService flickr;
 
         logger.debug("now session="+session.getId());
+        logger.debug("session contents="+session.getAttributeNames());
+        logger.debug("session(logged-in-user)="+session.getAttribute("logged-in-user"));
         if(humans_access_token != null) {
             user = getUserForAccessToken(context, humans_access_token);
             // it might be that mobile browser is holding onto the cookie/session id
@@ -457,7 +468,9 @@ public class AuthServices {
             requestToken = service.getRequestToken();
             session.setAttribute("request-token", requestToken);
             logger.debug("Now Request Token is "+requestToken);
-            String authUrl = service.getAuthorizationUrl(requestToken);
+            String authUrl = service.getAuthorizationUrl(requestToken)+"&perms=write";
+            logger.debug("And authURL is "+authUrl);
+
             return Response.seeOther(URI.create(authUrl)).build();
             //resp.sendRedirect(authUrl);
             //		Verifier verifier = new Verifier()
