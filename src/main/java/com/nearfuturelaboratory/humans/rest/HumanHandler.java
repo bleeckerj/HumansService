@@ -21,8 +21,8 @@ import java.util.List;
 
 
 @Path("/human")
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+//@Consumes(MediaType.APPLICATION_JSON)
+//@Produces(MediaType.APPLICATION_JSON)
 public class HumanHandler {
 
 	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.rest.HumanHandler.class);
@@ -548,12 +548,23 @@ request.getParameter("access_token"));
 
 	}
 
+    @POST
+    @Path("{humanid}/add/serviceusers/")
+   // @Consumes("application/x-www-form-urlencoded")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response addServiceUsersToHuman(
+            String aServiceUserJson,
+            @PathParam("humanid") String aHumanId,
+            @Context HttpServletRequest request) {
 
-	@POST
+        logger.debug("request is "+request+" and "+request.getHeader("content-type"));
+        return null;
+    }
+
+        @POST
 	@Path("{humanid}/add/serviceuser/")
 	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public Response addServiceUserToHuman(
+    public Response addServiceUserToHuman(
 			String aServiceUserJson,
 			@PathParam("humanid") String aHumanId, 
 			@Context HttpServletRequest request)

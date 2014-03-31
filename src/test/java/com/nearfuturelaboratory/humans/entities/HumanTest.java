@@ -135,7 +135,16 @@ public class HumanTest {
 		
 		fail("Not yet implmented");
 	}
-	
+
+    @Test
+    public void getServiceUserByServiceUserId()
+    {
+
+
+
+        fail("Not yet implemented");
+    }
+
 	@Test
 	public void testRemoveServiceUserByServiceEntry()
 	{

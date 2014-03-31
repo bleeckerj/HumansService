@@ -37,7 +37,9 @@ public class ScheduledStatusFetcher implements Job {
 
             try {
                 humansUser.refreshStatusForAllHumans();
+                humansUser.save();
             } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
                 logger.warn("Something bad happened whilst fetching status for "+humansUser.getUsername()+" "+humansUser.getId());
             }
             logger.info("=========== Done Fetch Status For "+humansUser.getUsername() +" ==============");

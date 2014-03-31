@@ -426,6 +426,7 @@ public class UserHandler {
             ServiceEntry service = in_gson.fromJson(aServiceJson, ServiceEntry.class);
             boolean result = user.removeService(service);
             if(result == true) {
+                user.updateYouman();
                 user.save();
                 return success_response.toString();
             } else {
@@ -492,51 +493,7 @@ public class UserHandler {
     {
         fail_response.addProperty("message", "deprecated endpoint. use the human");
         return fail_response.toString();
-        /*
-        //HumansUserDAO dao = new HumansUserDAO();
-        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
 
-        if(access_token == null) {
-            fail_response.addProperty("message", "invalid or missing access token");
-            return fail_response.toString();
-        }
-
-        HumansUser user = getUserForAccessToken(context, access_token);
-
-        if(user == null) {
-            invalid_user_error_response.addProperty("message", "invalid access token");
-            return invalid_user_error_response.toString();
-        }
-        //HttpSession session = request.getSession();
-//		if(isValidUser(request, user) == false) {
-//			return invalid_user_error_response.toString();
-//		}
-//
-//        try {
-//            ObjectId o = new ObjectId(aServiceUserId);
-//        } catch(IllegalArgumentException iae) {
-//            logger.warn("", iae);
-//            return fail_response.toString();
-//        }
-
-//		if(user == null) {
-//			return invalid_user_error_response.toString();
-//		}
-        //		if(aServiceUserId == null) {
-        //
-        //		}
-
-        boolean result = user.removeServiceUserById(aServiceUserId);
-        user.save();
-        this.clearContextOfUser(context, access_token);
-//		setSessionUser(request, user);
-
-        if(result) {
-            return success_response.toString();
-        } else {
-            return fail_response.toString();
-        }
-        */
     }
 
     // TODO if you add a human and it contains a service that does not yet exist..

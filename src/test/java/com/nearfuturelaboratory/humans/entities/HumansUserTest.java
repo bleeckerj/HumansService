@@ -57,7 +57,6 @@ public class HumansUserTest {
 		//Logger.getRootLogger().setLevel(Level.OFF);
 
 		try {
-
 			Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
 			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 
@@ -68,50 +67,29 @@ public class HumansUserTest {
             remote_dao = null;
             Mongo remote_mongo;
 
-//            try {
-//
-//                MongoClientOptions mco = new MongoClientOptions.Builder()
-//                        .connectionsPerHost(10)
-//                        .threadsAllowedToBlockForConnectionMultiplier(10)
-//                        .build();
-//                //MongoClient client = new MongoClient(addresses, mco);
-//                ServerAddress address = new ServerAddress("localhost", 29017);
-//                remote_mongo = new MongoClient(address, mco);
-//                remote_dao = new HumansUserDAO(remote_mongo, new Morphia(), "humans");
-//
-//            } catch (UnknownHostException e) {
-//                logger.error(e.getMessage());
-//            } catch(MongoException e) {
-//                logger.error(e.getMessage());
-//
-//            }
-//
-
-
             logger.debug("Hey Ho!");
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 
 	}
-	
-//	@Test
-//	public void testHumansUser() {
-//		try {
-//		HumansUser user = new HumansUser("darthjulian", "darthjulian");
-//		assertThat(user.isValidUser(), is(true));
-//		} catch(InvalidUserException iue) {
-//			fail(iue.toString());
-//
-//		}
-//	}
 
-	
-	
-	//	protected Human getTestHuman()
-	//	{
-	//		return human;
-	//	}
+    @Test
+    public void updateYouman() {
+        HumansUser user = dev_dao.getHumansUser("fabien", "fabien");
+        user.updateYouman();
+        assertThat(user.getYouman(), is(notNullValue()));
+        user.save();
+        assertThat(user.getYouman(), is(notNullValue()));
+        Human youman = user.getYouman();
+        assertThat(youman.getServiceUsers(), is(not(empty())));
+        for(ServiceUser service_user : youman.getServiceUsers()) {
+            String service_user_id = service_user.getServiceUserID();
+            ServiceUser youman_service_user = youman.getServiceUserByServiceUserId(service_user_id);
+            assertThat(youman_service_user, is(equalTo(service_user)));
+        }
+
+    }
 
 	@Test
 	public void removeServiceUserById() {

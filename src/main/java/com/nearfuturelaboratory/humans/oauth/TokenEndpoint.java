@@ -107,9 +107,8 @@ public class TokenEndpoint {
             fail_response.addProperty("message", "incomplete authorization");
             return Response.status(HttpServletResponse.SC_NOT_ACCEPTABLE).entity(fail_response).build();
         }
-        //OAuthTokenRequest oauthRequest = null;
-//        OAuthUnauthenticatedTokenRequest oauthRequest = null;
-        OAuthIssuer oauthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
+        try {
+            OAuthIssuer oauthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
 //        logger.debug("Token Endpoint "+request);
 
 //			oauthRequest = new OAuthUnauthenticatedTokenRequest(request);
@@ -126,8 +125,8 @@ public class TokenEndpoint {
             if (request.getParameter(OAuth.OAUTH_GRANT_TYPE)
                     .equals(GrantType.PASSWORD.toString())) {
                 HumansUserDAO dao = new HumansUserDAO();
-                HumansUser user =  dao.findOneByUsername(username); //new HumansUser(oauthRequest.getUsername(), oauthRequest.getPassword());
-                if(user == null) {
+                HumansUser user = dao.findOneByUsername(username); //new HumansUser(oauthRequest.getUsername(), oauthRequest.getPassword());
+                if (user == null) {
 //                    OAuthResponse response = OAuthASResponse
 //                            .errorResponse(HttpServletResponse.SC_UNAUTHORIZED)
 //                            .setError(OAuthError.TokenResponse.INVALID_CLIENT)
@@ -142,7 +141,7 @@ public class TokenEndpoint {
 
                 }
 
-                if(user.verifyPassword(password)) {
+                if (user.verifyPassword(password)) {
                     String access_token = oauthIssuerImpl.accessToken();
                     user.setAccessToken(access_token);
                     user.save();
@@ -164,7 +163,7 @@ public class TokenEndpoint {
 //                            .setError(OAuthError.TokenResponse.INVALID_GRANT)
 //                            .setErrorDescription("invalid username or password")
 //                            .buildJSONMessage();
-                      return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).build();
+                    return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).build();
 //                    return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
 
                 }
@@ -178,7 +177,11 @@ public class TokenEndpoint {
 //                    .buildJSONMessage();
             return Response.status(Response.Status.BAD_REQUEST).entity(fail_response.toString()).build();
 //            return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
-
+        } catch(Exception e) {
+            logger.error(e.getMessage(), e);
+            fail_response.addProperty("exception", e.getMessage());
+            return Response.status(Response.Status.BAD_GATEWAY).entity(fail_response.toString()).build();
+        }
 
 
 

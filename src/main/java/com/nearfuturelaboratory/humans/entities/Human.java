@@ -13,7 +13,9 @@ import org.jvnet.hk2.annotations.Optional;
 import org.mongodb.morphia.annotations.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import static ch.lambdaj.Lambda.*;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -77,7 +79,14 @@ public class Human  /*extends BaseEntity*/ {
 		return result;
 	}
 
-	
+    public void removeAllServiceUsers() {
+        Iterator<ServiceUser> iter = serviceUsers.iterator();
+        while(iter.hasNext()) {
+            iter.next();
+            iter.remove();
+        }
+    }
+
 	public List<ServiceEntry> getServicesThisHumanReliesUpon()
 	{
 		List<ServiceEntry> results = new ArrayList<ServiceEntry>();
@@ -117,23 +126,53 @@ public class Human  /*extends BaseEntity*/ {
 		}
 		return result;
 	}
-	
-	public boolean removeServiceUserById(String aServiceUserId) {
+    /**
+     * Remove a service user by its Mongo DB ID
+     * @param aId a valid Mongo DB ID
+     * @return
+     */
+	public boolean removeServiceUserById(String aId) {
 		boolean result;
-		ServiceUser serviceUser = selectUnique(serviceUsers, having(on(ServiceUser.class).getId(), equalTo(new ObjectId(aServiceUserId))));
+		ServiceUser serviceUser = selectUnique(serviceUsers, having(on(ServiceUser.class).getId(), equalTo(new ObjectId(aId))));
 		result = serviceUsers.remove(serviceUser);
 		return result;
 	}
 
-	public ServiceUser getServiceUserById(String aServiceUserId) {
-		ServiceUser serviceUser = selectUnique(serviceUsers, having(on(ServiceUser.class).getId(), equalTo(new ObjectId(aServiceUserId))));
+    /**
+     * Get a service user by its Mongo DB ID
+     * @param aId a valid Mongo DB ID
+     * @return
+     */
+	public ServiceUser getServiceUserById(String aId) {
+		ServiceUser serviceUser = selectUnique(serviceUsers, having(on(ServiceUser.class).getId(), equalTo(new ObjectId(aId))));
 		return serviceUser;
 	}
 
+    /**
+     * Get a service user by the ID the service has assigned it, eg an Instagram user id
+     * @param aServiceUserId
+     * @return
+     */
+    public ServiceUser getServiceUserByServiceUserId(String aServiceUserId) {
+        ServiceUser serviceUser = selectUnique(serviceUsers, having(on(ServiceUser.class).getServiceUserID(), equalTo(aServiceUserId)));
+        return serviceUser;
+    }
+
 	public String getId() {
-		return humanid.toString();
+        if(humanid != null) {
+            return humanid.toString();
+        } else {
+            return null;
+        }
 	}
 
+    public void setYouMan(boolean _isYouMan) {
+        this.isYouMan = _isYouMan;
+    }
+
+    public boolean isYouMan() {
+        return this.isYouMan;
+    }
 	/**
 	 * Really only for testing
 	 * @param aId
@@ -179,7 +218,15 @@ public class Human  /*extends BaseEntity*/ {
         return result;
     }
 
-    public ServiceUser fixImageUrls(ServiceUser aServiceUser) {
+    public void fixImageUrls()
+    {
+        for(ServiceUser service_user : this.serviceUsers) {
+            fixImageUrls(service_user);
+        }
+    }
+
+
+    protected ServiceUser fixImageUrls(ServiceUser aServiceUser) {
 		ServiceUser result = aServiceUser;
 		ServiceEntry se = aServiceUser.getOnBehalfOf();
 		if(aServiceUser.getServiceName().equalsIgnoreCase("instagram")) {

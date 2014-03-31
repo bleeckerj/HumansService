@@ -122,8 +122,13 @@ public class FlickrUser extends MinimalSocialServiceUser {
 	@Override
 	public String getImageURL() {
 		// TODO Auto-generated method stub
-		return null;
-	}
+		//return null;
+        String result = "http://farm"+this.iconfarm+".staticflickr.com/"+this.iconserver +"/buddyicons/"+this.nsid+".jpg";
+        return result;
+        //NSString *flickrBuddyIconSillyness = [NSString stringWithFormat:@"http://farm%@.staticflickr.com/%@/buddyicons/%@.jpg", self.iconfarm, self.iconserver, self.owner];
+        //result = [NSURL URLWithString:flickrBuddyIconSillyness];
+
+    }
 
 
 	@Override

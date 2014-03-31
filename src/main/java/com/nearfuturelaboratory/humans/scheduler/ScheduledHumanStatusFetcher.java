@@ -33,6 +33,10 @@ public class ScheduledHumanStatusFetcher implements Job {
         HumansUser user = dao.findOneByAccessToken(access_token);
         if(user != null) {
             Human human = user.getHumanByID(human_id);
+
+            human.fixImageUrls();
+            // TODO for every human, also refresh its own service users? make sure they have correct imageURL, etc.? how?
+            // N.B. they may not have them if it's a weird case like Youman where the client may not have full specs on the service user
             logger.info("started fetching individual status for "+human.getName()+" for "+user.getUsername());
             user.serviceRefreshStatusForHuman(human);
             user.refreshCache(human);

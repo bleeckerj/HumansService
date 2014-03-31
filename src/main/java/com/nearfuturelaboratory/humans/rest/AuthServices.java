@@ -2,7 +2,7 @@ package com.nearfuturelaboratory.humans.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
+import com.nearfuturelaboratory.humans.dao.*;
 import com.nearfuturelaboratory.humans.entities.HumansUser;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
@@ -150,14 +150,18 @@ public class AuthServices {
             twitter = new TwitterService(accessToken);
             TwitterUser twitterUser = twitter.serviceRequestUserBasic();
 
-            logger.info("just got access token for twitter - "+twitter.getThisUser());
+            logger.info("just got access token for twitter - " + twitter.getThisUser());
 
 
             twitter.serviceRequestFollows();
             //logger.debug("screen_name is "+twitter.getThisUser().getScreen_name()+" "+twitter.getThisUser().getId());
             user.addService(twitter.getThisUser().getId(), twitter.getThisUser().getScreen_name(),"twitter" );
-            //logger.debug("And user is now "+user);
+            user.updateYouman();
             user.save();
+
+            TwitterUserDAO dao = new TwitterUserDAO();
+            dao.save(twitter.getThisUser());
+
             TwitterService.serializeToken(accessToken, twitter.getThisUser());
             Gson gson = new Gson();
 
@@ -242,7 +246,13 @@ public class AuthServices {
 
             //logger.debug("screen_name is "+instagramService.getThisUser().getUsername()+" "+instagramService.getThisUser().getId());
             user.addService( (String)instagramService.getThisUser().getId(),  (String)instagramService.getThisUser().getUsername(),"instagram");
+
+            user.updateYouman();
+
             user.save();
+
+            InstagramUserDAO dao = new InstagramUserDAO();
+            dao.save(instagramService.getThisUser());
 
             InstagramService.serializeToken(accessToken, instagramService.getThisUser());
 
@@ -340,7 +350,7 @@ public class AuthServices {
             FoursquareUser foursquareUser = foursquareService.serviceRequestUserBasic();
 
 
-            logger.info("just got access for foursquare user="+foursquareUser);
+            logger.info("just got access for foursquare user=" + foursquareUser);
             //logger.info("just got access token for foursquare - "+foursquareService.getThisUser());
             FoursquareService.serializeToken(accessToken, foursquareService.getThisUser());
             //HttpSession session = request.getSession(true);
@@ -348,7 +358,11 @@ public class AuthServices {
 
             //logger.debug("screen_name is "+instagramService.getThisUser().getUsername()+" "+instagramService.getThisUser().getId());
             user.addService( (String)foursquareService.getThisUser().getId(),  (String)foursquareService.getThisUser().getUsername(),"foursquare");
+            user.updateYouman();
             user.save();
+
+            FoursquareUserDAO dao = new FoursquareUserDAO();
+            dao.save(foursquareService.getThisUser());
 
             FoursquareService.serializeToken(accessToken, foursquareService.getThisUser());
 
@@ -449,7 +463,11 @@ public class AuthServices {
             logger.debug("just got auth token for flickr - username is "+flickr.getThisUser().getUsername()+" "+flickr.getThisUser().getId());
 
             user.addService( (String) flickr.getThisUser().getId(),  (String) flickr.getThisUser().getUsername(), "flickr");
+            user.updateYouman();
             user.save();
+
+            FlickrUserDAO dao = new FlickrUserDAO();
+            dao.save(flickr.getThisUser());
 
             flickr.serializeToken(accessToken);
             session.setAttribute("logged-in-user", user);

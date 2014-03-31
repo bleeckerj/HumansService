@@ -6,14 +6,18 @@ import com.mongodb.util.JSON;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
+import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
 import com.nearfuturelaboratory.humans.service.FlickrService;
 import com.nearfuturelaboratory.humans.service.FoursquareService;
 import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
+import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 import com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
@@ -37,6 +41,7 @@ import java.util.*;
 import static ch.lambdaj.Lambda.*;
 import static ch.lambdaj.function.matcher.AndMatcher.and;
 import static org.hamcrest.CoreMatchers.equalTo;
+import org.apache.commons.collections4.CollectionUtils;
 
 @Entity(value="users",noClassnameStored = true)
 public class HumansUser extends BaseEntity {
@@ -81,7 +86,7 @@ public class HumansUser extends BaseEntity {
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(email);
             email_bytes =this.EncryptByteArray(baos.toByteArray());
-            //logger.debug(this.getUsername()+"email_bytes="+email_bytes);
+
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e);
@@ -105,34 +110,28 @@ public class HumansUser extends BaseEntity {
             email_bytes = this.DecryptByteArray(email_bytes);
             ObjectInputStream ois = new ObjectInputStream(
                     new ByteArrayInputStream(email_bytes));
-            email = (String ) ois.readObject();
+            email = (String) ois.readObject();
+
+            //this.updateYouman();
+
         } catch (Exception e) {
             // e.printStackTrace();
 
             logger.error(
-                    "The email "+email+" address for "+this.getUsername()+" probably do not represent an encrypted String. You may need to encrypt "+this.getUsername()+"'s email address.");
+                    "The email " + email + " address for " + this.getUsername() + " probably do not represent an encrypted String. You may need to encrypt " + this.getUsername() + "'s email address.");
         }
         try {
             access_token_bytes = this.DecryptByteArray(access_token_bytes);
             ObjectInputStream ois = new ObjectInputStream(
                     new ByteArrayInputStream(access_token_bytes));
-            access_token = (String ) ois.readObject();
+            access_token = (String) ois.readObject();
         } catch (Exception e) {
             // e.printStackTrace();
 
             logger.error(
-                    "The access_token "+access_token+" for "+this.getUsername()+" probably do not represent an encrypted String. You may need to encrypt "+this.getUsername()+"'s access_token." );
+                    "The access_token " + access_token + " for " + this.getUsername() + " probably do not represent an encrypted String. You may need to encrypt " + this.getUsername() + "'s access_token.");
         }
     }
-
-    /*
-    @PreLoad
-    void preLoad() {
-
-            logger.debug("preload..");
-
-    }
-    */
 
     protected byte[] EncryptByteArray(byte[] array) throws Exception {
         BasicBinaryEncryptor binaryEncryptor = new BasicBinaryEncryptor();
@@ -157,6 +156,151 @@ public class HumansUser extends BaseEntity {
     public HumansUser() {
         super();
     }
+
+    public void updateYouman()
+    {
+        boolean has_modified = false;
+        Human youman = getYouman();
+
+        List<ServiceUser> service_users = youman.getServiceUsers();
+        List<ServiceEntry> humans_services = this.getServices();
+        List<ServiceUser> humans_service_users_faux  = new ArrayList<ServiceUser>();
+
+        for(ServiceEntry service_entry : humans_services) {
+            humans_service_users_faux.add(makeServiceUserFromServiceEntry(service_entry));
+        }
+
+        Collection<ServiceUser> addToYouman =  CollectionUtils.subtract(humans_service_users_faux, service_users);
+        Collection<ServiceUser> removeFromYouman = CollectionUtils.subtract(service_users, humans_service_users_faux);
+
+        if(addToYouman.size() > 0 || removeFromYouman.size() > 0) {
+            has_modified = true;
+        } else {
+            return;
+        }
+
+        this.removeHuman(youman);
+        for(ServiceUser service_user : addToYouman) {
+            youman.addServiceUser(service_user);
+        }
+        for(ServiceUser service_user : removeFromYouman) {
+            youman.removeServiceUser(service_user);
+        }
+
+        if(youman.getServiceUsers() != null && youman.getServiceUsers().size() > 0) {
+            this.addHuman(youman);
+        } else {
+            if(youman.getId() != null) {
+                this.removeHuman(youman);
+            }
+        }
+    }
+
+
+    /**
+     * Create a Youman
+     * @return
+     */
+    protected Human createYouman()
+    {
+        Human human = new Human();
+        human.setName(this.getUsername());
+        human.setYouMan(true);
+        for(ServiceEntry serviceEntry : services) {
+            ServiceUser service_user = makeServiceUserFromServiceEntry(serviceEntry);
+            human.addServiceUser(service_user);
+        }
+        //this.save();
+        return human;
+    }
+
+    /**
+     * return the mirror of this HumansUser based on all of their linked Services
+     * @return
+     */
+    protected Human getYouman()
+    {
+        Human result = null;
+        for(Human human : humans) {
+            if(human.isYouMan()) {
+                result = human;
+                break;
+            }
+        }
+        if(result == null) {
+            // woops..doesn't have one so make it!
+            result = createYouman();
+            this.addHuman(result);
+        }
+        return result;
+    }
+
+
+
+
+    protected ServiceUser makeServiceUserFromServiceEntry(ServiceEntry aServiceEntry) {
+        ServiceUser result = new ServiceUser();
+        //result.setServiceEntry(aServiceEntry);
+        result.setOnBehalfOf(aServiceEntry);
+        result.setUsername(aServiceEntry.getServiceUsername());
+        result.setServiceName(aServiceEntry.getServiceName());
+        result.setServiceUserID(aServiceEntry.getServiceUserID());
+        result.setImageURL(getImageURLFor(aServiceEntry));
+        return result;
+    }
+
+
+    protected String getImageURLFor(ServiceEntry aServiceEntry) {
+        String result = "";
+        ServiceEntry se = aServiceEntry;
+        if(aServiceEntry.getServiceName().equalsIgnoreCase("instagram")) {
+            try {
+                InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(se.getServiceUsername());
+                InstagramUser u = instagram.serviceRequestUserBasicForUserID(se.getServiceUserID());
+                result = u.getLargeImageURL();
+            } catch(Exception e) {
+                e.printStackTrace();
+                logger.error(e.getMessage(), e);
+            }
+        }
+        if(aServiceEntry.getServiceName().equalsIgnoreCase("twitter")) {
+            try {
+                TwitterService service = TwitterService.createTwitterServiceOnBehalfOfUsername(se.getServiceUsername());
+                TwitterUser u = service.serviceRequestUserBasicForUserID(se.getServiceUserID());
+                result = u.getImageURL();
+            } catch(Exception e) {
+                e.printStackTrace();
+                logger.error(e.getMessage(), e);
+
+            }
+        }
+        if(aServiceEntry.getServiceName().equalsIgnoreCase("foursquare")) {
+            try {
+                FoursquareService service = FoursquareService.createFoursquareServiceOnBehalfOfUserID(se.getServiceUserID());
+                FoursquareUser u = service.serviceRequestUserBasicForUserID(se.getServiceUserID());
+               result = u.getImageURL();
+            } catch(Exception e) {
+                e.printStackTrace();
+                logger.error(e.getMessage(), e);
+
+            }
+        }
+        if(aServiceEntry.getServiceName().equalsIgnoreCase("flickr")) {
+            try {
+                FlickrService service = FlickrService.createFlickrServiceOnBehalfOfUserID(se.getServiceUserID());
+                FlickrUser u = service.serviceRequestUserBasicForUserID(se.getServiceUserID());
+                result = u.getImageURL();
+            } catch(Exception e) {
+                e.printStackTrace();
+                logger.error(e.getMessage(), e);
+
+            }
+
+        }
+
+        return result;
+    }
+
 
     public static boolean doesUsernameExist(String aUsername) {
         HumansUserDAO dao = new HumansUserDAO();
@@ -255,7 +399,9 @@ public class HumansUser extends BaseEntity {
 
     public void removeHuman(Human aHuman) {
         humans.remove(aHuman);
-        removeCacheForHuman(aHuman);
+        if(aHuman.getId() != null) {
+            removeCacheForHuman(aHuman);
+        }
     }
 
     /**
@@ -353,20 +499,11 @@ public class HumansUser extends BaseEntity {
             }
         }
 
-//        for(Human human : empty_humans) {
-//            this.removeHuman(human);
-//        }
         if(result) {
             this.save();
         }
         return result;
-        //		ServiceUser service_user = selectFirst(
-        //											flatten(
-        //													extract(this.getHumans(), on(Human.class).getServiceUsers())),
-        //                having(on(ServiceUser.class).getId(), equalTo(new ObjectId(aServiceUserId))));
-        //
-        //		return result;
-    }
+      }
 
     /**
      * Returns true if this Human has a ServiceUser with a specific Id
@@ -492,16 +629,6 @@ public class HumansUser extends BaseEntity {
 
         }
 
-//        Collections.sort(f, new Comparator<JsonObject>()
-//        {
-//            public int compare(JsonObject o1, JsonObject o2)
-//            {
-//                String u1 = o1.get("username").toString();
-//                String u2 = o2.get("username").toString();
-//                int v = u1.compareTo(u2);
-//                return v;
-//            }
-//        });
         for(JsonObject o : f) {
             result.add(o);
         }
@@ -696,9 +823,16 @@ public class HumansUser extends BaseEntity {
     {
         List<Human> humans = getAllHumans();
         for(Human human : humans) {
+//            if(human.isYouMan()) {
+//                this.updateYouman();
+//            }
             serviceRefreshStatusForHuman(human);
             refreshCache(human);
         }
+        this.updateYouman();
+        Human h = this.getYouman();
+        serviceRefreshStatusForHuman(h);
+        refreshCache(h);
 
     }
 
@@ -775,14 +909,16 @@ public class HumansUser extends BaseEntity {
 
     protected void removeCacheForHuman(Human aHuman)
     {
-        String cache_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
+        if(this.getId() != null && aHuman.getId() != null) {
+            String cache_name = "status_cache_" + this.getId() + "_" + aHuman.getId();
 
-        DB cache_db = MongoUtil.getStatusCacheDB();
+            DB cache_db = MongoUtil.getStatusCacheDB();
 
-        if(cache_db.collectionExists(cache_name)) {
-            DBCollection cache = cache_db.getCollection(cache_name);
-            cache.drop();
-            logger.info("removing cache for "+aHuman.getName() +" / "+aHuman.getId());
+            if (cache_db.collectionExists(cache_name)) {
+                DBCollection cache = cache_db.getCollection(cache_name);
+                cache.drop();
+                logger.info("removing cache for " + aHuman.getName() + " / " + aHuman.getId());
+            }
         }
     }
 
@@ -1306,6 +1442,11 @@ public class HumansUser extends BaseEntity {
      */
     public void serviceRefreshStatusForHuman(Human aHuman)
     {
+        // TODO whilst doing this may as well freshen the avatar imageURLs
+        // sometimes they are stale (Twitter, which doesn't fix the URLs but wipes them out if the user changes them)
+        // and sometimes they are missing all together if the Human was created in a wierd way, specifically on the
+        // client which can create a Human without knowing the user's imageURL, such as when we create a Youman.
+        
         // if this particular HumansUser has foursquare accounts we may as well
         // get their service ID and get latest checkins
         List<ServiceEntry> serviceEntries = getServicesForServiceName("foursquare");

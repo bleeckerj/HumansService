@@ -109,22 +109,19 @@
       <logger name="com.nearfuturelaboratory.humans.service.InstagramService" level="debug" additivity="false">
           <appender-ref ref="HUMANS"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.TwitterService" level="debug" additivity="false">
-          <appender-ref ref="HUMANS"/>
-      </logger>
       <logger name="com.nearfuturelaboratory.humans.service.FoursquareService" level="debug" additivity="false">
           <appender-ref ref="HUMANS"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.TwitterService" level="warn" additivity="false">
+      <logger name="com.nearfuturelaboratory.humans.service.TwitterService" level="info" additivity="false">
           <appender-ref ref="QUARTZ"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.FlickrService" level="warn" additivity="false">
+      <logger name="com.nearfuturelaboratory.humans.service.FlickrService" level="info" additivity="false">
           <appender-ref ref="QUARTZ"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.InstagramService" level="warn" additivity="false">
+      <logger name="com.nearfuturelaboratory.humans.service.InstagramService" level="info" additivity="false">
           <appender-ref ref="QUARTZ"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.FoursquareService" level="warn" additivity="false">
+      <logger name="com.nearfuturelaboratory.humans.service.FoursquareService" level="info" additivity="false">
           <appender-ref ref="QUARTZ"/>
       </logger>
       <logger name="com.nearfuturelaboratory.humans.dao.InstagramStatusDAO" level="info" additivity="false">
@@ -137,7 +134,6 @@
       </logger>
       <logger name="com.nearfuturelaboratory.humans.servlets.FlickrLoginServlet" level="debug" additivity="false">
           <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
           <appender-ref ref="HUMANS-REST-DEBUG"/>
       </logger>
       <logger name="com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO" level="info" additivity="false">
@@ -169,15 +165,15 @@
           <appender-ref ref="HUMANS_DB"/>
       </logger>
       <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="info" additivity="false">
-          <appender-ref ref="HUMANS_BOLD"/>
           <appender-ref ref="QUARTZ"/>
       </logger>
       <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledStatusFetcher" level="info" additivity="false">
-          <appender-ref ref="HUMANS_BOLD"/>
           <appender-ref ref="QUARTZ"/>
       </logger>
       <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher" level="info" additivity="false">
-          <appender-ref ref="HUMANS_BOLD"/>
+          <appender-ref ref="QUARTZ"/>
+      </logger>
+      <logger name="com.nearfuturelaboratory.humans.entities.HumansUser" level="info" additivity="false">
           <appender-ref ref="QUARTZ"/>
       </logger>
 

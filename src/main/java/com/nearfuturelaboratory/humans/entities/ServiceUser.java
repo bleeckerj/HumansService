@@ -5,7 +5,9 @@ import com.nearfuturelaboratory.humans.dao.*;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrUser;
 import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
+import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.*;
@@ -113,11 +115,16 @@ public class ServiceUser extends MinimalSocialServiceUser {
        }
         // Flickr profileImage URL is formulated..
 //        if(serviceName.equalsIgnoreCase("flickr")) {
-//            FlickrFollowsDAO dao = new FlickrFollowsDAO();
-//
-//            setImageURL(user.getImageURL());
-//            setUsername(user.getUsername());
-//
+//            FlickrUserDAO dao = new FlickrUserDAO();
+//            FlickrUser user = dao.findByExactUserID(serviceUserID);
+//            // of course..they may not have an account?
+//            if(user == null) {
+//                FlickrFollowsDAO f_dao = new FlickrFollowsDAO();
+//                f_dao.findByFriendID(serviceUserID);
+//            } else {
+//                setImageURL(user.getImageURL());
+//                setUsername(user.getUsername());
+//            }
 //        }
         if(serviceName.equalsIgnoreCase("twitter")) {
             TwitterUserDAO dao = new TwitterUserDAO();
@@ -126,13 +133,13 @@ public class ServiceUser extends MinimalSocialServiceUser {
             setUsername(user.getUsername());
 
         }
-//        if(serviceName.equalsIgnoreCase("foursquare")) {
-//            FoursquareFriendDAO dao = new FoursquareFriendDAO();
-//            FoursquareFriend friend = dao.findByExactUserID(serviceUserID);
-//            setImageURL(friend.getImageURL());
-//            setUsername(friend.getUsername());
-//
-//        }
+        if(serviceName.equalsIgnoreCase("foursquare")) {
+            FoursquareUserDAO dao = new FoursquareUserDAO();
+            FoursquareUser user = dao.findByExactUserID(serviceUserID);
+            setImageURL(user.getImageURL());
+            setUsername(user.getUsername());
+
+        }
         if(serviceName.equalsIgnoreCase("tumblr")) {
 
         }
