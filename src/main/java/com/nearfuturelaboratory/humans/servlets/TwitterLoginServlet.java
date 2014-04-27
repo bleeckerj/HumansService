@@ -44,7 +44,8 @@ public class TwitterLoginServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		service = new ServiceBuilder()
 		.provider(TwitterApi.SSL.class)
-		.apiKey(apiKey)
+		//.provider(TwitterApi.class)
+                .apiKey(apiKey)
 		.apiSecret(apiSecret)
 		.callback(callbackURL)
 		.build();

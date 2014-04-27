@@ -57,7 +57,7 @@ public class FlickrLoginServlet extends HttpServlet {
 			resp.sendRedirect(req.getContextPath()+"/login.jsp");
 			return;
 		}
-		
+		requestToken = (Token)session.getAttribute("request-token");
 		//logger.debug("oauth_token="+req.getParameter("oauth_token")+" oauth_verifier="+req.getParameter("oauth_verifier"));
 		
 		if(req.getParameter("oauth_token")!=null && req.getParameter("oauth_verifier") != null) {
@@ -82,6 +82,7 @@ public class FlickrLoginServlet extends HttpServlet {
 			// this'll go first in the authentication flow
 			requestToken = service.getRequestToken();
 			logger.debug("Now Request Token is "+requestToken);
+            session.setAttribute("request-token", requestToken);
             String authUrl = service.getAuthorizationUrl(requestToken)+"&perms=write";
             logger.debug("And authURL is "+authUrl);
 			resp.sendRedirect(authUrl);

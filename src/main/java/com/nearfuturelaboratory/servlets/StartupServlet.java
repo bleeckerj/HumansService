@@ -78,7 +78,7 @@ public class StartupServlet extends HttpServlet {
 
 
         try {
-            System.out.println(this+" bad debugging.. constants="+config.getInitParameter("constants")+"\nfoo="+foo+"\nprops="+props);
+            System.out.println(this+" debugging.. constants="+config.getInitParameter("constants")+"\nfoo="+foo+"\nprops="+props);
             String constants = config.getInitParameter("constants");
             com.nearfuturelaboratory.util.Constants.load(foo+constants);
             MorphiaLoggerFactory.registerLogger(SLF4JLogrImplFactory.class);
@@ -101,12 +101,12 @@ public class StartupServlet extends HttpServlet {
             throw new ServletException();
         }
 
-        logger.debug(System.getProperty("catalina.home")+" IS THE PROPERTY");
+        logger.debug(System.getProperty("catalina.home")+" is catalina.home");
 
         String baz = System.getProperty("catalina.home");
 
         if(Constants.getBoolean("IS_REFRESH_SERVER", false)) {
-            logger.info("This is a refresh server.");
+            logger.debug("This is a refresh server.");
             try {
                 StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
                         .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);

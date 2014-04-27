@@ -159,7 +159,7 @@ public class HumansUser extends BaseEntity {
 
     public void updateYouman()
     {
-        boolean has_modified = false;
+        //boolean has_modified = false;
         Human youman = getYouman();
 
         List<ServiceUser> service_users = youman.getServiceUsers();
@@ -173,27 +173,31 @@ public class HumansUser extends BaseEntity {
         Collection<ServiceUser> addToYouman =  CollectionUtils.subtract(humans_service_users_faux, service_users);
         Collection<ServiceUser> removeFromYouman = CollectionUtils.subtract(service_users, humans_service_users_faux);
 
+
+
         if(addToYouman.size() > 0 || removeFromYouman.size() > 0) {
-            has_modified = true;
-        } else {
-            return;
-        }
 
-        this.removeHuman(youman);
-        for(ServiceUser service_user : addToYouman) {
-            youman.addServiceUser(service_user);
-        }
-        for(ServiceUser service_user : removeFromYouman) {
-            youman.removeServiceUser(service_user);
-        }
 
-        if(youman.getServiceUsers() != null && youman.getServiceUsers().size() > 0) {
-            this.addHuman(youman);
-        } else {
-            if(youman.getId() != null) {
-                this.removeHuman(youman);
+            this.removeHuman(youman);
+            for (ServiceUser service_user : addToYouman) {
+                youman.addServiceUser(service_user);
+            }
+            for (ServiceUser service_user : removeFromYouman) {
+                youman.removeServiceUser(service_user);
+            }
+
+            if (youman.getServiceUsers() != null && youman.getServiceUsers().size() > 0) {
+                this.addHuman(youman);
+            } else {
+                if (youman.getId() != null) {
+                    this.removeHuman(youman);
+                }
             }
         }
+    }
+
+    protected void youmanHygeine() {
+        // for some reason i've noticed that the
     }
 
 
@@ -926,6 +930,7 @@ public class HumansUser extends BaseEntity {
 
     public void refreshCache(Human aHuman)
     {
+        logger.info("refreshing cache for "+aHuman.getName() + " / "+aHuman.getId());
         List<ServiceStatus> statuses = getStatusForHuman(aHuman, false);
 
         cacheStatusForHuman(aHuman, statuses);
@@ -1609,8 +1614,11 @@ public class HumansUser extends BaseEntity {
 
         Collections.sort(result);
 
-
-        cacheStatusForHuman(aHuman, result);
+        if(result != null && result.size() > 0) {
+            cacheStatusForHuman(aHuman, result);
+        } else {
+            logger.warn("status for "+aHuman.getName()+"/"+aHuman.getId()+" is "+result);
+        }
 
         return result;
     }
@@ -1629,13 +1637,32 @@ public class HumansUser extends BaseEntity {
         String cache_final_name = "status_cache_"+this.getId()+"_"+aHuman.getId();
         String cache_temp_name = "tmp_"+cache_final_name;
         DBCollection cache = cache_db.getCollection(cache_temp_name);
-        cache.drop();
         logger.info("writing cache, will rename and drop in a bit also " + cache);
+
+        cache.drop();
         cache = cache_db.getCollection(cache_temp_name);
 
-//        Date oldest = oldestStatusInList(aListOfStatus);
-//        Date newest = newestStatusInList(aListOfStatus);
+        // sort so that the newest items are at lower indices
+        Collections.sort(aListOfStatus, new Comparator<ServiceStatus>()
+        {
+            public int compare(ServiceStatus o1, ServiceStatus o2)
+            {
+                //				JsonObject j1 = (JsonObject)o1;
+                //				JsonObject j2 = (JsonObject)o2;
+                long u1 = o1.getCreated();
+                long u2 = o2.getCreated();
+                return u1>u2 ? -1 : (u1==u2 ? 0 : 1);
+            }
+        });
 
+        //TODO limit the size of the write to the cache to keep things snappy?
+        int max_cache_document_count = Constants.getInt("MAX_CACHE_DOCUMENT_COUNT", 250);
+        if(aListOfStatus.size() > max_cache_document_count) {
+            aListOfStatus = aListOfStatus.subList(0, max_cache_document_count);
+        }
+
+        Date oldest = aListOfStatus.get(aListOfStatus.size()-1).getCreatedDate(); //oldestStatusInList(aListOfStatus);
+        Date newest = aListOfStatus.get(0).getCreatedDate();
 
         // the document that contains this 'key' field is the
         // key to the collection. we don't need it for status
@@ -1644,20 +1671,10 @@ public class HumansUser extends BaseEntity {
                 ("user", this.toString()).
                 append("key", this.getId() + "_" + aHuman.getId()).
                 append("human", aHuman.toString()).
-//                append("newest", newest.getTime()).
-//                append("oldest", oldest.getTime()).
-        append("lastUpdated", new Date());
-        //logger.debug("writing cache key for "+cache_name);
+                append("newest", newest).
+                append("oldest", oldest).
+                append("lastUpdated", new Date());
 
-
-        //TODO limit the size of the write to the cache to keep things snappy?
-        int max_cache_document_count = Constants.getInt("MAX_CACHE_DOCUMENT_COUNT", 250);
-        if(aListOfStatus.size() > max_cache_document_count) {
-            aListOfStatus = aListOfStatus.subList(0, max_cache_document_count);
-        }
-
-//        meta.append("oldest-in-cache-doc", oldestStatusInList(aListOfStatus));
-//        meta.append("newest-in-cache-doc", newestStatusInList(aListOfStatus));
 
         cache.insert(meta);
 
@@ -1665,8 +1682,12 @@ public class HumansUser extends BaseEntity {
             DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
             cache.save(obj);
         }
+//        logger.error("TEST TEST TEST TEST");
+//        logger.warn("FOO FOO FOO FOO");
         logger.info("wrote "+aListOfStatus.size()+" items");
-        logger.info("renaming cache now");
+        logger.info("oldest-in-cache-doc "+ oldest);
+        logger.info("newest-in-cache-doc "+ newest);
+        logger.info("renaming cache now to "+cache_final_name);
         cache.rename(cache_final_name, true);
         logger.info("writing cache is done");
     }
@@ -1707,6 +1728,7 @@ public class HumansUser extends BaseEntity {
 
         return aListOfStatus.get(aListOfStatus.size()-1).getCreatedDate();
     }
+
     protected List<String> getServiceNamesAssigned() {
         List<String> result = new ArrayList<String>();
         //List<ServiceEntry> services = this.getServices();

@@ -122,7 +122,7 @@ function deleteServiceUser(obj)
 	<div class="container">
 		<div class="row">
 			<div class="col-xs-2">
-				<a href="<%=request.getContextPath()%>/login-twitter">twitter</a>
+				<a href="<%=request.getContextPath()%>/rest/auth/twitter">twitter</a>
 			</div>
 		</div>
 	</div>
@@ -159,7 +159,7 @@ function deleteServiceUser(obj)
 				}
 			%>
 			<button class="btn btn-default"
-				onclick="location.href='<%=request.getContextPath()%>/login-twitter';">Add
+				onclick="location.href='<%=request.getContextPath()%>/rest/auth/twitter';">Add
 				Twitter</button>
 
 		</div>
@@ -193,7 +193,7 @@ function deleteServiceUser(obj)
 				}
 			%>
 	<button class="btn btn-default"
-		onclick="location.href='<%=request.getContextPath()%>/login-instagram';">Add
+		onclick="location.href='<%=request.getContextPath()%>/rest/auth/instagram';">Add
 		Instagram</button>
 
 
@@ -204,7 +204,7 @@ function deleteServiceUser(obj)
 		<div class="container">
 		<div class="row">
 			<div class="col-xs-2">
-				<a href="<%=request.getContextPath()%>/login-instagram">Instagram</a>
+				<a href="<%=request.getContextPath()%>/rest/auth/instagram">Instagram</a>
 			</div>
 		</div>
 	</div>
@@ -238,7 +238,7 @@ function deleteServiceUser(obj)
 				}
 			%>
 			<button class="btn btn-default"
-				onclick="location.href='<%=request.getContextPath()%>/login-flickr';">Add
+				onclick="location.href='<%=request.getContextPath()%>/rest/auth/flickr';">Add
 				Flickr</button>
 
 		</div>
@@ -250,7 +250,7 @@ function deleteServiceUser(obj)
 		<div class="container">
 		<div class="row">
 			<div class="col-xs-2">
-				<a href="<%=request.getContextPath()%>/login-foursquare">foursquare</a>
+				<a href="<%=request.getContextPath()%>/rest/auth/foursquare">foursquare</a>
 			</div>
 		</div>
 	</div>

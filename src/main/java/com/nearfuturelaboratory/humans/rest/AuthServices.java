@@ -20,8 +20,11 @@ import org.apache.logging.log4j.Logger;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.FlickrApi;
 import org.scribe.builder.api.Foursquare2Api;
+import org.scribe.builder.api.TumblrApi;
 import org.scribe.builder.api.TwitterApi;
+import org.scribe.model.OAuthRequest;
 import org.scribe.model.Token;
+import org.scribe.model.Verb;
 import org.scribe.model.Verifier;
 import org.scribe.oauth.OAuthService;
 
@@ -62,6 +65,11 @@ public class AuthServices {
     private String foursquareAPISecret = Constants.getString("FOURSQUARE_API_SECRET");
     private String foursquareCallbackURL = Constants.getString("FOURSQUARE_CALLBACK_URL");
 
+    private String tumblrAPIKey = Constants.getString("TUMBLR_API_KEY");
+    private String tumblrAPISecret = Constants.getString("TUMBLR_API_SECRET");
+    private String tumblrCallbackURL = Constants.getString("TUMBLR_CALLBACK_URL");
+
+
     private Token accessToken;
     private static final Token EMPTY_TOKEN = null;
 
@@ -92,6 +100,108 @@ public class AuthServices {
 
     @Context
     ServletContext context;
+
+
+    @GET
+    @Path("/tumblr")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response authenticateTumblrForUser(@Context HttpServletRequest request)
+    {
+        Token requestToken = null;
+
+        String humans_access_token = request.getParameter("access_token");
+        if(humans_access_token == null && (request.getParameter("oauth_token") == null && request.getParameter("oauth_verifier") == null) ) {
+            fail_response.addProperty("message", "invalid or missing access token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response.toString()).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        HumansUser user;
+        HttpSession session = request.getSession(true);
+
+        logger.debug("now session="+session.getId());
+        logger.debug("session contents="+session.getAttributeNames());
+        logger.debug("session(logged-in-user)="+session.getAttribute("logged-in-user"));
+        if(humans_access_token != null) {
+            user = getUserForAccessToken(context, humans_access_token);
+            // it might be that mobile browser is holding onto the cookie/session id
+            // even after it is unloaded and cleared..caches or something..
+//            if(request.isRequestedSessionIdValid()) {
+//                request.getSession().invalidate();
+//            }
+            session.setAttribute("logged-in-user", user);
+
+        } else {
+            user = (HumansUser)request.getSession().getAttribute("logged-in-user");
+        }
+
+        if(user == null) {
+            invalid_user_error_response.addProperty("message", "no such user.");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response.toString()).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        OAuthService service = new ServiceBuilder()
+                //.provider(TwitterApi.SSL.class)
+                .provider(TumblrApi.class)
+                .apiKey(tumblrAPIKey)
+                .apiSecret(tumblrAPISecret)
+                .callback(tumblrCallbackURL)
+                        //.scope("basic,likes")
+                .build();
+        TwitterService twitter;
+
+        if(request.getParameter("oauth_token")!=null && request.getParameter("oauth_verifier") != null) {
+            // then this'll go second in the authentication flow
+            //logger.debug("Up Here Token is "+requestToken.toString());
+            requestToken = (Token)session.getAttribute("request-token");
+            Verifier verifier = new Verifier(request.getParameter("oauth_verifier"));
+            accessToken = service.getAccessToken(requestToken, verifier);
+            /**
+            tumblr = new TumblrService(accessToken);
+            TumblrUser tumblrUser = tumblr.serviceRequestUserBasic();
+
+            logger.info("just got access token for twitter - " + tumblr.getThisUser());
+
+
+            tumblr.serviceRequestFollows();
+            //logger.debug("screen_name is "+twitter.getThisUser().getScreen_name()+" "+twitter.getThisUser().getId());
+            user.addService(tumblr.getThisUser().getId(), tumblr.getThisUser().getScreen_name(),"tumblr" );
+            user.updateYouman();
+            user.save();
+
+            TumblrUserDAO dao = new TumblrUserDAO();
+            dao.save(tumblr.getThisUser());
+
+            TumblrService.serializeToken(accessToken, tumblr.getThisUser());
+            Gson gson = new Gson();
+
+            // convert java object to JSON format,
+            // and returned as JSON formatted string
+            String userJson = gson.toJson(tumblrUser);
+            //twitter.getFriends();
+            //return Response.ok(userJson, MediaType.APPLICATION_JSON).build();
+             **/
+
+            OAuthRequest auth_request = new OAuthRequest( Verb.GET ,
+                    "http://api.tumblr.com/v2/user/following" );
+            service.signRequest(accessToken, auth_request);
+            org.scribe.model.Response auth_response = auth_request.send();
+            String bar = auth_response.getBody();
+            auth_request = new OAuthRequest(Verb.GET, "http://api.tumblr.com/v2/blog/unhappyhipsters.tumblr.com/posts/?api_key="+tumblrAPIKey+"&filter=text");
+            service.signRequest(accessToken, auth_request);
+            auth_response = auth_request.send();
+            bar = auth_response.getBody();
+            return Response.ok().entity(bar).type(MediaType.APPLICATION_JSON).build();
+        } else {
+            // this'll go first in the authentication flow
+            requestToken = service.getRequestToken();
+            session.setAttribute("request-token", requestToken);
+            logger.debug("Now Request Token is "+requestToken);
+            String authorizationUrl = service.getAuthorizationUrl(requestToken);
+            return Response.seeOther(URI.create(authorizationUrl)).build();
+        }
+
+
+    }
 
 
     @GET
@@ -133,6 +243,7 @@ public class AuthServices {
         }
 
         OAuthService service = new ServiceBuilder()
+                //.provider(TwitterApi.SSL.class)
                 .provider(TwitterApi.SSL.class)
                 .apiKey(twitterAPIKey)
                 .apiSecret(twitterAPISecret)

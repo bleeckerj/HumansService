@@ -64,8 +64,14 @@ public class HumansUserTest {
 			test_dao.getCollection().drop();
 
             dev_dao = new HumansUserDAO("humans");
-            remote_dao = null;
-            Mongo remote_mongo;
+
+            // gotta set up port forwarding..only way through
+            /**
+             * /usr/bin/ssh -o CheckHostIP=no -o TCPKeepAlive=yes -o StrictHostKeyChecking=no -o ServerAliveInterval=120 -o ServerAliveCountMax=100 -i /Users/julian/.ec2/AMZ-EC2.pem ec2-user@ec2-54-193-78-211.us-west-1.compute.amazonaws.com -N -L 29017:127.0.0.1:27017
+             */
+            Mongo mongo = MongoUtil.getMongo("localhost", 29017);
+            remote_dao = new HumansUserDAO(mongo, new Morphia(), "humans");
+
 
             logger.debug("Hey Ho!");
 		} catch(Exception e) {
@@ -73,6 +79,17 @@ public class HumansUserTest {
 		}
 
 	}
+
+    @Test
+    public void changeUserPassword()
+    {
+        HumansUser user = remote_dao.findOneByUsername("nicolasnova");
+        if(user != null) {
+            user.setPassword("no-ssiws-wose");
+            user.save();
+        }
+        logger.info("User is now "+user);
+    }
 
     @Test
     public void updateYouman() {

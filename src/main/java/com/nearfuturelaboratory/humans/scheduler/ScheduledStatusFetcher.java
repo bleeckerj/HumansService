@@ -31,13 +31,16 @@ public class ScheduledStatusFetcher implements Job {
 
         HumansUserDAO dao = new HumansUserDAO();
         List<HumansUser> all = dao.getAllHumansUsers();
-        logger.info("****** Starting fetchStatusForHumans count="+all.size());
+        logger.error("TEST ERR TEST ERR");
+        logger.warn("TEST WARN TEST WARN");
+
+        logger.info("****** Starting fetchStatusForHumans "+this+" count="+all.size());
         for (HumansUser humansUser : all) {
             logger.info("=========== Fetch Status For "+humansUser.getUsername() +" ==============");
 
             try {
                 humansUser.refreshStatusForAllHumans();
-                humansUser.save();
+                //humansUser.save();
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
                 logger.warn("Something bad happened whilst fetching status for "+humansUser.getUsername()+" "+humansUser.getId());

@@ -246,9 +246,9 @@ public class UserHandlerTest {
 	@Test
 	public void testCreateNewUser() {
 		JsonObject req = new JsonObject();
-		req.addProperty("username", "test-user");
+		req.addProperty("username", "darthjulian");
 		req.addProperty("email", "test-user@gmail.com");
-		req.addProperty("password", "password");
+		req.addProperty("password", "darthjulian");
 
 		String str = req.toString();
 		
