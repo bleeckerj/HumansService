@@ -537,7 +537,7 @@ public class UserHandler {
             boolean result = user.addHuman(human);
 
             if (result) {
-                logger.debug("user?"+user);
+               // logger.debug("user?"+user.getUsername());
                 user.save();
                 // we'll save and the human should now have an ID
                 Human new_human =  user.getHumanByName(human.getName());
