@@ -59,7 +59,17 @@
           </Policies>
           <DefaultRolloverStrategy max="5"/>
       </RollingFile>
-      <RollingFile name="HUMANS_ERROR" fileName="${sys:catalina.home}/logs/humans_ferror.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_error-%d{MM-dd-yyyy}-%i.log">
+
+      <RollingFile name="QUARTZ_QUIET" fileName="${sys:catalina.home}/logs/humans_quiet_quartz.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_quartz-%d{MM-dd-yyyy}-%i.log">
+          <PatternLayout pattern="%highlight{%d{ISO8601} %-5p [%18.18t] %c{1}:%line %M() - %m%n}"/>
+          <Policies>
+              <TimeBasedTriggeringPolicy />
+              <SizeBasedTriggeringPolicy size="20 MB"/>
+          </Policies>
+          <DefaultRolloverStrategy max="2"/>
+      </RollingFile>
+
+      <RollingFile name="HUMANS_ERROR" fileName="${sys:catalina.home}/logs/humans_error.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_error-%d{MM-dd-yyyy}-%i.log">
           <PatternLayout pattern="%highlight{%d{ISO8601} %-5p %c{1}.java:%line %M() - %m%n}"/>
           <Policies>
               <TimeBasedTriggeringPolicy />
@@ -76,90 +86,89 @@
   </Appenders>
 
   <Loggers>
-      <logger name="com.nearfuturelaboratory.humans.rest.UserHandler" level="warn" additivity="false">
-          <appender-ref ref="HUMANS_ERROR"/>
+      <logger name="com.nearfuturelaboratory.humans.rest.UserHandler" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="HUMANS-REST-DEBUG" level="debug"/>
+          <appender-ref ref="HUMANS" level="info"/>
+
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.rest.HumanHandler" level="warn" additivity="false">
-          <appender-ref ref="HUMANS_ERROR"/>
+      <logger name="com.nearfuturelaboratory.humans.rest.HumanHandler" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="HUMANS-REST-DEBUG" level="debug"/>
+          <appender-ref ref="HUMANS" level="info"/>
+
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.rest.AuthServices" level="warn" additivity="false">
-          <appender-ref ref="HUMANS_ERROR"/>
+      <logger name="com.nearfuturelaboratory.humans.rest.AuthServices" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="HUMANS-REST-DEBUG" level="debug"/>
+          <appender-ref ref="HUMANS" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.entities.HumansUser" level="warn" additivity="false">
-          <appender-ref ref="HUMANS_ERROR"/>
+
+
+      <logger name="com.nearfuturelaboratory.humans.service.FlickrService" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="info"/>
+          <appender-ref ref="QUARTZ" level="warn"/>
+
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.rest.UserHandler" level="debug" additivity="false">
-          <appender-ref ref="HUMANS-REST-DEBUG"/>
+      <logger name="com.nearfuturelaboratory.humans.service.InstagramService" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="info"/>
+          <appender-ref ref="QUARTZ" level="warn"/>
+
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.rest.HumanHandler" level="debug" additivity="false">
-          <appender-ref ref="HUMANS-REST-DEBUG"/>
+
+      <logger name="com.nearfuturelaboratory.humans.service.FoursquareService" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="info"/>
+          <appender-ref ref="QUARTZ" level="warn"/>
+
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.rest.AuthServices" level="debug" additivity="false">
-          <appender-ref ref="HUMANS-REST-DEBUG"/>
+      <logger name="com.nearfuturelaboratory.humans.service.TwitterService" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="info"/>
+          <appender-ref ref="QUARTZ" level="warn"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.FlickrService" level="debug" additivity="false">
-          <appender-ref ref="HUMANS"/>
+
+      <logger name="com.nearfuturelaboratory.humans.dao.InstagramStatusDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.InstagramService" level="debug" additivity="false">
-          <appender-ref ref="HUMANS"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.InstagramUserDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.FoursquareService" level="debug" additivity="false">
-          <appender-ref ref="HUMANS"/>
+      <logger name="com.nearfuturelaboratory.humans.servlets.FlickrLoginServlet" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="info"/>
+          <appender-ref ref="HUMANS-REST-DEBUG" level="debug"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.TwitterService" level="info" additivity="false">
-          <appender-ref ref="QUARTZ"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.FlickrService" level="info" additivity="false">
-          <appender-ref ref="QUARTZ"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.FlickrStatusDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.InstagramService" level="info" additivity="false">
-          <appender-ref ref="QUARTZ"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.FlickrFollowsDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.service.FoursquareService" level="info" additivity="false">
-          <appender-ref ref="QUARTZ"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.FlickrUserDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.InstagramStatusDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.TwitterUserDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.InstagramUserDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.TwitterFollowsDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.servlets.FlickrLoginServlet" level="debug" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS-REST-DEBUG"/>
+      <logger name="com.nearfuturelaboratory.humans.dao.TwitterStatusDAO" level="trace" additivity="false">
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.FlickrStatusDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.FlickrFollowsDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.FlickrUserDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.TwitterUserDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.TwitterFollowsDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.dao.TwitterStatusDAO" level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="HUMANS_DB"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="info" additivity="false">
-          <appender-ref ref="QUARTZ"/>
+
+      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="trace" additivity="false">
+          <appender-ref ref="QUARTZ" level="info"/>
       </logger>
 
 
@@ -171,52 +180,53 @@
       <!--<logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledStatusFetcher" level="warn" additivity="false">-->
           <!--<appender-ref ref="HUMANS_ERROR"/>-->
       <!--</logger>-->
-      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledStatusFetcher"  level="info" additivity="false">
-          <appender-ref ref="HUMANS"/>
-          <appender-ref ref="QUARTZ"/>
+      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledStatusFetcher"  level="trace" additivity="false">
+          <appender-ref ref="QUARTZ" level="info"/>
+          <appender-ref ref="QUARTZ_QUIET" level="info"/>
       </logger>
 
 
 
-      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher" level="info" additivity="false">
-          <appender-ref ref="QUARTZ"/>
+      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher" level="trace" additivity="false">
+          <appender-ref ref="QUARTZ" level="info"/>
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="QUARTZ_QUIET" level="info"/>
+
       </logger>
 
-      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher" level="warn" additivity="false">
-          <appender-ref ref="HUMANS_ERROR"/>
-      </logger>
-      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="warn" additivity="false">
-          <appender-ref ref="HUMANS_ERROR"/>
-      </logger>
+      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="QUARTZ_QUIET" level="info"/>
+          <appender-ref ref="QUARTZ" level="info"/>
 
-      <logger name="com.nearfuturelaboratory.humans.entities.HumansUser" level="warn" additivity="false">
-          <appender-ref ref="HUMANS_ERROR"/>
-      </logger>
-
-      <!--<logger name="com.nearfuturelaboratory.humans.entities.HumansUser" level="info" additivity="false">-->
-          <!--<appender-ref ref="HUMANS"/>-->
-      <!--</logger>-->
-      <logger name="com.nearfuturelaboratory.humans.entities.HumansUser" level="info" additivity="false">
-          <appender-ref ref="QUARTZ"/>
-          <appender-ref ref="HUMANS"/>
-      </logger>
-
-      <logger name="com.nearfuturelaboratory.servlets.StartupServlet" level="debug" additivity="false">
-          <appender-ref ref="QUARTZ"/>
-          <appender-ref ref="HUMANS"/>
       </logger>
 
 
-      <logger name="org.mongodb.morphia" level="error" additivity="false">
-          <appender-ref ref="HUMANS_DB"/>
+      <logger name="com.nearfuturelaboratory.humans.entities.HumansUser" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="QUARTZ" level="info"/>
+          <appender-ref ref="HUMANS" level="warn"/>
+          <appender-ref ref="QUARTZ_QUIET" level="warn"/>
+      </logger>
+
+      <logger name="com.nearfuturelaboratory.servlets.StartupServlet" level="trace" additivity="false">
+          <appender-ref ref="QUARTZ" level="info"/>
+          <appender-ref ref="HUMANS" level="debug"/>
+      </logger>
+
+
+      <logger name="org.mongodb.morphia" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
 
 
       <Logger name="com.jayway" level="info" additivity="false">
           <AppenderRef ref="HUMANS"/>
       </Logger>
-      <Logger name="org.quartz" level="info" additivity="false">
-          <AppenderRef ref="QUARTZ"/>
+      <Logger name="org.quartz" level="trace" additivity="false">
+          <AppenderRef ref="QUARTZ" level="info"/>
+          <AppenderRef ref="QUARTZ_QUIET" level="info"/>
+
       </Logger>
     <Root level="error">
       <AppenderRef ref="HUMANS_ERROR" level="warn"/>
