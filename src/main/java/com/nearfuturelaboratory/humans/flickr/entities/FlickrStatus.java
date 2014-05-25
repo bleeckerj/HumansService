@@ -1,20 +1,16 @@
 package com.nearfuturelaboratory.humans.flickr.entities;
 
-import java.util.Date;
-import java.util.Map;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.annotations.Property;
-import org.mongodb.morphia.annotations.Transient;
-import org.mongodb.morphia.annotations.Version;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
+import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.mongodb.morphia.annotations.*;
+
+import java.util.Date;
+import java.util.Map;
 
 @Entity("status")
 public class FlickrStatus extends ServiceStatus {
@@ -32,6 +28,12 @@ public class FlickrStatus extends ServiceStatus {
 	public String getService() {
 		return service;
 	}
+
+
+    @SerializedName("status_on_behalf_of")
+    //@Property("status-on-behalf-of")
+    @Embedded
+    private ServiceEntry onBehalfOf;
 
 	
 	@Id
@@ -121,8 +123,17 @@ public class FlickrStatus extends ServiceStatus {
         created = getCreatedDate().getTime();
 	}
 
-	public Long getVersion() {
-		return version;
+
+    public ServiceEntry getOnBehalfOf() {
+        return onBehalfOf;
+    }
+
+    public void setOnBehalfOf(ServiceEntry onBehalfOf) {
+        this.onBehalfOf = onBehalfOf;
+    }
+
+    public Long getVersion() {
+        return version;
 	}
 
 	public Date getLastUpdated() {

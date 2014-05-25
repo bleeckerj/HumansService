@@ -1,27 +1,18 @@
 package com.nearfuturelaboratory.humans.foursquare.entities;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
+import com.nearfuturelaboratory.humans.entities.ServiceEntry;
+import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.utils.IndexDirection;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Index;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.annotations.Indexes;
-import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.annotations.Property;
-import org.mongodb.morphia.annotations.Transient;
-import org.mongodb.morphia.annotations.Version;
-import org.mongodb.morphia.utils.IndexDirection;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 
 @Entity(value="checkin", noClassnameStored = true)
 @Indexes( @Index(name="checkins_index", value="_id, user_id", unique=true/*, dropDups=true*/) )
@@ -33,9 +24,15 @@ public class FoursquareCheckin extends ServiceStatus {
 	private Long version;
 	protected Date lastUpdated;
 
-	@Transient
-	protected String service="foursquare";
-	/**
+    @SerializedName("status_on_behalf_of")
+    //@Property("status-on-behalf-of")
+    @Embedded
+    private ServiceEntry onBehalfOf;
+    @Transient
+
+    protected String service = "foursquare";
+
+    /**
 	 * @return the service
 	 */
 	public String getService() {
@@ -71,6 +68,15 @@ public class FoursquareCheckin extends ServiceStatus {
 		lastUpdated = new Date();
         created = getCreatedAt();
 	}
+
+    public ServiceEntry getOnBehalfOf() {
+        return onBehalfOf;
+    }
+
+    public void setOnBehalfOf(ServiceEntry onBehalfOf) {
+        this.onBehalfOf = onBehalfOf;
+    }
+
 	public String getUserID() {
 		return user_id;
 	}

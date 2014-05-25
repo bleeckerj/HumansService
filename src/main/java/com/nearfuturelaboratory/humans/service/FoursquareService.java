@@ -1,8 +1,18 @@
 package com.nearfuturelaboratory.humans.service;
 
-import java.util.Date;
-import java.util.List;
-
+import com.google.gson.Gson;
+import com.jayway.jsonpath.JsonPath;
+import com.nearfuturelaboratory.humans.dao.FoursquareCheckinDAO;
+import com.nearfuturelaboratory.humans.dao.FoursquareFriendDAO;
+import com.nearfuturelaboratory.humans.dao.FoursquareUserDAO;
+import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
+import com.nearfuturelaboratory.humans.entities.ServiceEntry;
+import com.nearfuturelaboratory.humans.entities.ServiceToken;
+import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
+import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
+import com.nearfuturelaboratory.util.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
@@ -17,18 +27,8 @@ import org.scribe.model.Token;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
-import com.google.gson.Gson;
-import com.jayway.jsonpath.JsonPath;
-import com.nearfuturelaboratory.humans.dao.FoursquareCheckinDAO;
-import com.nearfuturelaboratory.humans.dao.FoursquareFriendDAO;
-import com.nearfuturelaboratory.humans.dao.FoursquareUserDAO;
-import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
-import com.nearfuturelaboratory.humans.entities.ServiceToken;
-import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
-import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareCheckin;
-import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareFriend;
-import com.nearfuturelaboratory.humans.foursquare.entities.FoursquareUser;
-import com.nearfuturelaboratory.util.Constants;
+import java.util.Date;
+import java.util.List;
 
 public class FoursquareService {
 
@@ -345,6 +345,10 @@ public class FoursquareService {
             FoursquareCheckin checkin = gson.fromJson(o.toJSONString(), FoursquareCheckin.class);
             checkin.setUserID(this.getThisUser().getId());
             checkin.setUser(this.getThisUser());
+
+            ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
+            checkin.setOnBehalfOf(serviceEntry);
+
             checkinDAO.save(checkin);
         }
     }

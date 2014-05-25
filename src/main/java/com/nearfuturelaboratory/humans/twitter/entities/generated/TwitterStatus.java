@@ -1,12 +1,11 @@
 
 package com.nearfuturelaboratory.humans.twitter.entities.generated;
 
-import javax.annotation.Generated;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -14,11 +13,21 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.mongodb.morphia.annotations.*;
 import org.mongodb.morphia.utils.IndexDirection;
 
+import javax.annotation.Generated;
 import java.util.Date;
 
 @Generated("org.jsonschema2pojo")
 @Entity(value="status", noClassnameStored = true)
 public class TwitterStatus extends ServiceStatus {
+
+    @SerializedName("status_on_behalf_of")
+    @Embedded
+    private ServiceEntry onBehalfOf;
+//    @SerializedName("via-service-user")
+//    @Property("via-service-user")
+//    @Reference
+//    private MinimalSocialServiceUser viaServiceUser;
+
 
     @SerializedName("created_at")
     @Property("created_at")
@@ -96,6 +105,15 @@ public class TwitterStatus extends ServiceStatus {
         lastUpdated = new Date();
         created = getCreatedAt().getTime();
     }
+
+    public ServiceEntry getOnBehalfOf() {
+        return onBehalfOf;
+    }
+
+    public void setOnBehalfOf(ServiceEntry onBehalfOf) {
+        this.onBehalfOf = onBehalfOf;
+    }
+
 
     public Date getLastUpdated() {
         if(lastUpdated == null) lastUpdated = new Date();

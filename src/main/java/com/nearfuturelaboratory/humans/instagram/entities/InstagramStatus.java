@@ -1,26 +1,19 @@
 package com.nearfuturelaboratory.humans.instagram.entities;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
+import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
+import com.nearfuturelaboratory.humans.entities.ServiceEntry;
+import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.utils.IndexDirection;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.annotations.PostLoad;
-import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.annotations.Property;
-import org.mongodb.morphia.annotations.Transient;
-import org.mongodb.morphia.annotations.Version;
-import org.mongodb.morphia.utils.IndexDirection;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
-import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
 
 
 @Entity(value = "status", noClassnameStored = true)
@@ -59,8 +52,14 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 	@Embedded
 	protected User user;
 
-	/**
-	 * This user (above) that comes back from the server during service requests for status
+    @SerializedName("status_on_behalf_of")
+    //@Property("status-on-behalf-of")
+    @Embedded
+    private ServiceEntry onBehalfOf;
+
+
+    /**
+     * This user (above) that comes back from the server during service requests for status
 	 * doesn't seem to contain data for some of the adornment fields, like bio and website
 	 * Not that these are critical, but..we can @PostLoad these from the user database, as the
 	 * user with this status should (must?) exist in our instagram.user collection
@@ -109,7 +108,15 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 		lastUpdated = new Date();
         created = getCreatedDate().getTime();
 	}
-	
+
+
+    public ServiceEntry getOnBehalfOf() {
+        return onBehalfOf;
+    }
+
+    public void setOnBehalfOf(ServiceEntry onBehalfOf) {
+        this.onBehalfOf = onBehalfOf;
+    }
 
 	public Date getLastUpdated() {
 		if(lastUpdated == null) lastUpdated = new Date();

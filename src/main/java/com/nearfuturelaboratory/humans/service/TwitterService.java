@@ -1,18 +1,24 @@
 package com.nearfuturelaboratory.humans.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.mongodb.DB;
+import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
+import com.nearfuturelaboratory.humans.dao.TwitterFollowsDAO;
+import com.nearfuturelaboratory.humans.dao.TwitterStatusDAO;
+import com.nearfuturelaboratory.humans.dao.TwitterUserDAO;
+import com.nearfuturelaboratory.humans.entities.ServiceEntry;
+import com.nearfuturelaboratory.humans.entities.ServiceToken;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
+import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
+import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
+import com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus;
+import com.nearfuturelaboratory.humans.util.MongoUtil;
+import com.nearfuturelaboratory.util.Constants;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -24,23 +30,9 @@ import org.scribe.model.Token;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.mongodb.DB;
-import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
-import com.nearfuturelaboratory.humans.dao.TwitterFollowsDAO;
-import com.nearfuturelaboratory.humans.dao.TwitterStatusDAO;
-import com.nearfuturelaboratory.humans.dao.TwitterUserDAO;
-import com.nearfuturelaboratory.humans.entities.ServiceToken;
-import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
-import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
-import com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus;
-import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
-import com.nearfuturelaboratory.humans.util.MongoUtil;
-import com.nearfuturelaboratory.util.Constants;
+import java.util.*;
+
 import static com.google.common.collect.Lists.partition;
-import static org.hamcrest.core.IsNull.notNullValue;
 
 public class TwitterService {
     final static Logger logger = LogManager
@@ -361,6 +353,12 @@ public class TwitterService {
             String i = iter.next().toString();
             // logger.debug(i);
             com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus tstatus = gson.fromJson(i,com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus.class);
+
+
+            ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
+            tstatus.setOnBehalfOf(serviceEntry);
+
+
             result.add(tstatus);
             statusDAO.save(tstatus);
         }
