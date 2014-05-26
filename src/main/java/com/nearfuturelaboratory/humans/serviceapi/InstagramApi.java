@@ -19,7 +19,9 @@ import org.scribe.utils.OAuthEncoder;
 
 public class InstagramApi extends DefaultApi20 {
 
-  private static final String URL = "https://api.instagram.com/oauth/authorize/?client_id=%s&redirect_uri=%s&response_type=code";
+    // clearly Instagram is doing it's own thing against OAuth cause this scope stuff doesn't take hold down here
+    // I just hardcoded the URL here. WTF.
+  private static final String URL = "https://api.instagram.com/oauth/authorize/?client_id=%s&redirect_uri=%s&response_type=code&scope=likes+comments";
   
   @Override
   public Verb getAccessTokenVerb() {
@@ -58,9 +60,14 @@ public class InstagramApi extends DefaultApi20 {
         request.addBodyParameter(OAuthConstants.CLIENT_SECRET, config.getApiSecret());
         request.addBodyParameter(OAuthConstants.CODE, verifier.getValue());
         request.addBodyParameter(OAuthConstants.REDIRECT_URI, config.getCallback());
-        
-        if (config.hasScope()) request.addBodyParameter(OAuthConstants.SCOPE, config.getScope());
-        
+          // clearly Instagram is doing it's own thing against OAuth cause this scope stuff doesn't take hold down here
+          // I just hardcoded the URL above
+        if (config.hasScope()){
+            request.addQuerystringParameter(OAuthConstants.SCOPE, config.getScope());
+            request.addBodyParameter(OAuthConstants.SCOPE, config.getScope());
+            request.addOAuthParameter(OAuthConstants.SCOPE, config.getScope());
+        }
+        request.toString();
         Response response = request.send();
         return getAccessTokenExtractor().extract(response.getBody());
       }

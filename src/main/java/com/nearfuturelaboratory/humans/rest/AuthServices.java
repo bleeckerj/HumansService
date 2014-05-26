@@ -147,7 +147,7 @@ public class AuthServices {
                 .callback(tumblrCallbackURL)
                         //.scope("basic,likes")
                 .build();
-        TwitterService twitter;
+        //TwitterService twitter;
 
         if(request.getParameter("oauth_token")!=null && request.getParameter("oauth_verifier") != null) {
             // then this'll go second in the authentication flow
@@ -333,7 +333,7 @@ public class AuthServices {
                 .apiKey(instagramAPIKey)
                 .apiSecret(instagramAPISecret)
                 .callback(instagramCallbackURL)
-                .scope("basic,likes")
+                .scope("likes")
                 .build();
 
 
@@ -445,7 +445,7 @@ public class AuthServices {
                 .apiKey(foursquareAPIKey)
                 .apiSecret(foursquareAPISecret)
                 .callback(foursquareCallbackURL)
-                .scope("basic,likes")
+                .scope("basic+likes")
                 .build();
 
 

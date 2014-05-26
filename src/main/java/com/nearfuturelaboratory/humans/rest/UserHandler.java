@@ -189,6 +189,7 @@ public class UserHandler {
             result.addProperty("parcel", parcel);
         } catch (Exception e) {
             logger.error(e);
+            fail_response.addProperty("exception", e.getMessage());
             return Response.status(Response.Status.EXPECTATION_FAILED).entity(fail_response.toString()).build();
 
         }

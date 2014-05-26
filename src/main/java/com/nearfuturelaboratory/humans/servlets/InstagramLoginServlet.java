@@ -101,7 +101,7 @@ public class InstagramLoginServlet extends HttpServlet {
 		.apiKey(apiKey)
 		.apiSecret(apiSecret)
 		.callback(callbackURL)
-		.scope("basic,likes")
+		.scope("basic+likes+comments+relationships")
 		.build();
 
 
