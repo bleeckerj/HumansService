@@ -21,6 +21,7 @@ import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.entities.*;
 import com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher;
 import com.nearfuturelaboratory.humans.scheduler.ScheduledHumanStatusFetcher;
+import com.nearfuturelaboratory.humans.scheduler.ScheduledInstagramStatusFetcher;
 import com.sun.java_cup.internal.runtime.lr_parser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -361,7 +362,81 @@ public class UserHandler {
     }
 
 
-    @GET @Path("/get")
+    /**
+     * Spins of a quick task to update a specific Instagram status item by its mediaID
+     * on behalf of a specific instagram username.
+     * Use this if you want to update a single status item for things such as rechecking the "like"
+     * state or whatever. It'll effectively update the status as represented in the datastore.
+     *
+     * @param aMediaId
+     * @param aInstagramUsername
+     * @param response
+     * @return
+     */
+    @GET @Path("/getty/update/instagram/{onBehalfOfInstagramUsername}/status/{mediaid}")
+    public Response updateInstagramStatus (
+            @PathParam("mediaid") String aMediaId,
+            @PathParam("onBehalfOfInstagramUsername") String aInstagramUsername,
+            @Context HttpServletRequest request,
+            @Context HttpServletResponse response) {
+        //Response response = ResponseBuilder;
+        String access_token = RestCommon.getAccessTokenFromRequestHeader(request);
+        if (access_token == null) {
+            fail_response.addProperty("message", "invalid or missing access token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(fail_response).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        HumansUser user = getUserForAccessToken(context, access_token);
+
+        if (user == null) {
+            invalid_user_error_response.addProperty("message", "no such user. invalid access token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(invalid_user_error_response).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        try {
+            //schedule the job
+            logger.info("gettyup/update/instagram/{"+aInstagramUsername +"}/{"+aMediaId+"} for "+user.getUsername());
+            SchedulerFactory sf = new StdSchedulerFactory();
+            Scheduler sched = sf.getScheduler();
+            sched.start();
+
+            JobDataMap data = new JobDataMap();
+            data.put("mediaid", aMediaId);
+            data.put("onBehalfOfInstagramUsername", aInstagramUsername);
+            //data.put("access_token", access_token);
+
+            JobDetail job = newJob(ScheduledInstagramStatusFetcher.class)
+                    .withIdentity("/getty/update/instagram/"+aInstagramUsername +"/status/"+aMediaId, "group."+context)
+                    .setJobData(data)
+                    .build();
+
+            ScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.
+                    simpleSchedule().
+                    withRepeatCount(0);
+
+            //JobDetail details = JobBuilder.newJob().setJobData(data).build();
+            Trigger trigger = newTrigger()
+                    .withDescription("/getty/update/instagram/"+aInstagramUsername +"/status/"+aMediaId +" group."+context)
+                    .withIdentity("/getty/update/instagram/"+aInstagramUsername+"/status/"+aMediaId, "group."+context)
+                    .withSchedule(scheduleBuilder).forJob(job)
+                    .startNow().build();
+
+            sched.scheduleJob(job, trigger);
+
+            success_response.addProperty("message", "started job "+trigger.getDescription());
+            //return Response.ok("{}", MediaType.APPLICATION_JSON).build();
+        }catch(Exception e) {
+            String msg = "Exception attempting to schedule fetcher for instagram status,mediaID="+aMediaId+" on behalf of "+aInstagramUsername +" user="+user.getUsername();
+            logger.error(msg);
+            fail_response.addProperty("message", msg);
+            return Response.ok(fail_response.toString(), MediaType.APPLICATION_JSON).build();
+        }
+        return Response.ok().entity(success_response.toString()).type(MediaType.APPLICATION_JSON).build();
+    }
+
+
+
+        @GET @Path("/get")
     @Produces({"application/json"})
     public Response getUser(
             @Context HttpServletRequest request,

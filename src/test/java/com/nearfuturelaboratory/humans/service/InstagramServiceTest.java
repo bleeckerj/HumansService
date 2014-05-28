@@ -1,7 +1,8 @@
-package com.nearfuturelaboratory.humans.test;
+package com.nearfuturelaboratory.humans.service;
 
 import java.util.List;
 
+import com.google.gson.JsonElement;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 //import org.apache.log4j.PropertyConfigurator;
@@ -17,7 +18,7 @@ import com.nearfuturelaboratory.util.Constants;
 
 public class InstagramServiceTest {
 	static InstagramService instagram;
-	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.test.InstagramServiceTest.class);
+	final static Logger logger = LogManager.getLogger(com.nearfuturelaboratory.humans.service.InstagramServiceTest.class);
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -77,8 +78,21 @@ public class InstagramServiceTest {
 		instagram.getFriends();
 //		instagram.getFollows("11394571");
 	}
-	
-	@Ignore
+
+    @Test
+    public void test_serviceRequestStatusByMediaID() {
+        List<InstagramStatus> result = instagram.serviceRequestStatusByMediaID("729014530937658462_1342246");
+        logger.debug(result);
+    }
+
+    @Test
+    public void test_serviceLikeStatusByMediaID() {
+        JsonElement element = instagram.serviceLikeStatusByMediaID("729014530937658462_1342246");
+        logger.debug(element);
+    }
+
+
+    @Ignore
 	public void test_serviceRequestFollows() {
 		try {
 		instagram.serviceRequestFriends();

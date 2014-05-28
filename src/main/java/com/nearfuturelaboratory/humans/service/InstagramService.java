@@ -2,6 +2,8 @@ package com.nearfuturelaboratory.humans.service;
 
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.jayway.jsonpath.JsonPath;
 import com.mongodb.DB;
 import com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO;
@@ -40,6 +42,8 @@ public class InstagramService /*implements AbstractService*/ {
 
     private static final String FOLLOWS_URL = "https://api.instagram.com/v1/users/%s/follows";
     private static final String STATUS_URL = "https://api.instagram.com/v1/users/%s/media/recent";
+    private static final String STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s";
+    private static final String LIKE_STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s/likes";
     private static final String USER_URL = "https://api.instagram.com/v1/users/%s";
 
     private OAuthService service;
@@ -122,6 +126,14 @@ public class InstagramService /*implements AbstractService*/ {
         }
     }
 
+    // on behalf of a specific instagram username
+
+    /**
+     *
+     * @param aUsername an instagram username which of course must be a user of the application
+     * @return
+     * @throws BadAccessTokenException
+     */
     public static InstagramService createServiceOnBehalfOfUsername(String aUsername) throws BadAccessTokenException {
         InstagramService result;
         Token token;
@@ -398,6 +410,50 @@ public class InstagramService /*implements AbstractService*/ {
 
         return saveStatusJson(full_data);
     }
+
+    public List<InstagramStatus> serviceRequestStatusByMediaID(String aMediaID)
+    {
+
+        String statusURL = String.format(STATUS_BY_MEDIAID_URL, aMediaID);
+        OAuthRequest request = new OAuthRequest(Verb.GET, statusURL);
+        service.signRequest(accessToken, request);
+        Response response = request.send();
+        if (response.getCode() != 200) {
+            logger.warn(this.getThisUser().getUsername() + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
+            return new ArrayList<InstagramStatus>();
+        }
+
+        String s = response.getBody();
+        Object jsonResponse = JSONValue.parse(s);
+
+        JSONObject response_obj = (JSONObject) jsonResponse;
+        JSONObject status_data = (JSONObject) response_obj.get("data");
+        //JSONObject status = (JSONObject)status_data.get("value");
+        //TODO Nasty..
+        JSONArray array_of_one = new JSONArray();
+        array_of_one.add(status_data);
+        return saveStatusJson(array_of_one);
+    }
+
+
+    JsonElement serviceLikeStatusByMediaID(String aMediaID)
+    {
+        String statusURL = String.format(LIKE_STATUS_BY_MEDIAID_URL, aMediaID);
+        OAuthRequest request = new OAuthRequest(Verb.POST, statusURL);
+        service.signRequest(accessToken, request);
+        Response response = request.send();
+        if (response.getCode() != 200) {
+            logger.warn(this.getThisUser().getUsername() + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
+        }
+
+        String s = response.getBody();
+        Gson gson = new Gson();
+        JsonElement element = gson.fromJson (s, JsonElement.class);
+        return element;
+
+    }
+
+
 
     @SuppressWarnings("unused")
     List<InstagramStatus> saveStatusJson(JSONArray data) {
