@@ -31,8 +31,7 @@ public class ScheduledStatusFetcher implements Job {
 
         HumansUserDAO dao = new HumansUserDAO();
         List<HumansUser> all = dao.getAllHumansUsers();
-        logger.error("TEST ERR TEST ERR");
-        logger.warn("TEST WARN TEST WARN");
+
 
         logger.info("****** Starting fetchStatusForHumans "+this+" count="+all.size());
         for (HumansUser humansUser : all) {

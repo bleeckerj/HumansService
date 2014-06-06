@@ -57,6 +57,8 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
     @Embedded
     private ServiceEntry onBehalfOf;
 
+    @Embedded
+    protected Map<String, Video> videos;
 
     /**
      * This user (above) that comes back from the server during service requests for status
@@ -152,6 +154,10 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 	public void setImages(Map<String, Image> aImages) {
 		images = aImages;
 	}
+
+    public void setVideos(Map<String, Video> aVideos) { videos = aVideos; }
+    public Map<String, Video> getVideos() { return videos; }
+
 	public Caption getCaption() {
 		return caption;
 	}
@@ -450,5 +456,17 @@ class Caption {
 		created_time = aCreated_time;
 	}
 
+
+}
+
+
+class Video {
+
+    //List<Map<String, String>> videos;
+    public static final String STANDARD_RESOLUTION = "standard_resolution";
+    public static final String LOW_BANDWIDTH = "low_bandwidth";
+    public static final String LOW_RESOLUTION = "low_resolution";
+    String url;
+    Integer width, height;
 
 }

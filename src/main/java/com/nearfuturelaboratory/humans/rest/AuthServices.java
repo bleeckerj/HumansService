@@ -528,7 +528,7 @@ public class AuthServices {
 
         logger.debug("now session="+session.getId());
         logger.debug("session contents="+session.getAttributeNames());
-        logger.debug("session(logged-in-user)="+session.getAttribute("logged-in-user"));
+        //logger.debug("session(logged-in-user)="+session.getAttribute("logged-in-user"));
         if(humans_access_token != null) {
             user = getUserForAccessToken(context, humans_access_token);
             // it might be that mobile browser is holding onto the cookie/session id
@@ -553,6 +553,7 @@ public class AuthServices {
                 .apiKey(flickrAPIKey)
                 .apiSecret(flickrAPISecret)
                 .callback(flickrCallbackURL)
+                .scope("write")
                 .build();
 
 

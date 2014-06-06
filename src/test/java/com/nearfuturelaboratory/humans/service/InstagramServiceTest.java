@@ -81,7 +81,7 @@ public class InstagramServiceTest {
 
     @Test
     public void test_serviceRequestStatusByMediaID() {
-        List<InstagramStatus> result = instagram.serviceRequestStatusByMediaID("729014530937658462_1342246");
+        List<InstagramStatus> result = instagram.serviceRequestStatusByMediaID("734865045431656146_48029998");
         logger.debug(result);
     }
 
