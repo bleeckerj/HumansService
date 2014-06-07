@@ -20,6 +20,7 @@
 	//request.getContextPath()+"/
 	HumansUser user = (HumansUser) session
 			.getAttribute("logged-in-user");
+
 	if (user == null) {
 		response.sendRedirect(request.getContextPath() + "/login.jsp");
 	}
@@ -159,7 +160,7 @@ function deleteServiceUser(obj)
 				}
 			%>
 			<button class="btn btn-default"
-				onclick="location.href='<%=request.getContextPath()%>/rest/auth/twitter';">Add
+				onclick="location.href='<%=request.getContextPath()%>/rest/auth/twitter?access_token=<%=user.getAccessToken()%>';">Add
 				Twitter</button>
 
 		</div>
@@ -193,7 +194,7 @@ function deleteServiceUser(obj)
 				}
 			%>
 	<button class="btn btn-default"
-		onclick="location.href='<%=request.getContextPath()%>/rest/auth/instagram';">Add
+		onclick="location.href='<%=request.getContextPath()%>/rest/auth/instagram?access_token=<%=user.getAccessToken()%>';">Add
 		Instagram</button>
 
 
@@ -238,7 +239,7 @@ function deleteServiceUser(obj)
 				}
 			%>
 			<button class="btn btn-default"
-				onclick="location.href='<%=request.getContextPath()%>/rest/auth/flickr';">Add
+				onclick="location.href='<%=request.getContextPath()%>/rest/auth/flickr?access_token=<%=user.getAccessToken()%>';">Add
 				Flickr</button>
 
 		</div>

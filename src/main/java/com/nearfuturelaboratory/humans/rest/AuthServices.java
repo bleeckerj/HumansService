@@ -22,10 +22,7 @@ import org.scribe.builder.api.FlickrApi;
 import org.scribe.builder.api.Foursquare2Api;
 import org.scribe.builder.api.TumblrApi;
 import org.scribe.builder.api.TwitterApi;
-import org.scribe.model.OAuthRequest;
-import org.scribe.model.Token;
-import org.scribe.model.Verb;
-import org.scribe.model.Verifier;
+import org.scribe.model.*;
 import org.scribe.oauth.OAuthService;
 
 import javax.servlet.ServletContext;
@@ -553,6 +550,7 @@ public class AuthServices {
                 .apiKey(flickrAPIKey)
                 .apiSecret(flickrAPISecret)
                 .callback(flickrCallbackURL)
+                .signatureType(SignatureType.QueryString)
                 .scope("write")
                 .build();
 

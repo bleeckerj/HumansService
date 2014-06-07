@@ -376,6 +376,10 @@ public class HumansUser extends BaseEntity {
         this.access_token = aToken;
     }
 
+    public String getAccessToken() {
+        return this.access_token;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -1487,6 +1491,9 @@ public class HumansUser extends BaseEntity {
                     TwitterService twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
                     if(twitter.localServiceStatusIsFreshFor(service_user.getUserID()) == false) {
                         twitter.serviceRequestStatusForUserID(service_user.getUserID());
+
+
+
                         twitter.serviceRequestUserBasicForUserID(service_user.getUserID());
                     }
                 } catch (BadAccessTokenException e) {
@@ -1503,6 +1510,10 @@ public class HumansUser extends BaseEntity {
                     InstagramService instagram = InstagramService.createServiceOnBehalfOfUsername(service_user.getOnBehalfOfUsername());
                     if(instagram.localServiceStatusIsFreshForUserID(service_user.getUserID()) == false) {
                         instagram.serviceRequestStatusForUserID(service_user.getUserID());
+
+                        instagram.serviceRequestStatusForUserIDFromMonthsAgo(service_user.getUserID(), 12);
+
+
                     }
                 } catch (BadAccessTokenException e) {
                     logger.warn(e);
