@@ -174,7 +174,7 @@ public class FlickrService {
         FlickrStatus latest = statusDAO.findMostRecentStatusByExactUserID(aUserID);
         if (latest == null) {
             logger.info("Doesn't seem to be any local status for " + aUserID + ". Going to try and fix that by requesting some.");
-            return this.serviceRequestStatusForUserIDToMonthsAgo(aUserID, 1);
+            return this.serviceRequestStatusForUserIDToMonthsAgo(aUserID, 6);
         }
         OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
         request.addQuerystringParameter("method", "flickr.people.getPhotos");

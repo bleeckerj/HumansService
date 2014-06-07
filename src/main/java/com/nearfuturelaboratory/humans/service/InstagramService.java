@@ -299,7 +299,7 @@ public class InstagramService /*implements AbstractService*/ {
      * @param aMonthsAgo
      */
     //TODO Alter this method to be more efficient by using both max_timestamp as well as max_id or something
-    public void serviceRequestStatusForUserIDFromMonthsAgo(String aUserID, int aMonthsAgo) {
+    public List<InstagramStatus> serviceRequestStatusForUserIDFromMonthsAgo(String aUserID, int aMonthsAgo) {
         Calendar ago = Calendar.getInstance();
         ago.add(Calendar.MONTH, -1 * aMonthsAgo);
         //long year_ago = ago.getTimeInMillis();
@@ -323,7 +323,7 @@ public class InstagramService /*implements AbstractService*/ {
         Calendar oldest_cal = Calendar.getInstance();
         oldest_cal.setTimeInMillis(oldest_time * 1000l);
 
-        saveStatusJson(full_data);
+        return saveStatusJson(full_data);
 
     }
 
