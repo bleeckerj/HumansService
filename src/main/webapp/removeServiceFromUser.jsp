@@ -14,7 +14,8 @@ HumansUser user = (HumansUser)session.getAttribute("logged-in-user");
 out.println(user);
 if(user != null) {
 	//out.println(user);
-	user.removeService(request.getParameter("service_user_id"), request.getParameter("service_username"), request.getParameter("service_name"));
+    user.removeServiceBy(request.getParameter("service_name"), request.getParameter("service_user_id"));
+//	user.removeService(request.getParameter("service_user_id"), request.getParameter("service_username"), request.getParameter("service_name"));
 	user.save();
 }
 
