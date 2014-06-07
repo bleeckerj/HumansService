@@ -92,6 +92,13 @@ public class InstagramServiceTest {
     }
 
 
+    @Test
+    public void test_serviceRequestStatusForUserIDFromMonthsAgo() {
+        List<InstagramStatus> result = instagram.serviceRequestStatusForUserIDFromMonthsAgo(instagram.getThisUser().getUserID(), 12);
+        logger.debug(result);
+    }
+
+
     @Ignore
 	public void test_serviceRequestFollows() {
 		try {

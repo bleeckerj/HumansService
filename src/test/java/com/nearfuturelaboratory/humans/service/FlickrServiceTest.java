@@ -1,5 +1,6 @@
 package com.nearfuturelaboratory.humans.service;
 
+import com.nearfuturelaboratory.humans.flickr.entities.FlickrStatus;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -27,6 +28,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.util.List;
+
 
 public class FlickrServiceTest {
 	static FlickrService flickr;
@@ -35,7 +38,7 @@ public class FlickrServiceTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
-			Constants.load("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
+            Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
 			//PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 			flickr = FlickrService.createFlickrServiceOnBehalfOfUserID("66854529@N00");
 
@@ -88,5 +91,12 @@ public class FlickrServiceTest {
     public void serviceRequestStatus()
     {
         flickr.serviceRequestStatus();
+    }
+
+
+    @Test
+    public void test_serviceRequestStatusForUserIDToMonthsAgo() {
+        List<FlickrStatus> result = flickr.serviceRequestStatusForUserIDToMonthsAgo(flickr.getThisUser().getUserID(), 12);
+        logger.debug(result);
     }
 }
