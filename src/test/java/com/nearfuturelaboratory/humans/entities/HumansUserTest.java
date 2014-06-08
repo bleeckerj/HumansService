@@ -581,8 +581,8 @@ public class HumansUserTest {
     public void serviceRefreshStatusForHuman() {
        // if(remote_dao != null) {
         //HumansUser user = remote_dao.findOneByUsername("grignani");
-        HumansUser user = dev_dao.findOneByUsername("grignani");
-        Human human = user.getHumanByName("Julian 🍤🍧😳");
+        HumansUser user = remote_dao.findOneByUsername("darthjulian");
+        Human human = user.getHumanByName("Cycling");
 
         List<Human> humans = user.getAllHumans();
 
@@ -673,10 +673,19 @@ public class HumansUserTest {
 
     }
 
+
+    @Test
+    public void refreshOneCache()
+    {
+        HumansUser user = remote_dao.findOneByUsername("darthjulian");
+        Human human = user.getHumanByName("Cycling");
+        user.refreshCache(human);
+    }
+
     @Test
     public void refreshCache()
     {
-        List<HumansUser> users = dev_dao.getAllHumansUsers();
+        List<HumansUser> users = remote_dao.getAllHumansUsers();
         if(users.size() > 0) {
             HumansUser test_user = users.get(0);
             if(test_user.getAllHumans() != null && test_user.getAllHumans().size() > 0) {
