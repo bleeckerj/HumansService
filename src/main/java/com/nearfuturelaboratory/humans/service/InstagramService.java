@@ -318,11 +318,14 @@ public class InstagramService /*implements AbstractService*/ {
 
         JSONObject status = (JSONObject) jsonResponse;
         JSONArray full_data = (JSONArray) status.get("data");
-        JSONObject oldest = (JSONObject) full_data.get(full_data.size() - 1);
-        long oldest_time = Long.parseLong(oldest.get("created_time").toString());
-        Calendar oldest_cal = Calendar.getInstance();
-        oldest_cal.setTimeInMillis(oldest_time * 1000l);
-
+//        if(full_data != null && full_data.size() > 0) {
+//            JSONObject oldest = (JSONObject) full_data.get(full_data.size() - 1);
+//            long oldest_time = Long.parseLong(oldest.get("created_time").toString());
+//            Calendar oldest_cal = Calendar.getInstance();
+//            oldest_cal.setTimeInMillis(oldest_time * 1000l);
+//        } else {
+//            logger.warn("Got back no status from Instagram for "+aUserID+" for "+this.getThisUser().getUsername());
+//        }
         return saveStatusJson(full_data);
 
     }

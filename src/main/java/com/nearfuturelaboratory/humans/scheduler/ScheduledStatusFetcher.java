@@ -22,7 +22,13 @@ public class ScheduledStatusFetcher implements Job {
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
         logger.info("Fetch Status for Humans " + context);
-        fetchStatusForHumans();
+        try {
+            fetchStatusForHumans();
+        } catch(Exception e) {
+            logger.error(e);
+        } catch(Error f) {
+            logger.error(f);
+        }
     }
 
     protected void fetchStatusForHumans()

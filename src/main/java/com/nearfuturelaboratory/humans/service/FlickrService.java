@@ -241,10 +241,136 @@ public class FlickrService {
 
     }
 
-    //protected void serviceRequestStatusForUserID
+
+    public List<FlickrStatus> serviceRequestStatusForUserIDSinceMOnthsAgo(String aUserID, int aMonthsAgo) {
+        return serviceRequestStatusForUserIDToMonthsAgo(aUserID, aMonthsAgo);
+    }
+
+
 
     @SuppressWarnings("unchecked")
     protected List<FlickrStatus> serviceRequestStatusForUserIDToMonthsAgo(String aUserID, int aMonthsAgo) {
+        Calendar ago = Calendar.getInstance();
+        ago.add(Calendar.MONTH, -1 * aMonthsAgo);
+        String pattern = "yyyy-MM-dd hh:mm:ss";
+        SimpleDateFormat formatter = new SimpleDateFormat(pattern);
+        String mysqlDateString = formatter.format(ago.getTime());
+        //long year_ago = ago.getTimeInMillis();
+        if (aUserID == null || aUserID.equalsIgnoreCase("self")) {
+            aUserID = (String) user.getId();
+        }
+
+        OAuthRequest request = new OAuthRequest(Verb.GET, SERVICE_URL);
+        request.addQuerystringParameter("method", "flickr.people.getPhotos");
+        request.addQuerystringParameter("api_key", apiKey);
+        request.addQuerystringParameter("user_id", aUserID);
+        request.addQuerystringParameter("extras", "description, license, date_upload, date_taken, owner_name, icon_server, original_format, last_update, geo, tags, machine_tags, o_dims, views, media, path_alias, url_sq, url_t, url_s, url_q, url_m, url_n, url_z, url_c, url_l, url_o");
+        request.addQuerystringParameter("format", "json");
+        request.addQuerystringParameter("per_page", "100");
+        request.addQuerystringParameter("page", "1");
+        request.addQuerystringParameter("max_taken_date", mysqlDateString);
+        request.addQuerystringParameter("nojsoncallback", "1");
+        service.signRequest(accessToken, request);
+        Response response = request.send();
+        String s = response.getBody();
+        Object jsonResponse = JSONValue.parse(s);
+        JSONObject status = (JSONObject) jsonResponse;
+
+        if (status == null || status.get("stat").toString().equalsIgnoreCase("fail")) {
+            logger.warn("Despite best efforts, I got an error from Flickr " + status.toString() + "\nfor userid=" + aUserID + "\n" + this);
+            return new ArrayList<FlickrStatus>();
+        }
+
+        JSONArray photos = JsonPath.read(status, "photos.photo");
+        JSONObject oldest = null;
+
+        // nothing in x months, try everything..
+        if (photos.size() < 1) {
+            logger.info("No Flickr status in the time for " + aUserID);
+            request = new OAuthRequest(Verb.GET, SERVICE_URL);
+            request.addQuerystringParameter("method", "flickr.people.getPhotos");
+            request.addQuerystringParameter("api_key", apiKey);
+            request.addQuerystringParameter("user_id", aUserID);
+            request.addQuerystringParameter("extras", "description, license, date_upload, date_taken, owner_name, icon_server, original_format, last_update, geo, tags, machine_tags, o_dims, views, media, path_alias, url_sq, url_t, url_s, url_q, url_m, url_n, url_z, url_c, url_l, url_o");
+            request.addQuerystringParameter("format", "json");
+            request.addQuerystringParameter("per_page", "100");
+            request.addQuerystringParameter("nojsoncallback", "1");
+            service.signRequest(accessToken, request);
+            response = request.send();
+            s = response.getBody();
+            jsonResponse = JSONValue.parse(s);
+            status = (JSONObject) jsonResponse;
+        }
+        photos = JsonPath.read(status, "photos.photo");
+        if (photos.size() < 1) {
+            logger.warn("Despite my best efforts, I got nothing back from Flickr for userid=" + aUserID + "\n" + this);
+            return new ArrayList<FlickrStatus>();
+        } else {
+            oldest = (JSONObject) photos.get(photos.size() - 1);
+        }
+
+        Date oldest_taken_date;
+        long oldest_time = new Date().getTime();
+
+        try {
+            oldest_taken_date = formatter.parse(oldest.get("datetaken").toString());
+            oldest_time = oldest_taken_date.getTime();
+
+        } catch (java.text.ParseException e) {
+            logger.error(e);
+            logger.error(e.getStackTrace());
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            logger.error(e);
+            logger.error(e.getStackTrace());
+        }
+
+        int page = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
+        int pages = Integer.parseInt(JsonPath.read(status, "photos.pages").toString());
+        JSONArray latest_data;
+        while (oldest_time > ago.getTime().getTime() && pages > page) {
+            request = new OAuthRequest(Verb.GET, SERVICE_URL);
+            request.addQuerystringParameter("method", "flickr.people.getPhotos");
+            request.addQuerystringParameter("api_key", apiKey);
+            request.addQuerystringParameter("user_id", aUserID);
+            request.addQuerystringParameter("extras", "description, license, date_upload, date_taken, owner_name, icon_server, original_format, last_update, geo, tags, machine_tags, o_dims, views, media, path_alias, url_sq, url_t, url_s, url_q, url_m, url_n, url_z, url_c, url_l, url_o");
+            request.addQuerystringParameter("format", "json");
+            request.addQuerystringParameter("per_page", "100");
+            request.addQuerystringParameter("page", String.valueOf(page + 1));
+            request.addQuerystringParameter("min_taken_date", mysqlDateString);
+            request.addQuerystringParameter("nojsoncallback", "1");
+            service.signRequest(accessToken, request);
+            response = request.send();
+            s = response.getBody();
+            jsonResponse = JSONValue.parse(s);
+            status = (JSONObject) jsonResponse;
+            latest_data = JsonPath.read(status, "photos.photo");
+            photos.addAll(latest_data);
+            oldest = (JSONObject) photos.get(photos.size() - 1);
+            try {
+                oldest_taken_date = formatter.parse(oldest.get("datetaken").toString());
+            } catch (java.text.ParseException e) {
+                // TODO Auto-generated catch block
+                logger.error(e);
+                e.printStackTrace();
+                break;
+            }
+            oldest_time = oldest_taken_date.getTime();
+            page = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
+            pages = Integer.parseInt(JsonPath.read(status, "photos.page").toString());
+
+        }
+        return saveStatus(photos);
+
+    }
+
+    public List<FlickrStatus> serviceRequestStatusForUserIDAfterMonthsAgo(String aUserID, int aMonthsAgo) {
+        return serviceRequestStatusForUserIDFromMonthsAgo(aUserID, aMonthsAgo);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    protected List<FlickrStatus> serviceRequestStatusForUserIDFromMonthsAgo(String aUserID, int aMonthsAgo) {
         Calendar ago = Calendar.getInstance();
         ago.add(Calendar.MONTH, -1 * aMonthsAgo);
         String pattern = "yyyy-MM-dd hh:mm:ss";
@@ -358,7 +484,6 @@ public class FlickrService {
         return saveStatus(photos);
 
     }
-
 
     protected void saveUser(FlickrUser aUser) {
         userDAO.save(aUser);

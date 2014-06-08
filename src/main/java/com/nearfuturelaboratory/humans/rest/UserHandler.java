@@ -1,5 +1,6 @@
 package com.nearfuturelaboratory.humans.rest;
 
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 
@@ -879,7 +880,12 @@ public class UserHandler {
 
 
         JsonArray result = user.getFriendsAsJson();
-        return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
+        String response_str = result.toString();
+        byte[] b = response_str.getBytes(Charset.forName("UTF-8"));
+        int content_length = b.length;
+
+
+        return Response.ok(result.toString(), MediaType.APPLICATION_JSON).header("Content-Length", String.valueOf(content_length)).build();
     }
 
 

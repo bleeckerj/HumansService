@@ -17,6 +17,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.nio.charset.Charset;
 import java.util.List;
 
 
@@ -398,8 +399,16 @@ public class HumanHandler {
 
         //status.add(0, json_result.getAsString());
         String response_str = data.toString();
-        return Response.ok().type(MediaType.APPLICATION_JSON).entity(response_str).build();
+        byte[] b = response_str.getBytes(Charset.forName("UTF-8"));
+        int x = b.length;
+//        Response resp =  Response.ok().type(MediaType.APPLICATION_JSON).entity(response_str).build();
+//        int y = resp.toString().length();
+//        resp.getHeaders().putSingle("Content-Length", resp.toString().length());
+//        int z = resp.toString().length();
+//        int l = resp.getLength();
 
+        return Response.ok().type(MediaType.APPLICATION_JSON).entity(response_str).header("Content-Length", String.valueOf(x)).build();
+        //return resp;
 	}
 
 	//TODO

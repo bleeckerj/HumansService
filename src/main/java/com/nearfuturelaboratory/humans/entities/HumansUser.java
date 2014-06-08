@@ -1529,6 +1529,8 @@ public class HumansUser extends BaseEntity {
                     FlickrService flickr = FlickrService.createFlickrServiceOnBehalfOfUserID(service_user.getOnBehalfOfUserId());
                     if(flickr.localServiceStatusIsFreshForUserID(service_user.getUserID()) == false) {
                         flickr.serviceRequestStatusForUserID(service_user.getUserID());
+
+                        flickr.serviceRequestStatusForUserIDAfterMonthsAgo(service_user.getUserID(), 12);
                     }
                 } catch (BadAccessTokenException e) {
                     logger.warn(e);
