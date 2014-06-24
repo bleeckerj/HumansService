@@ -6,7 +6,6 @@ import com.nearfuturelaboratory.humans.dao.FlickrFollowsDAO;
 import com.nearfuturelaboratory.humans.dao.FlickrStatusDAO;
 import com.nearfuturelaboratory.humans.dao.FlickrUserDAO;
 import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
-import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.flickr.entities.FlickrFriend;
@@ -245,7 +244,6 @@ public class FlickrService {
     public List<FlickrStatus> serviceRequestStatusForUserIDSinceMOnthsAgo(String aUserID, int aMonthsAgo) {
         return serviceRequestStatusForUserIDToMonthsAgo(aUserID, aMonthsAgo);
     }
-
 
 
     @SuppressWarnings("unchecked")
@@ -498,8 +496,8 @@ public class FlickrService {
             String i = iter.next().toString();
             FlickrStatus fstatus = gson.fromJson(i, FlickrStatus.class);
 
-            ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
-            fstatus.setOnBehalfOf(serviceEntry);
+            //ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
+            //fstatus.setOnBehalfOf(serviceEntry);
 
             result.add(fstatus);
             statusDAO.save(fstatus);

@@ -3,14 +3,12 @@ package com.nearfuturelaboratory.humans.service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.jayway.jsonpath.JsonPath;
 import com.mongodb.DB;
 import com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramStatusDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
-import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
@@ -129,7 +127,6 @@ public class InstagramService /*implements AbstractService*/ {
     // on behalf of a specific instagram username
 
     /**
-     *
      * @param aUsername an instagram username which of course must be a user of the application
      * @return
      * @throws BadAccessTokenException
@@ -317,7 +314,9 @@ public class InstagramService /*implements AbstractService*/ {
         Object jsonResponse = JSONValue.parse(s);
 
         JSONObject status = (JSONObject) jsonResponse;
-        JSONArray full_data = (JSONArray) status.get("data");
+        List<InstagramStatus> result = new ArrayList<InstagramStatus>();
+        if (status != null) {
+            JSONArray full_data = (JSONArray) status.get("data");
 //        if(full_data != null && full_data.size() > 0) {
 //            JSONObject oldest = (JSONObject) full_data.get(full_data.size() - 1);
 //            long oldest_time = Long.parseLong(oldest.get("created_time").toString());
@@ -326,7 +325,13 @@ public class InstagramService /*implements AbstractService*/ {
 //        } else {
 //            logger.warn("Got back no status from Instagram for "+aUserID+" for "+this.getThisUser().getUsername());
 //        }
-        return saveStatusJson(full_data);
+            result = saveStatusJson(full_data);
+        } else {
+            logger.warn("Got weird status result for " + this.getThisUser().getUsername() + " for " + aUserID);
+            logger.warn(status);
+
+        }
+        return result;
 
     }
 
@@ -414,8 +419,7 @@ public class InstagramService /*implements AbstractService*/ {
         return saveStatusJson(full_data);
     }
 
-    public List<InstagramStatus> serviceRequestStatusByMediaID(String aMediaID)
-    {
+    public List<InstagramStatus> serviceRequestStatusByMediaID(String aMediaID) {
 
         String statusURL = String.format(STATUS_BY_MEDIAID_URL, aMediaID);
         OAuthRequest request = new OAuthRequest(Verb.GET, statusURL);
@@ -439,8 +443,7 @@ public class InstagramService /*implements AbstractService*/ {
     }
 
 
-    JsonElement serviceLikeStatusByMediaID(String aMediaID)
-    {
+    JsonElement serviceLikeStatusByMediaID(String aMediaID) {
         String statusURL = String.format(LIKE_STATUS_BY_MEDIAID_URL, aMediaID);
         OAuthRequest request = new OAuthRequest(Verb.POST, statusURL);
         service.signRequest(accessToken, request);
@@ -451,11 +454,10 @@ public class InstagramService /*implements AbstractService*/ {
 
         String s = response.getBody();
         Gson gson = new Gson();
-        JsonElement element = gson.fromJson (s, JsonElement.class);
+        JsonElement element = gson.fromJson(s, JsonElement.class);
         return element;
 
     }
-
 
 
     @SuppressWarnings("unused")
@@ -469,8 +471,8 @@ public class InstagramService /*implements AbstractService*/ {
                 String i = iter.next().toString();
                 //logger.debug(i);
                 com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus istatus = gson.fromJson(i, com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
-                ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
-                istatus.setOnBehalfOf(serviceEntry);
+                //ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
+                //istatus.setOnBehalfOf(serviceEntry);
                 result.add(istatus);
                 statusDAO.save(istatus);
             }

@@ -1,9 +1,6 @@
 
 package com.nearfuturelaboratory.humans.twitter.entities.generated;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -12,10 +9,14 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Property;
 
+import javax.annotation.Generated;
+import java.util.ArrayList;
+import java.util.List;
+
 @Generated("org.jsonschema2pojo")
-@Entity(value="entities", noClassnameStored = true)
+@Entity(value = "entities", noClassnameStored = true)
 public class StatusEntities {
-//TODO find a status sample that has these three properties completed so we know what they look like
+    //TODO find a status sample that has these three properties completed so we know what they look like
     @Expose
     private List<Object> hashtags = new ArrayList<Object>();
     @Expose

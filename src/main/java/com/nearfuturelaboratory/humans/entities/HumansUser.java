@@ -22,12 +22,15 @@ import com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.humans.util.MyObjectIdSerializer;
 import com.nearfuturelaboratory.util.Constants;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.jasypt.util.binary.BasicBinaryEncryptor;
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.joda.time.*;
+import org.joda.time.Duration;
+import org.joda.time.Instant;
+import org.joda.time.Period;
 import org.mongodb.morphia.annotations.*;
 import org.mongodb.morphia.utils.IndexDirection;
 import org.scribe.exceptions.OAuthConnectionException;
@@ -41,7 +44,6 @@ import java.util.*;
 import static ch.lambdaj.Lambda.*;
 import static ch.lambdaj.function.matcher.AndMatcher.and;
 import static org.hamcrest.CoreMatchers.equalTo;
-import org.apache.commons.collections4.CollectionUtils;
 
 @Entity(value="users",noClassnameStored = true)
 public class HumansUser extends BaseEntity {
@@ -163,17 +165,21 @@ public class HumansUser extends BaseEntity {
         Human youman = getYouman();
 
         List<ServiceUser> service_users = youman.getServiceUsers();
-        List<ServiceEntry> humans_services = this.getServices();
+        List<ServiceEntry> humans_services = new ArrayList<ServiceEntry>(this.getServices());
         List<ServiceUser> humans_service_users_faux  = new ArrayList<ServiceUser>();
 
-        for(ServiceEntry service_entry : humans_services) {
-            humans_service_users_faux.add(makeServiceUserFromServiceEntry(service_entry));
+        try {
+            for (ServiceEntry service_entry : humans_services) {
+                ServiceUser fromServiceEntry = makeServiceUserFromServiceEntry(service_entry);
+                humans_service_users_faux.add(fromServiceEntry);
+            }
+        } catch (Exception e) {
+            logger.warn(e);
+            logger.warn("Really weird. I don't know what could be concurrently modified here.", e);
         }
 
         Collection<ServiceUser> addToYouman =  CollectionUtils.subtract(humans_service_users_faux, service_users);
         Collection<ServiceUser> removeFromYouman = CollectionUtils.subtract(service_users, humans_service_users_faux);
-
-
 
         if(addToYouman.size() > 0 || removeFromYouman.size() > 0) {
 
@@ -240,8 +246,6 @@ public class HumansUser extends BaseEntity {
     }
 
 
-
-
     protected ServiceUser makeServiceUserFromServiceEntry(ServiceEntry aServiceEntry) {
         ServiceUser result = new ServiceUser();
         //result.setServiceEntry(aServiceEntry);
@@ -263,8 +267,8 @@ public class HumansUser extends BaseEntity {
                 InstagramUser u = instagram.serviceRequestUserBasicForUserID(se.getServiceUserID());
                 result = u.getLargeImageURL();
             } catch(Exception e) {
-                e.printStackTrace();
-                logger.error(e.getMessage(), e);
+                //e.printStackTrace();
+                logger.error(e.getMessage());
             }
         }
         if(aServiceEntry.getServiceName().equalsIgnoreCase("twitter")) {
@@ -274,7 +278,7 @@ public class HumansUser extends BaseEntity {
                 result = u.getImageURL();
             } catch(Exception e) {
                 e.printStackTrace();
-                logger.error(e.getMessage(), e);
+                logger.error(e.getMessage());
 
             }
         }
@@ -285,7 +289,7 @@ public class HumansUser extends BaseEntity {
                result = u.getImageURL();
             } catch(Exception e) {
                 e.printStackTrace();
-                logger.error(e.getMessage(), e);
+                logger.error(e.getMessage());
 
             }
         }
@@ -296,7 +300,7 @@ public class HumansUser extends BaseEntity {
                 result = u.getImageURL();
             } catch(Exception e) {
                 e.printStackTrace();
-                logger.error(e.getMessage(), e);
+                logger.error(e.getMessage());
 
             }
 
@@ -1001,7 +1005,9 @@ public class HumansUser extends BaseEntity {
 
         DBCollection cache = cache_db.getCollection(cache_name);
 
-        DBCursor cursor = cache.find();
+        DBObject query = new BasicDBObject("cache_header", new BasicDBObject("$exists", false));
+
+        DBCursor cursor = cache.find(query);
 
         JsonObject period_details = this.getStatusDetailsFromDBCursor(cursor, aMaxIndex);
         period_details.addProperty("human", aHuman.toString());
@@ -1027,9 +1033,10 @@ public class HumansUser extends BaseEntity {
 
         DBObject first = null;
         DBObject last = null;
-        DBCursor noHeader = cursor.skip(1);
+        // DBCursor noHeader = cursor.skip(1);
 
-        List<DBObject> objects = noHeader.toArray();
+        //List<DBObject> objects = noHeader.toArray();
+        List<DBObject> objects = cursor.toArray();
         int _last = objects.size();
         if(aMaxIndex < objects.size()) {
             _last = aMaxIndex;
@@ -1163,8 +1170,11 @@ public class HumansUser extends BaseEntity {
 //            result.addProperty("service."+service_name)
 
         } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("", e);
+            //e.printStackTrace();
+            logger.error(e);
+            logger.error("Something's weird with the cache called " + cursor.getCollection() + ". Will drop. Maybe that'll fix it?");
+            DBCollection collection = cursor.getCollection();
+            collection.drop();
 
             result.addProperty("ex-message", e.toString());
         }
@@ -1181,23 +1191,17 @@ public class HumansUser extends BaseEntity {
 
         DBCollection cache = cache_db.getCollection(cache_name);
 
-        DBCursor cursor = cache.find();
-        int count = cursor.count();
+        DBObject query = new BasicDBObject("cache_header", new BasicDBObject("$exists", false));
+        long result = cache.getCount(query);
+        ///DBCursor cursor = cache.find(query);
+        ///int count = cursor.count();
 
-        DBObject first = null;
-        DBObject last = null;
-        DBCursor noHeader = cursor.skip(1);
-
-        List<DBObject> objects = noHeader.toArray();
-        if(objects != null && objects.size() > 0) {
-            first = objects.get(0);
-            last = objects.get(objects.size() -1);
-        }
-        //logger.debug(first+" "+last);
-//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("created")
-
-        // remember, there is one document in the collection that just contains metadata about the cache
-        return (int)cache.getCount()-1;
+//        DBObject first = null;
+//        DBObject last = null;
+//        DBCursor noHeader = cache.find(query);//cursor.skip(1);
+//
+//        List<DBObject> objects = noHeader.toArray();
+        return (int) result;
     }
 
     /**
@@ -1232,7 +1236,7 @@ public class HumansUser extends BaseEntity {
             // the document that contains this 'key' field is the
             // key to the collection. we don't need it for status
             // it's used purely as metadata about the documents themselves.
-            if(obj.containsField("key")) {
+            if (obj.containsField("cache_header")) {
                 continue;
             }
 
@@ -1626,9 +1630,11 @@ public class HumansUser extends BaseEntity {
         }
 
         Collections.sort(result);
-
+        // HEY
         if(result != null && result.size() > 0) {
-            cacheStatusForHuman(aHuman, result);
+            // we do this explicitly via HumansUser.refreshCache() while doing our ScheduledStatusFetch don't assume we want to cache just cause
+            // we've gathered status
+            // cacheStatusForHuman(aHuman, result);
         } else {
             logger.warn("status for "+aHuman.getName()+"/"+aHuman.getId()+" is "+result);
         }
@@ -1680,21 +1686,30 @@ public class HumansUser extends BaseEntity {
         // the document that contains this 'key' field is the
         // key to the collection. we don't need it for status
         // it's used purely as metadata about the documents themselves.
+        for (ServiceStatus status : aListOfStatus) {
+            try {
+                DBObject obj = (DBObject) JSON.parse(status.getStatusJSON().toString());
+                cache.save(obj);
+            } catch (Error error) {
+                logger.error(error);
+                logger.error("status=" + status + " json=" + status.getStatusJSON());
+            }
+        }
+
         BasicDBObject meta = new BasicDBObject
                 ("user", this.toString()).
                 append("key", this.getId() + "_" + aHuman.getId()).
                 append("human", aHuman.toString()).
                 append("newest", newest).
                 append("oldest", oldest).
+                append("created", new Date().getTime()).
+                append("cache_header", true).
                 append("lastUpdated", new Date());
 
 
         cache.insert(meta);
 
-        for(ServiceStatus status : aListOfStatus) {
-            DBObject obj = (DBObject)JSON.parse(status.getStatusJSON().toString());
-            cache.save(obj);
-        }
+
 //        logger.error("TEST TEST TEST TEST");
 //        logger.warn("FOO FOO FOO FOO");
         logger.info("wrote "+aListOfStatus.size()+" items");
@@ -2015,8 +2030,7 @@ public class HumansUser extends BaseEntity {
      */
     @Override
     public String toString() {
-        return "HumansUser [username=" + username + ", password=" + password
-                + ", email=" + email + ", humans=" + humans + ", services="
+        return "HumansUser [username=" + username + ", password=******* email=" + email + ", humans=" + humans + ", services="
                 + services + "]";
     }
 

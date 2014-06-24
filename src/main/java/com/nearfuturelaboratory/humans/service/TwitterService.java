@@ -8,7 +8,6 @@ import com.nearfuturelaboratory.humans.dao.ServiceTokenDAO;
 import com.nearfuturelaboratory.humans.dao.TwitterFollowsDAO;
 import com.nearfuturelaboratory.humans.dao.TwitterStatusDAO;
 import com.nearfuturelaboratory.humans.dao.TwitterUserDAO;
-import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.entities.ServiceToken;
 import com.nearfuturelaboratory.humans.exception.BadAccessTokenException;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterFriend;
@@ -63,7 +62,6 @@ public class TwitterService {
     protected Gson gson;
 
 
-
     public TwitterService() {
         db = MongoUtil.getMongo().getDB("twitter");
 
@@ -110,7 +108,8 @@ public class TwitterService {
             result = new TwitterService(token);
         }
 
-        if(token == null) throw new BadAccessTokenException("The access token for Twitter User "+aUsername+" is null. It probably does not exist.");
+        if (token == null)
+            throw new BadAccessTokenException("The access token for Twitter User " + aUsername + " is null. It probably does not exist.");
 
         result.user = user;
         return result;
@@ -224,14 +223,14 @@ public class TwitterService {
      * Idiomatically, this method is named wrong because it may or may not actually go to the
      * service itself. It tries the cache. This is a
      * //TODO make this naming consistent and meaningful
+     *
      * @return
      */
     public List<TwitterStatus> serviceRequestStatus() {
         return serviceRequestStatusForUserID(this.user.getId_str());
     }
 
-    public long getStatusCountForUserID(String aUserID)
-    {
+    public long getStatusCountForUserID(String aUserID) {
         long result = statusDAO.getStatusCountForUserID(aUserID);
         return result;
     }
@@ -272,11 +271,11 @@ public class TwitterService {
         service.signRequest(accessToken, request);
         Response response = request.send();
 
-        if(response.isSuccessful() && response.getCode() == 200) {
+        if (response.isSuccessful() && response.getCode() == 200) {
 
-            if(response.getBody().length() < 3) {
+            if (response.getBody().length() < 3) {
                 // empty thing, no new status
-                logger.info("No new status for twitter user="+aUserID+" since status id="+since_id);
+                logger.info("No new status for twitter user=" + aUserID + " since status id=" + since_id);
                 return jsonResponse;
             }
 
@@ -289,8 +288,8 @@ public class TwitterService {
                 // logger.debug(objResponse);
                 jsonResponse = (JSONArray) objResponse;
 
-            } catch(Exception e) {
-                logger.warn("Error retrieving Twitter Status "+aUserID+" "+since_id, e);
+            } catch (Exception e) {
+                logger.warn("Error retrieving Twitter Status " + aUserID + " " + since_id, e);
                 logger.warn(request);
                 jsonResponse = new JSONArray();
             }
@@ -352,11 +351,11 @@ public class TwitterService {
         while (iter.hasNext()) {
             String i = iter.next().toString();
             // logger.debug(i);
-            com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus tstatus = gson.fromJson(i,com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus.class);
+            com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus tstatus = gson.fromJson(i, com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus.class);
 
 
-            ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
-            tstatus.setOnBehalfOf(serviceEntry);
+            //ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
+            //tstatus.setOnBehalfOf(serviceEntry);
 
 
             result.add(tstatus);
@@ -445,10 +444,8 @@ public class TwitterService {
 
 
     public void serviceRequestFollows() {
-         serviceRequestFollowsForUserID((String) user.getId_str());
+        serviceRequestFollowsForUserID((String) user.getId_str());
     }
-
-
 
 
     @SuppressWarnings("unchecked")
@@ -558,16 +555,17 @@ public class TwitterService {
         }
         //return follows;
     }
+
     //TODO we should delete all the friends of follower_id first..
     protected List<TwitterFriend> saveFollows(List<JSONObject> list_of_friends, String follower_id) {
 
-        List<TwitterFriend> new_friends= new ArrayList<TwitterFriend>();
-        for(JSONObject j : list_of_friends) {
+        List<TwitterFriend> new_friends = new ArrayList<TwitterFriend>();
+        for (JSONObject j : list_of_friends) {
             TwitterUser friend = gson.fromJson(j.toString(), TwitterUser.class);
             userDAO.save(friend);
             TwitterUser follower = userDAO.findByExactUserID(follower_id);
             TwitterFriend f = followsDAO.findFollowsByUserIDFollowsID(friend.getId(), follower_id);
-            if(f == null) {
+            if (f == null) {
                 f = new TwitterFriend();
                 f.setFriend(friend);
                 f.setFollower(follower);
@@ -584,7 +582,7 @@ public class TwitterService {
         Collection<TwitterFriend> no_longer_friends = CollectionUtils.subtract(existing_friends, new_friends);
 
         // delete the ones that have dropped off
-        for(TwitterFriend not_a_friend : no_longer_friends) {
+        for (TwitterFriend not_a_friend : no_longer_friends) {
             followsDAO.delete(not_a_friend);
             // but keep the user around?
             //
@@ -594,18 +592,14 @@ public class TwitterService {
         // load the item by the the compound key (friend id and follower or 'my' ID)
         // but we also need that 'friend' as a TwitterUser so we have to take the friend's ID and either
         // load that person from the DB or load them from the service
-        for(TwitterFriend is_a_friend : new_friends_to_save) {
+        for (TwitterFriend is_a_friend : new_friends_to_save) {
             followsDAO.save(is_a_friend);
         }
-
-
-
 
 
         return followsDAO.findFollowsByExactUserID(this.getThisUser()
                 .getId_str());
     }
-
 
 
     /**
@@ -626,7 +620,7 @@ public class TwitterService {
     public static void serializeToken(Token aToken, TwitterUser aUser) {
         ServiceTokenDAO dao = new ServiceTokenDAO("twitter");
         ServiceToken tokenToSave = dao.findByExactUserId(aUser.getId()); //new ServiceToken();
-        if(tokenToSave == null) {
+        if (tokenToSave == null) {
             tokenToSave = new ServiceToken();
         }
         tokenToSave.setToken(aToken);
@@ -637,7 +631,7 @@ public class TwitterService {
         dao.save(tokenToSave);
     }
 
-    public static Token deserializeToken( TwitterUser aUser) {
+    public static Token deserializeToken(TwitterUser aUser) {
         // Token result = null;
         ServiceTokenDAO dao = new ServiceTokenDAO("twitter");
         ServiceToken serviceToken = dao.findByExactUserId(aUser.getId_str());
@@ -654,7 +648,6 @@ public class TwitterService {
     //	public long getCreated() {
     //		return this.getCreatedDate().getTime();
     //	}
-
 
 
 }

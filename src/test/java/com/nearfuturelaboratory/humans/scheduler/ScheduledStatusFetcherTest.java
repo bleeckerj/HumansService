@@ -1,6 +1,5 @@
 package com.nearfuturelaboratory.humans.scheduler;
 
-import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.util.Constants;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,7 +17,7 @@ public class ScheduledStatusFetcherTest {
             Constants.load("/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/dev.app.properties");
             //PropertyConfigurator.configureAndWatch("/Volumes/Slippy/Users/julian/Documents/workspace/HumansService/src/main/webapp/WEB-INF/lib/static-logger.properties");
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
