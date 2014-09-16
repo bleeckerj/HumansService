@@ -9,6 +9,7 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,25 +36,34 @@ public class ScheduledStatusFetcher implements Job {
 
         HumansUserDAO dao = new HumansUserDAO();
         List<HumansUser> all = dao.getAllHumansUsers();
-
+        int all_count = 0;
+        Date begin = new Date();
 
         logger.info("****** Starting fetchStatusForHumans " + this + " count=" + all.size());
         for (HumansUser humansUser : all) {
             logger.info("=========== Fetch Status For " + humansUser.getUsername() + " ==============");
-
+            Date start = new Date();
             try {
                 humansUser.refreshStatusForAllHumans();
+                //humansUser.getHumans();
                 //humansUser.save();
             } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
-                logger.warn("Something bad happened whilst fetching status for " + humansUser.getUsername() + " " + humansUser.getId());
+                logger.error(e.getMessage(), e);
+                logger.error("Something bad happened whilst fetching status for " + humansUser.getUsername() + " " + humansUser.getId());
             } catch (Error error) {
                 logger.error(error.getMessage(), error);
             }
-            logger.info("=========== Done Fetch Status For " + humansUser.getUsername() + " ==============");
+            int count = humansUser.getHumansServiceUsersCount();
+            all_count += count;
+            Date end = new Date();
+            double time = end.getTime() - start.getTime();
+            double rate = (time/1000)/count;
+            logger.info("=========== Done Fetch Status For " + humansUser.getUsername() + " fetched "+ count +" at "+ rate +" seconds per  ==============");
         }
-
-        logger.info("****** Done fetching status for humans");
+        Date finish = new Date();
+        double time = finish.getTime() - begin.getTime();
+        double rate = (time/1000)/all_count;
+        logger.info("****** Done fetching status for humans. Fetched "+all_count+" at "+ rate +" seconds per ");
     }
 
 }

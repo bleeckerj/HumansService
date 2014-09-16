@@ -63,6 +63,9 @@ public class HumansUser extends BaseEntity {
     protected Boolean isAdmin = false;
     protected Boolean isSuperuser = false;
 
+
+    protected ArrayList<Dictionary<String, String>> serviceNotes;
+
     @Transient
     String email;
     byte[] email_bytes;
@@ -158,6 +161,18 @@ public class HumansUser extends BaseEntity {
     public HumansUser() {
         super();
     }
+
+
+
+    public ArrayList<Dictionary<String, String>> getServiceNotes() {
+        return serviceNotes;
+    }
+
+    public void setServiceNotes(ArrayList<Dictionary<String, String>> serviceNotes) {
+        this.serviceNotes = serviceNotes;
+    }
+
+//    public void addServiceNote()
 
     public void updateYouman()
     {
@@ -392,6 +407,16 @@ public class HumansUser extends BaseEntity {
     }
     public List<Human> getHumans() {
         return humans;
+    }
+
+    public int getHumansServiceUsersCount() {
+        //Human human;
+        List<Human> humans = this.getHumans();
+        int count_result = 0;
+        for(Human human : humans) {
+            count_result+=human.getServiceUsers().size();
+        }
+        return count_result;
     }
 
     public void setHumans(List<Human> aHumans) {
@@ -1682,6 +1707,13 @@ public class HumansUser extends BaseEntity {
 
         Date oldest = aListOfStatus.get(aListOfStatus.size()-1).getCreatedDate(); //oldestStatusInList(aListOfStatus);
         Date newest = aListOfStatus.get(0).getCreatedDate();
+        Date second = aListOfStatus.get(1).getCreatedDate();
+        Date third = aListOfStatus.get(2).getCreatedDate();
+
+        if(third.after(second)) {
+            logger.error("third is earlier than second for "+aHuman.getName()+" "+aHuman.getId()+" second="+second+" third="+third);
+        }
+
 
         // the document that contains this 'key' field is the
         // key to the collection. we don't need it for status

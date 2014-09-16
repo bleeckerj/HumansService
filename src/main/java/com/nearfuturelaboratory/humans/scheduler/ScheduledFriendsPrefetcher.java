@@ -15,10 +15,12 @@ import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.humans.entities.MinimalSocialServiceUser;
 import com.nearfuturelaboratory.util.Constants;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
+@DisallowConcurrentExecution
 public class ScheduledFriendsPrefetcher implements Job {
     final static Logger logger = LogManager.getLogger(ScheduledFriendsPrefetcher.class);
 
@@ -88,7 +90,7 @@ public class ScheduledFriendsPrefetcher implements Job {
             }
             if(service_entry.getServiceName().equalsIgnoreCase("twitter")) {
 
-                TwitterService twitter;// = new TwitterService();
+                TwitterService twitter = null;// = new TwitterService();
                 try {
                     twitter = TwitterService.createTwitterServiceOnBehalfOfUsername(service_entry.getServiceUsername());
                     logger.info(twitter.getThisUser().getUsername()+" service request friends for twitter");
@@ -96,6 +98,14 @@ public class ScheduledFriendsPrefetcher implements Job {
                     twitter.serviceRequestFollows();
                 } catch(BadAccessTokenException e) {
                     logger.warn(e);
+                } catch(Exception e2) {
+                    if(twitter != null) {
+                        logger.warn("Exception for TwitterUser=" + twitter.getThisUser().toString());
+
+                    }
+                    logger.warn("Twitter does not seem to want to respond to requests for follows. Maybe the API changed?");
+                    //logger.warn(e2);
+                    logger.warn("Weird", e2);
                 }
             }
             if(service_entry.getServiceName().equalsIgnoreCase("foursquare")) {

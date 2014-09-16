@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.Mongo;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.util.Constants;
@@ -19,6 +20,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.mongodb.morphia.Key;
+import org.mongodb.morphia.Morphia;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,8 +72,9 @@ public class HumansUserTest {
             /**
              * /usr/bin/ssh -o CheckHostIP=no -o TCPKeepAlive=yes -o StrictHostKeyChecking=no -o ServerAliveInterval=120 -o ServerAliveCountMax=100 -i /Users/julian/.ec2/AMZ-EC2.pem ec2-user@ec2-54-193-78-211.us-west-1.compute.amazonaws.com -N -L 29017:127.0.0.1:27017
              */
-//            Mongo mongo = MongoUtil.getMongo("localhost", 29017);
-//            remote_dao = new HumansUserDAO(mongo, new Morphia(), "humans");
+            Mongo mongo = MongoUtil.getMongo("localhost", 27017);
+
+            remote_dao = new HumansUserDAO(mongo, new Morphia(), "humans");
 
 
             logger.debug("Hey Ho!");
@@ -83,9 +86,9 @@ public class HumansUserTest {
 
     @Test
     public void changeUserPassword() {
-        HumansUser user = remote_dao.findOneByUsername("nicolasnova");
+        HumansUser user = remote_dao.findOneByUsername("maryb");
         if (user != null) {
-            user.setPassword("no-ssiws-wose");
+            user.setPassword("boogaloo");
             user.save();
         }
         logger.info("User is now " + user);
@@ -105,6 +108,42 @@ public class HumansUserTest {
             ServiceUser youman_service_user = youman.getServiceUserByServiceUserId(service_user_id);
             assertThat(youman_service_user, is(equalTo(service_user)));
         }
+
+    }
+
+
+    @Test
+    public void getHumansServiceUsersCount() {
+        ServiceEntry service_entry = new ServiceEntry("id_", "username_", "service_");
+        ServiceUser service_user = new ServiceUser("id__", "username__", "name__", "image_url__", service_entry);
+        ObjectId aId = new ObjectId(new Date(), 1);
+        service_user.setId(aId);
+        Human human = new Human();
+        human.setName("test");
+        human.addServiceUser(service_user);
+
+
+
+        HumansUser user = new HumansUser();
+        user.addHuman(human);
+
+        assertThat(user.getHumansServiceUsersCount(), is(1));
+
+        aId = new ObjectId(new Date(), 2);
+        service_entry = new ServiceEntry("id_2", "username_2", "service_");
+        service_user = new ServiceUser("id__2", "username__2", "name__2", "image_url__2", service_entry);
+        service_user.setId(aId);
+        human.addServiceUser(service_user);
+
+        assertThat(user.getHumansServiceUsersCount(), is(2));
+
+        human.removeServiceUserById(aId.toString());
+
+        assertThat(user.getHumansServiceUsersCount(), is(1));
+
+        human.removeAllServiceUsers();
+        assertThat(user.getHumansServiceUsersCount(), is(0));
+
 
     }
 

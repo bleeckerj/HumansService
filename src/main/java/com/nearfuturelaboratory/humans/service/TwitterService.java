@@ -30,6 +30,7 @@ import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.partition;
 
@@ -130,6 +131,8 @@ public class TwitterService {
      */
     public TwitterUser serviceRequestUserBasic() {
         OAuthRequest request = new OAuthRequest(Verb.GET, VERIFY_URL);
+        request.setConnectTimeout(30, TimeUnit.SECONDS);
+        request.setReadTimeout(30, TimeUnit.SECONDS);
         service.signRequest(accessToken, request);
         Response response = request.send();
 
@@ -153,6 +156,8 @@ public class TwitterService {
         JSONObject aUser;
         String userURL = String.format(SHOW_USER_BY_ID_URL, aUserID);
         OAuthRequest request = new OAuthRequest(Verb.GET, userURL);
+        request.setConnectTimeout(30, TimeUnit.SECONDS);
+        request.setReadTimeout(30, TimeUnit.SECONDS);
         service.signRequest(accessToken, request);
         Response response = request.send();
         String s = response.getBody();
@@ -261,6 +266,8 @@ public class TwitterService {
 
         String statusURL = String.format(STATUS_URL, aUserID);
         OAuthRequest request = new OAuthRequest(Verb.GET, statusURL);
+        request.setConnectTimeout(30, TimeUnit.SECONDS);
+        request.setReadTimeout(30, TimeUnit.SECONDS);
         request.addQuerystringParameter("count", "200");
 
         if (since_id != null) {
@@ -473,9 +480,12 @@ public class TwitterService {
 
         String followsURL = String.format(FRIENDS_IDS_URL, aUserID, "-1");
         OAuthRequest request = new OAuthRequest(Verb.GET, followsURL);
+        request.setConnectTimeout(30, TimeUnit.SECONDS);
+        request.setReadTimeout(30, TimeUnit.SECONDS);
         service.signRequest(accessToken, request);
 
         Response response = request.send();
+        logger.info("Response is "+response+" msg="+response.getMessage()+" code="+response.getCode());
         // TODO Error checking
         String s = response.getBody();
 
@@ -503,6 +513,8 @@ public class TwitterService {
                 next_cursor_l = next_cursor.longValue();
                 if (next_cursor != null && next_cursor_l != 0) {
                     request = new OAuthRequest(Verb.GET, (String) next_url);
+                    request.setConnectTimeout(30, TimeUnit.SECONDS);
+                    request.setReadTimeout(30, TimeUnit.SECONDS);
                     service.signRequest(accessToken, request);
                     response = request.send();
                     s = response.getBody();
@@ -534,19 +546,25 @@ public class TwitterService {
                 buf.deleteCharAt(buf.length() - 1);
 
                 postUserLookup = new OAuthRequest(Verb.POST, USER_LOOKUP_URL);
-                postUserLookup.setConnectionKeepAlive(false);
+                postUserLookup.setConnectionKeepAlive(true);
+                postUserLookup.setConnectTimeout(30, TimeUnit.SECONDS);
+                postUserLookup.setReadTimeout(30, TimeUnit.SECONDS);
+
+                logger.debug("Attempting to get Twitter followers for user_id="+aUserID+" who is @"+aUser.getUsername());
 
                 postUserLookup.addBodyParameter("user_id", buf.toString());
                 service.signRequest(accessToken, postUserLookup);
                 response = postUserLookup.send();
+                logger.info("Response is "+response.getMessage()+" Code="+response.getCode());
+
                 s = response.getBody();
                 h = response.getHeaders();
-                // logger.info("From Headers for Twitter Request rate-limit="+h.get("x-rate-limit-limit")+" reset ms="+h.get("x-rate-limit-reset"));
+                logger.info("From Headers for Twitter Request rate-limit="+h.get("x-rate-limit-limit")+" reset ms="+h.get("x-rate-limit-reset"));
 
                 JSONArray usersArray = (JSONArray) JSONValue.parse(s);
                 allFollowsHydrated.addAll(usersArray);
             }
-
+            logger.info("Found "+allFollowsHydrated.size()+" follows for "+aUser.getUsername());
             follows = saveFollows(allFollowsHydrated, aUserID);
         } else {
 

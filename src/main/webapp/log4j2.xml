@@ -69,6 +69,16 @@
           <DefaultRolloverStrategy max="2"/>
       </RollingFile>
 
+      <RollingFile name="TWITTER" fileName="${sys:catalina.home}/logs/humans_twitter.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_quartz-%d{MM-dd-yyyy}-%i.log">
+          <PatternLayout pattern="%highlight{%d{ISO8601} %-5p [%18.18t] %c{1}:%line %M() - %m%n}"/>
+          <Policies>
+              <TimeBasedTriggeringPolicy />
+              <SizeBasedTriggeringPolicy size="20 MB"/>
+          </Policies>
+          <DefaultRolloverStrategy max="2"/>
+      </RollingFile>
+
+
       <RollingFile name="HUMANS_ERROR" fileName="${sys:catalina.home}/logs/humans_error.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_error-%d{MM-dd-yyyy}-%i.log">
           <PatternLayout pattern="%highlight{%d{ISO8601} %-5p %c{1}.java:%line %M() - %m%n}"/>
           <Policies>
@@ -124,6 +134,7 @@
       <logger name="com.nearfuturelaboratory.humans.service.TwitterService" level="trace" additivity="false">
           <appender-ref ref="HUMANS" level="info"/>
           <appender-ref ref="QUARTZ" level="warn"/>
+          <appender-ref ref="TWITTER" level="debug"/>
       </logger>
 
       <logger name="com.nearfuturelaboratory.humans.dao.InstagramStatusDAO" level="trace" additivity="false">
@@ -167,9 +178,9 @@
           <appender-ref ref="HUMANS_DB" level="info"/>
       </logger>
 
-      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="trace" additivity="false">
-          <appender-ref ref="QUARTZ" level="info"/>
-      </logger>
+      <!--<logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="trace" additivity="false">-->
+          <!--<appender-ref ref="QUARTZ" level="info"/>-->
+      <!--</logger>-->
 
 
       <!--<logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledStatusFetcher" additivity="false">-->
@@ -198,6 +209,7 @@
           <appender-ref ref="HUMANS_ERROR" level="warn"/>
           <appender-ref ref="QUARTZ_QUIET" level="info"/>
           <appender-ref ref="QUARTZ" level="info"/>
+          <appender-ref ref="TWITTER" level="debug"/>
 
       </logger>
 

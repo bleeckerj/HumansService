@@ -112,15 +112,15 @@ public class FlickrStatus extends ServiceStatus {
     public long created;
     @Override
     /**
-     * Use date uploaded for sorting
+     * Use date taken for sorting
      */
     public long getCreated() {
-        return this.getDateupload().longValue()*1000l;
+        return this.getDateupload()*1000l;
     }
 
 	@PrePersist void prePersist() {
 		lastUpdated = new Date();
-        created = getCreatedDate().getTime();
+        created = getCreated();
 	}
 
 

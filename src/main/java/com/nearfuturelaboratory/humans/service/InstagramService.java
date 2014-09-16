@@ -520,14 +520,17 @@ public class InstagramService /*implements AbstractService*/ {
             serviceRequestFriends(this.getThisUser().getId());
         } catch (BadAccessTokenException e) {
             logger.warn(e);
+        } catch(NullPointerException e) {
+            logger.warn(e);
         }
+
     }
 
 
     /**
      * @param aUserID
      */
-    protected List<InstagramFriend> serviceRequestFriends(String aUserID) throws BadAccessTokenException {
+    protected List<InstagramFriend> serviceRequestFriends(String aUserID) throws BadAccessTokenException, NullPointerException {
         InstagramUser aUser;
         List<InstagramFriend> result = new ArrayList<InstagramFriend>();
 
@@ -558,9 +561,10 @@ public class InstagramService /*implements AbstractService*/ {
         JSONObject pagination = (JSONObject) map.get("pagination");
         //JSONArray allFollows = new JSONArray();
         List<JSONObject> allFollows = new ArrayList<JSONObject>();
-
-        do {
-            //			JSONArray data = (JSONArray)map.get("data");
+        if(pagination == null) {
+            logger.warn("No pagination for "+this+" "+this.getThisUser());
+        }
+        while (pagination != null) {
             List<JSONObject> f = JsonPath.read(map, "data");
             if (f != null) {
                 allFollows.addAll(f);
@@ -586,8 +590,13 @@ public class InstagramService /*implements AbstractService*/ {
                 pagination = (JSONObject) map.get("pagination");
             } else {
                 break;
+
             }
-        } while (pagination != null);
+        }
+//        do {
+//            //			JSONArray data = (JSONArray)map.get("data");
+//            }
+//        } while (pagination != null);
         logger.debug("Save follows for " + aUser.getUsername());
         saveFollowsJson(allFollows, aUserID);
         return result;

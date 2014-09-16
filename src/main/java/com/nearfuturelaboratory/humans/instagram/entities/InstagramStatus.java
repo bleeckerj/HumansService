@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.mongodb.morphia.annotations.*;
@@ -104,6 +105,10 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
     public long created;
     public long getCreated() {
         return this.created_time * 1000L;
+    }
+
+    public Date getCreatedAt() {
+        return new Date(getCreated());
     }
 
 	@PrePersist void prePersist() {
@@ -216,6 +221,10 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 		return obj;
 	}
 
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
 
 
 //	@Override
