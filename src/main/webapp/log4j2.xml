@@ -43,7 +43,7 @@
           <DefaultRolloverStrategy max="5"/>
       </RollingFile>
 
-      <RollingFile name="HUMANS_BOLD" fileName="${sys:catalina.home}/logs/humans_app.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_app-%d{MM-dd-yyyy}-%i.log">
+      <RollingFile name="HUMANS_BOLD" fileName="/tmp/logs/humans_app.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_app-%d{MM-dd-yyyy}-%i.log">
           <PatternLayout pattern="%highlight{%d{ISO8601} %style{%thread}{bold,cyan} %-5p %c{1}.java:%line %M() - %m%n}"/>
           <Policies>
               <TimeBasedTriggeringPolicy />

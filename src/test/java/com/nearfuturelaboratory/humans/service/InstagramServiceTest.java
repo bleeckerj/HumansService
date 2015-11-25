@@ -51,6 +51,13 @@ public class InstagramServiceTest {
         logger.debug(status);
     }
 
+	@Test
+	public void serviceRequestFollowers()
+	{
+		instagram.serviceRequestFollowers();
+	}
+
+
     @Test
     public void serviceRequestStatusForUserID()
     {
@@ -98,6 +105,15 @@ public class InstagramServiceTest {
         logger.debug(result);
     }
 
+
+	@Test
+	public void test_serviceRequestUserBasicForUserID() {
+		try {
+			instagram.serviceRequestUserBasicForUserID("175530214");
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
 
     @Ignore
 	public void test_serviceRequestFollows() {

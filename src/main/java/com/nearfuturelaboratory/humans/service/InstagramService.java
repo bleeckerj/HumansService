@@ -38,15 +38,16 @@ import java.util.*;
 
 public class InstagramService /*implements AbstractService*/ {
 
-    private static final String FOLLOWS_URL = "https://api.instagram.com/v1/users/%s/follows";
-    private static final String STATUS_URL = "https://api.instagram.com/v1/users/%s/media/recent";
-    private static final String STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s";
-    private static final String LIKE_STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s/likes";
-    private static final String USER_URL = "https://api.instagram.com/v1/users/%s";
+    protected static final String FOLLOWS_URL = "https://api.instagram.com/v1/users/%s/follows";
+    protected static final String FOLLOWED_BY_URL = "https://api.instagram.com/v1/users/%s/followed-by";
+    protected static final String STATUS_URL = "https://api.instagram.com/v1/users/%s/media/recent";
+    protected static final String STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s";
+    protected static final String LIKE_STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s/likes";
+    protected static final String USER_URL = "https://api.instagram.com/v1/users/%s";
 
-    private OAuthService service;
+    protected OAuthService service;
 
-    private Token accessToken;
+    protected Token accessToken;
 
     //protected JSONObject user;
     protected InstagramUser user;
@@ -81,6 +82,26 @@ public class InstagramService /*implements AbstractService*/ {
 
     }
 
+
+    protected void setDBName(String dbName)
+    {
+        db = MongoUtil.getMongo().getDB(dbName);
+
+        statusDAO = new InstagramStatusDAO();
+        statusDAO.ensureIndexes();
+
+        userDAO = new InstagramUserDAO();
+        userDAO.ensureIndexes();
+
+        followsDAO = new InstagramFriendsDAO();
+        followsDAO.ensureIndexes();
+
+        tokenDAO = new ServiceTokenDAO(dbName);
+        tokenDAO.ensureIndexes();
+
+        gson = new Gson();
+
+    }
 
     //TODO Change this super ridiculous constructor. Should all be factory methods like above.
     public InstagramService(Token aAccessToken) {
@@ -409,14 +430,23 @@ public class InstagramService /*implements AbstractService*/ {
             jsonResponse = JSONValue.parse(s);
             status = (JSONObject) jsonResponse;
             JSONArray latest_data = (JSONArray) status.get("data");
+            //channelSearchEnum[] enums = gson.fromJson(yourJson, channelSearchEnum[].class);
             full_data.addAll(latest_data);
             oldest = (JSONObject) latest_data.get(latest_data.size() - 1);
             oldest_time = Long.parseLong(oldest.get("created_time").toString());
             oldest_cal.setTimeInMillis(oldest_time * 1000);
             next_url = JsonPath.read(status, "pagination.next_url");
         } while (oldest_cal.compareTo(ago) > 0 && next_url != null);
+        JSONArray x = full_data;
+        List<InstagramStatus> y = new ArrayList<InstagramStatus>();
+        try {
+            y = saveStatusJson(full_data);
+        } catch (Exception e) {
+            logger.warn("Woops", e);
+            // logger.warn("full data is "+full_data);
+        }
 
-        return saveStatusJson(full_data);
+        return y;
     }
 
     public List<InstagramStatus> serviceRequestStatusByMediaID(String aMediaID) {
@@ -470,11 +500,18 @@ public class InstagramService /*implements AbstractService*/ {
             while (iter.hasNext()) {
                 String i = iter.next().toString();
                 //logger.debug(i);
-                com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus istatus = gson.fromJson(i, com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
-                //ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
-                //istatus.setOnBehalfOf(serviceEntry);
-                result.add(istatus);
-                statusDAO.save(istatus);
+                com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus istatus = null;
+                try {
+                    istatus = gson.fromJson(i, com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus.class);
+                    //ServiceEntry serviceEntry = new ServiceEntry(this.user.getUserID(), this.user.getUsername(), this.user.getServiceName());
+                    //istatus.setOnBehalfOf(serviceEntry);
+                    result.add(istatus);
+                    statusDAO.save(istatus);
+                } catch (Exception e) {
+                    logger.warn("Weird Instagram element. Not sure. Just skipping until more forensics on the snafu");
+                    logger.warn(istatus);
+                    logger.warn(e, e);
+                }
             }
         } else {
             logger.warn("No data found for " + this.getThisUser().getUsername() + " / " + this.getThisUser().getId());
@@ -520,7 +557,7 @@ public class InstagramService /*implements AbstractService*/ {
             serviceRequestFriends(this.getThisUser().getId());
         } catch (BadAccessTokenException e) {
             logger.warn(e);
-        } catch(NullPointerException e) {
+        } catch (NullPointerException e) {
             logger.warn(e);
         }
 
@@ -561,8 +598,8 @@ public class InstagramService /*implements AbstractService*/ {
         JSONObject pagination = (JSONObject) map.get("pagination");
         //JSONArray allFollows = new JSONArray();
         List<JSONObject> allFollows = new ArrayList<JSONObject>();
-        if(pagination == null) {
-            logger.warn("No pagination for "+this+" "+this.getThisUser());
+        if (pagination == null) {
+            logger.warn("No pagination for " + this + " " + this.getThisUser());
         }
         while (pagination != null) {
             List<JSONObject> f = JsonPath.read(map, "data");
@@ -600,6 +637,92 @@ public class InstagramService /*implements AbstractService*/ {
         logger.debug("Save follows for " + aUser.getUsername());
         saveFollowsJson(allFollows, aUserID);
         return result;
+    }
+
+
+    public void serviceRequestFollowers() {
+        try {
+            serviceRequestFollowers(this.getThisUser().getId());
+        } catch (BadAccessTokenException e) {
+            logger.warn(e);
+        } catch (NullPointerException e) {
+            logger.warn(e);
+        }
+    }
+
+    protected List<InstagramUser> serviceRequestFollowers(String aUserID) throws BadAccessTokenException, NullPointerException {
+        {
+            InstagramUser aUser;
+            List<InstagramUser> result = new ArrayList<InstagramUser>();
+
+            if (aUserID == null || aUserID.equalsIgnoreCase("self")) {
+                aUserID = user.getId();
+                // if the user basic isn't fresh for self, then request it and reset ourselves
+                if (this.localUserBasicIsFresh() == false) {
+                    user = serviceRequestUserBasic();
+                }
+                //aUser = user;
+            } else {
+                if (this.localUserBasicIsFreshForUserID(aUserID) == false) {
+                    this.serviceRequestUserBasicForUserID(aUserID);
+                }
+            }
+
+            aUser = this.getLocalUserBasicForUserID(aUserID);
+
+            String followedByURL = String.format(FOLLOWED_BY_URL, aUserID);
+
+            OAuthRequest request = new OAuthRequest(Verb.GET, followedByURL);
+            service.signRequest(accessToken, request);
+            Response response = request.send();
+            String s = response.getBody();
+            Object obj = JSONValue.parse(s);
+            JSONObject map = (JSONObject) obj;
+
+            JSONObject pagination = (JSONObject) map.get("pagination");
+            //JSONArray allFollows = new JSONArray();
+            List<JSONObject> allFollowers = new ArrayList<JSONObject>();
+            if (pagination == null) {
+                logger.warn("No pagination for " + this + " " + this.getThisUser());
+            }
+            while (pagination != null) {
+                List<JSONObject> f = JsonPath.read(map, "data");
+                if (f != null) {
+                    allFollowers.addAll(f);
+                }
+                //allFollows.addAll(data);
+                //logger.debug("Adding "+data.size());
+                //logger.debug("All Follows now "+allFollows.size());
+                String next_url = (String) pagination.get("next_url");
+                if (next_url != null) {
+                    request = new OAuthRequest(Verb.GET, (String) next_url);
+                    response = request.send();
+                    s = response.getBody();
+                    //TODO Error checking
+                    if (s == null) {
+                        logger.error("Null body in the response " + response);
+                        break;
+                    }
+                    map = (JSONObject) JSONValue.parse(s);
+                    if (map == null) {
+                        logger.error("No pagination in the get follows ('followed by') request " + response + " " + s);
+                        break;
+                    }
+                    pagination = (JSONObject) map.get("pagination");
+                } else {
+                    break;
+
+                }
+            }
+//        do {
+//            //			JSONArray data = (JSONArray)map.get("data");
+//            }
+//        } while (pagination != null);
+            logger.debug("Save followers for " + aUser.getUsername());
+            //saveFollowsJson(allFollows, aUserID);
+            //saveFollowersJson(allFollowers, aUserID);
+            return result;
+        }
     }
 
     //TODO we should delete all the follows first..then add them back?
@@ -664,7 +787,7 @@ public class InstagramService /*implements AbstractService*/ {
         dao.save(tokenToSave);
     }
 
-    private static Token deserializeToken(String aUsername) {
+    protected static Token deserializeToken(String aUsername) {
         ServiceTokenDAO dao = new ServiceTokenDAO("instagram");
         ServiceToken st = dao.findByExactUsername(aUsername);
         return st.getToken();
@@ -708,10 +831,10 @@ public class InstagramService /*implements AbstractService*/ {
 
     public boolean localServiceStatusIsFreshForUserID(String aUserID) {
         boolean result = false;
-
+        com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = null;
         try {
 
-            com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = this.getMostRecentStatusForUserID(aUserID);
+            most_recent = this.getMostRecentStatusForUserID(aUserID);
             Date d = most_recent.getLastUpdated();
 
             long then = d.getTime();
@@ -723,7 +846,7 @@ public class InstagramService /*implements AbstractService*/ {
             }
         } catch (NullPointerException npe) {
             logger.warn(npe);
-            logger.warn("Probably no status at all, so no Farm Fresh Local Status Today");
+            logger.warn("Probably no status at all (" + most_recent + "), so no Farm Fresh Local Status Today");
 
         } finally {
             if (result == false) return false;

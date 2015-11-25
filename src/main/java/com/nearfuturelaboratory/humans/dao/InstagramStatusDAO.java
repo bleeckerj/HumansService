@@ -26,6 +26,10 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 		super(MongoUtil.getMongo(), new Morphia(), "instagram");
 	}
 
+	public InstagramStatusDAO(String dbName) {
+        super(MongoUtil.getMongo(), new Morphia(), dbName);
+    }
+
 	public InstagramStatusDAO(Mongo mongo, Morphia morphia, String dbname) {
 		super(mongo, morphia, dbname);
 	}

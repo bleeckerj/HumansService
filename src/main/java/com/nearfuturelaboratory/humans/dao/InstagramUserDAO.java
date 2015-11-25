@@ -17,6 +17,10 @@ public class InstagramUserDAO extends BasicDAO<InstagramUser, ObjectId> {
 		super(MongoUtil.getMongo(), new Morphia(), "instagram");
 	}
 
+    public InstagramUserDAO(String dbName) {
+        super(MongoUtil.getMongo(), new Morphia(), dbName);
+    }
+
 	protected InstagramUserDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 	}

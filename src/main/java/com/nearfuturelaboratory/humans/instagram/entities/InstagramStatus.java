@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
 import com.nearfuturelaboratory.humans.entities.ServiceEntry;
 import com.nearfuturelaboratory.humans.service.status.ServiceStatus;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ import org.mongodb.morphia.utils.IndexDirection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 
 @Entity(value = "status", noClassnameStored = true)
@@ -86,6 +88,32 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 	protected String filter;
 	protected String attribution;
 	//protected List<UserInPhoto> users_in_photo;
+
+	public String getCaptionText() {
+		return caption.getText();
+	}
+	public int getLikes() {
+		return likes.count;
+	}
+
+	public List<Liker> getLikers() {
+		return likes.data;
+	}
+
+	public int getCommentsCount() {
+		return comments.count;
+	}
+
+	public List<CommentData> getCommenters() {
+		return comments.data;
+	}
+//	public SortedSet<> getComments() {
+//		Map<String, String> result = new <String, String>();
+//		List<CommentData> data_list = comments.data;
+//		for(CommentData tmp : data_list) {
+//			result.add
+//		}
+//	}
 
 	public static final String STANDARD_RESOLUTION = "standard_resolution";
 	public static final String THUMBNAIL_RESOLUTION = "thumbnail_resolution";
@@ -446,7 +474,7 @@ class Caption {
 	protected void setId(String aId) {
 		id = aId;
 	}
-	protected String getText() {
+	public String getText() {
 		return text;
 	}
 	protected void setText(String aText) {

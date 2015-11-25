@@ -104,8 +104,9 @@ public class StartupServlet extends HttpServlet {
         logger.debug(System.getProperty("catalina.home")+" is catalina.home");
 
         String baz = System.getProperty("catalina.home");
+        System.out.println("catalina.home is "+baz);
 
-        if(Constants.getBoolean("IS_REFRESH_SERVER", false)) {
+        if(Constants.getBoolean("IS_REFRESH_SERVER", true)) {
             logger.debug("This is a refresh server.");
             try {
                 StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
