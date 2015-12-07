@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import com.mongodb.MongoClient;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 //import org.apache.log4j.PropertyConfigurator;
@@ -47,7 +48,7 @@ public class HumansUserDAO extends BasicDAO<HumansUser, ObjectId> {
 	}
 
     //TODO For testing only..
-	public HumansUserDAO(Mongo mongo, Morphia morphia, String dbname) {
+	public HumansUserDAO(MongoClient mongo, Morphia morphia, String dbname) {
 		super(mongo, morphia, dbname);
 		this.ensureIndexes();
 

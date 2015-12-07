@@ -13,10 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.mongodb.morphia.annotations.*;
 import org.mongodb.morphia.utils.IndexDirection;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 
 @Entity(value = "status", noClassnameStored = true)
@@ -90,22 +87,42 @@ public class InstagramStatus /*extends BaseEntity*/ extends ServiceStatus {
 	//protected List<UserInPhoto> users_in_photo;
 
 	public String getCaptionText() {
-		return caption.getText();
+		if(caption != null) {
+			return caption.getText();
+		} else {
+			return "";
+		}
 	}
 	public int getLikes() {
-		return likes.count;
+		if(likes != null) {
+			return likes.count;
+		} else {
+			return 0;
+		}
 	}
 
 	public List<Liker> getLikers() {
-		return likes.data;
+		if(likes != null) {
+			return likes.data;
+		} else {
+			return new ArrayList<Liker>(0);
+		}
 	}
 
 	public int getCommentsCount() {
-		return comments.count;
+		if(comments != null) {
+			return comments.count;
+		} else {
+			return 0;
+		}
 	}
 
 	public List<CommentData> getCommenters() {
-		return comments.data;
+		if(comments != null) {
+			return comments.data;
+		} else {
+			return new ArrayList<CommentData>(0);
+		}
 	}
 //	public SortedSet<> getComments() {
 //		Map<String, String> result = new <String, String>();

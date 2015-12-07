@@ -18,47 +18,47 @@
 
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
-            <!-- if your container implements Servlet API older than 3.0, use "jersey-container-servlet-core"  -->
             <artifactId>jersey-container-servlet</artifactId>
-            <version>2.5</version>
+            <version>2.20</version>
+            <scope>provided</scope>
         </dependency>
-        <!-- Required only when you are using JAX-RS Client -->
-        <!--        <dependency>
-                    <groupId>org.glassfish.jersey.core</groupId>
-                    <artifactId>jersey-client</artifactId>
-                    <version>2.5</version>
-                </dependency>-->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet-core</artifactId>
+            <version>2.22.1</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.glassfish.hk2</groupId>-->
+            <!--<artifactId>hk2</artifactId>-->
+            <!--<version>2.3.0</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--<groupId>javax.ws.rs</groupId>-->
+        <!--<artifactId>javax.ws.rs-api</artifactId>-->
+        <!--<version>2.0.1</version>-->
+        <!--</dependency>-->
 
-        <!--        <dependency>
-                    <groupId>com.sun.jersey</groupId>
-                    <artifactId>jersey-core</artifactId>
-                    <version>1.18</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.sun.jersey</groupId>
-                    <artifactId>jersey-server</artifactId>
-                    <version>1.18</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.sun.jersey</groupId>
-                    <artifactId>jersey-servlet</artifactId>
-                    <version>1.18</version>
-                </dependency>-->
+        <!-- if you are using Jersey client specific features without the server side -->
+        <!--<dependency>-->
+            <!--<groupId>org.glassfish.jersey.core</groupId>-->
+            <!--<artifactId>jersey-client</artifactId>-->
+            <!--<version>2.22.1</version>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
+
+
+
         <dependency>
             <groupId>org.cryptonode.jncryptor</groupId>
             <artifactId>jncryptor</artifactId>
             <version>1.0.1</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>asm</groupId>
             <artifactId>asm-commons</artifactId>
             <version>3.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
-        </dependency>
+        </dependency>-->
+
         <dependency>
             <groupId>com.googlecode.lambdaj</groupId>
             <artifactId>lambdaj</artifactId>
@@ -202,11 +202,6 @@
             <version>2.0.2-SNAPSHOT</version>
         </dependency>-->
         <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>2.2.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.2.4</version>
@@ -216,7 +211,16 @@
             <artifactId>junit</artifactId>
             <version>4.11</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.mongodb.morphia</groupId>
+            <artifactId>morphia</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb.morphia</groupId>
+            <artifactId>morphia-logging-slf4j</artifactId>
+            <version>1.0.1</version>
+        </dependency>
 <!--        <dependency>
         <groupId>org.mongodb.morphia</groupId>
         <artifactId>morphia-parent</artifactId>
@@ -236,12 +240,12 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <version>0.9.1</version>
+            <version>2.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>2.11.3</version>
+            <artifactId>mongodb-driver</artifactId>
+            <version>3.2.0-rc0</version>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -264,12 +268,6 @@
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
         </dependency>
-
-        <!--       <dependency>
-                   <groupId>javax.ws.rs</groupId>
-                   <artifactId>jsr311-api</artifactId>
-                   <version>1.1.1</version>
-               </dependency>-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -363,11 +361,18 @@
             <artifactId>jackson-annotations</artifactId>
             <version>2.3.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.mongodb.morphia</groupId>
-            <artifactId>morphia-logging-slf4j</artifactId>
-            <version>0.105</version>
-        </dependency>
+
+<!--        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>2.11.3</version>
+        </dependency>-->
+<!--        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>3.1.1</version>
+        </dependency>-->
+
     </dependencies>
 
 
@@ -433,14 +438,19 @@
                     <artifactId>tomcat7-maven-plugin</artifactId>
                     <version>2.2</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.tomcat.maven</groupId>
+                    <artifactId>tomcat8-maven-plugin</artifactId>
+                    <version>2.2</version>
+                </plugin>
                 <!-- plugin> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-maven-plugin</artifactId> </plugin -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.0</version>
                     <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <excludes>
                             <exclude>com/nearfuturelaboratory/humans/test/TestHumanGson.java</exclude>
                             <exclude>com/nearfuturelaboratory/humans/test/TestHumanGsonWithMongo.java</exclude>
@@ -500,6 +510,14 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
             <!-- d
                         <plugin>
                             <artifactId>maven-compiler-plugin</artifactId>

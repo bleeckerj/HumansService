@@ -2,6 +2,7 @@ package com.nearfuturelaboratory.humans.dao;
 
 import java.util.List;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -21,7 +22,7 @@ public class FoursquareFriendDAO extends BasicDAO<FoursquareFriend, ObjectId> {
 		super(MongoUtil.getMongo(), new Morphia(), "foursquare");
 	}
 
-	protected FoursquareFriendDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+	protected FoursquareFriendDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 	}
 
@@ -72,7 +73,7 @@ public class FoursquareFriendDAO extends BasicDAO<FoursquareFriend, ObjectId> {
 		Query<FoursquareFriend> query = getDatastore().createQuery(this.getEntityClass()).field("_id").equal(aFriend.getId());
 		UpdateOperations<FoursquareFriend> ops = getDatastore().createUpdateOperations(this.getEntityClass()).set("lastUpdated", new Date());
 
-		UpdateResults<FoursquareFriend> results = getDatastore().update(query, ops);
+		UpdateResults results = getDatastore().update(query, ops);
 		//TODO check for errors from results??
 	}
 	

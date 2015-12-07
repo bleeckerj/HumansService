@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.nearfuturelaboratory.humans.dao.HumansUserDAO;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import com.nearfuturelaboratory.util.Constants;
@@ -72,7 +73,7 @@ public class HumansUserTest {
             /**
              * /usr/bin/ssh -o CheckHostIP=no -o TCPKeepAlive=yes -o StrictHostKeyChecking=no -o ServerAliveInterval=120 -o ServerAliveCountMax=100 -i /Users/julian/.ec2/AMZ-EC2.pem ec2-user@ec2-54-193-78-211.us-west-1.compute.amazonaws.com -N -L 29017:127.0.0.1:27017
              */
-            Mongo mongo = MongoUtil.getMongo("localhost", 27017);
+            MongoClient mongo = MongoUtil.getMongo("localhost", 27017);
 
             remote_dao = new HumansUserDAO(mongo, new Morphia(), "humans");
 

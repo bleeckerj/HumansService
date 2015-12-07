@@ -1,5 +1,6 @@
 package com.nearfuturelaboratory.humans.service;
 
+import java.util.Date;
 import java.util.List;
 
 import com.google.gson.JsonElement;
@@ -52,9 +53,9 @@ public class InstagramServiceTest {
     }
 
 	@Test
-	public void serviceRequestFollowers()
+	public void serviceRequestFollowersAsUsers()
 	{
-		instagram.serviceRequestFollowers();
+		instagram.serviceRequestFollowersAsUsers();
 	}
 
 
@@ -105,11 +106,30 @@ public class InstagramServiceTest {
         logger.debug(result);
     }
 
+	@Test
+	public void test_getStatusForUserID() {
+		List<InstagramStatus> status = instagram.getStatusForUserID("10282731");
+
+		logger.debug("Hello");
+	}
+
+	@Test
+	public void test_getLocalStatusByExactUserIDToMonthsAgo() {
+		List<InstagramStatus> status = instagram.getLocalStatusByExactUserIDToMonthsAgo("10282731", 3);
+		Date a = null;
+		Date b = null;
+		if(status != null) {
+			a = status.get(0).getCreatedDate();
+			b = status.get(status.size()-1).getCreatedDate();
+
+		}
+		logger.debug("Hello");
+	}
 
 	@Test
 	public void test_serviceRequestUserBasicForUserID() {
 		try {
-			instagram.serviceRequestUserBasicForUserID("175530214");
+			instagram.serviceRequestUserBasicForUserID("696578");
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -123,5 +143,11 @@ public class InstagramServiceTest {
 			e.printStackTrace();
 			logger.error(e);
 		}
+	}
+
+	@Test
+	public void test_localRequestFriendsFo() {
+		List<InstagramFriend> list = instagram.getLocalFriendsFor("696578");
+		logger.debug("");
 	}
 }

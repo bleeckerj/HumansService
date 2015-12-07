@@ -3,6 +3,7 @@ package com.nearfuturelaboratory.humans.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -19,7 +20,7 @@ public class TwitterFollowsDAO extends BasicDAO<TwitterFriend, ObjectId> {
 		super(MongoUtil.getMongo(), new Morphia(), "twitter");
 	}
 
-	public TwitterFollowsDAO(Mongo mongo, Morphia morphia, String dbname) {
+	public TwitterFollowsDAO(MongoClient mongo, Morphia morphia, String dbname) {
 		super(mongo, morphia, dbname);
 	}
 	

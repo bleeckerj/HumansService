@@ -1,6 +1,7 @@
 package com.nearfuturelaboratory.humans.dao;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.nearfuturelaboratory.humans.twitter.entities.generated.TwitterStatus;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import org.bson.types.ObjectId;
@@ -17,7 +18,7 @@ public class TwitterStatusDAO extends BasicDAO<TwitterStatus, ObjectId> {
         super(MongoUtil.getMongo(), new Morphia(), "twitter");
     }
 
-    protected TwitterStatusDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+    protected TwitterStatusDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
         super(aMongo, aMorphia, aDbName);
     }
 

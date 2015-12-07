@@ -3,6 +3,7 @@ package com.nearfuturelaboratory.humans.dao;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -21,7 +22,7 @@ public class InstagramUserDAO extends BasicDAO<InstagramUser, ObjectId> {
         super(MongoUtil.getMongo(), new Morphia(), dbName);
     }
 
-	protected InstagramUserDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+	protected InstagramUserDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 	}
 	

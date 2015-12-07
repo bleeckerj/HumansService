@@ -213,14 +213,22 @@ public class InstagramService /*implements AbstractService*/ {
         Object obj = JSONValue.parse(s);
         try {
             aUser = (JSONObject) ((JSONObject) obj).get("data");
-            saveUserBasicJson(aUser);
             com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUser.toString(),
                     com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
+            saveUserBasicJson(aUser);
             return iuser;
         } catch (Exception e) {
-            logger.error("Bad response for " + aUserID + " " + this.getThisUser() + " " + response.getBody(), e);
+            //logger.warn("Maybe a private user when doing analytics?");
+            //logger.warn(e);
             if (response.getCode() == 400 && response.getBody().contains("OAuthAccessTokenException")) {
+                logger.warn("Bad response for Instagram User ID " + aUserID + " via " + this.getThisUser() + " " + response.getBody(), e);
                 throw new BadAccessTokenException("Bad response for " + aUserID + " " + this.getThisUser() + " " + response.getBody());
+            } else
+            if(response.getCode() == 400 && response.getBody().contains("APINotAllowedError")) {
+                logger.warn("APINotAllowedError. You've either been blocked by a user or are running analytics against someone else's account.");
+                logger.warn(response.getBody());
+            } else {
+               // logger.warn(e);
             }
             return null;
         }
@@ -240,9 +248,15 @@ public class InstagramService /*implements AbstractService*/ {
 
 
     protected Key<InstagramUser> saveUserBasicJson(JSONObject aUserJson) {
-        com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUserJson.toString(),
-                com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
+try {
+    com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUserJson.toString(),
+            com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
+
         return userDAO.save(iuser);
+} catch(Exception e) {
+    logger.error(e);
+    return null;
+}
 
     }
 
@@ -253,6 +267,10 @@ public class InstagramService /*implements AbstractService*/ {
             result = most_recent.getStatusId();
         }
         return result;
+    }
+
+    public List<InstagramStatus> getLocalStatusByExactUserIDToMonthsAgo(String aUserID, int aMonthsAgo) {
+        return statusDAO.findStatusByExactUserIDToMonthsAgo(aUserID, aMonthsAgo);
     }
 
     public InstagramStatus getMostRecentStatus() {
@@ -282,6 +300,8 @@ public class InstagramService /*implements AbstractService*/ {
     public List<InstagramStatus> getStatusForUserID(String aUserID) {
         return statusDAO.findByExactUserID(aUserID);
     }
+
+    //public List<InstagramStatus> getStatus
 
     /**
      * Given a minimum (most recent) status ID, get all the ones after it.
@@ -417,7 +437,14 @@ public class InstagramService /*implements AbstractService*/ {
         long oldest_time = Long.parseLong(oldest.get("created_time").toString());
         Calendar oldest_cal = Calendar.getInstance();
         oldest_cal.setTimeInMillis(oldest_time);
-        String next_url = JsonPath.read(status, "pagination.next_url");
+        String next_url;
+        JSONObject obj = JsonPath.read(status, "pagination");
+        if(obj.size() > 1) {
+            next_url = JsonPath.read(status, "pagination.next_url");
+        } else {
+            next_url = null;
+        }
+        //String next_url = JsonPath.read(status, "pagination.next_url");
 
         do {
             if (next_url == null) {
@@ -435,7 +462,12 @@ public class InstagramService /*implements AbstractService*/ {
             oldest = (JSONObject) latest_data.get(latest_data.size() - 1);
             oldest_time = Long.parseLong(oldest.get("created_time").toString());
             oldest_cal.setTimeInMillis(oldest_time * 1000);
-            next_url = JsonPath.read(status, "pagination.next_url");
+            JSONObject p_obj = JsonPath.read(status, "pagination");
+            if(p_obj.size() > 1) {
+                next_url = JsonPath.read(status, "pagination.next_url");
+            } else {
+                next_url = null;
+            }
         } while (oldest_cal.compareTo(ago) > 0 && next_url != null);
         JSONArray x = full_data;
         List<InstagramStatus> y = new ArrayList<InstagramStatus>();
@@ -443,6 +475,7 @@ public class InstagramService /*implements AbstractService*/ {
             y = saveStatusJson(full_data);
         } catch (Exception e) {
             logger.warn("Woops", e);
+            logger.warn("status", status);
             // logger.warn("full data is "+full_data);
         }
 
@@ -540,11 +573,31 @@ public class InstagramService /*implements AbstractService*/ {
 
     }
 
+    public boolean localFriendsIsFresh(String aUserId) {
+        boolean result = false;
+        InstagramFriend friend = followsDAO.findOldestFriendsForUserID(aUserId);
+
+        if (friend == null)
+            return false;
+
+        Date d = friend.getLastUpdated();//  .getFriend().getLastUpdated();
+
+        long then = d.getTime();
+        long now = new Date().getTime();
+        long diff = now - then;
+        if (diff < Constants.getLong("FOLLOWS_STALE_TIME")) {
+            result = true;
+        }
+
+        return result;
+
+    }
+
     public List<InstagramFriend> getFriends() {
         return followsDAO.findFollowsByExactUserID(this.getThisUser().getId());
     }
 
-    protected List<InstagramFriend> getFriendsFor(String aUserID) {
+    protected List<InstagramFriend> getLocalFriendsFor(String aUserID) {
         return followsDAO.findFollowsByExactUserID(aUserID);
     }
 
@@ -563,11 +616,16 @@ public class InstagramService /*implements AbstractService*/ {
 
     }
 
+    protected List<InstagramFriend> serviceRequestFriends(String aUserID) throws BadAccessTokenException, NullPointerException
+    {
+        return serviceRequestFriends(aUserID, true);
+    }
+
 
     /**
      * @param aUserID
      */
-    protected List<InstagramFriend> serviceRequestFriends(String aUserID) throws BadAccessTokenException, NullPointerException {
+    protected List<InstagramFriend> serviceRequestFriends(String aUserID, boolean save) throws BadAccessTokenException, NullPointerException {
         InstagramUser aUser;
         List<InstagramFriend> result = new ArrayList<InstagramFriend>();
 
@@ -577,11 +635,12 @@ public class InstagramService /*implements AbstractService*/ {
             if (this.localUserBasicIsFresh() == false) {
                 user = serviceRequestUserBasic();
             }
-            //aUser = user;
+            aUser = user;
         } else {
             if (this.localUserBasicIsFreshForUserID(aUserID) == false) {
                 this.serviceRequestUserBasicForUserID(aUserID);
             }
+            aUser = this.getLocalUserBasicForUserID(aUserID);
         }
 
         aUser = this.getLocalUserBasicForUserID(aUserID);
@@ -634,15 +693,26 @@ public class InstagramService /*implements AbstractService*/ {
 //            //			JSONArray data = (JSONArray)map.get("data");
 //            }
 //        } while (pagination != null);
-        logger.debug("Save follows for " + aUser.getUsername());
-        saveFollowsJson(allFollows, aUserID);
-        return result;
+        if(save) {
+            logger.debug("Save follows for " + aUser.getUsername());
+            saveFollowsJson(allFollows, aUserID/*, aUser*/);
+        }
+//        else {
+//            for(JSONObject friend : allFollows) {
+//                logger.debug(friend);
+//                InstagramFriend f = new InstagramFriend();
+//
+//            }
+//        }
+
+        return followsDAO.findFollowsByExactUserID(aUserID);
+//        return result;
     }
 
 
-    public void serviceRequestFollowers() {
+    public void serviceRequestFollowersAsUsers() {
         try {
-            serviceRequestFollowers(this.getThisUser().getId());
+            serviceRequestFollowersAsUsers(this.getThisUser().getId());
         } catch (BadAccessTokenException e) {
             logger.warn(e);
         } catch (NullPointerException e) {
@@ -650,7 +720,7 @@ public class InstagramService /*implements AbstractService*/ {
         }
     }
 
-    protected List<InstagramUser> serviceRequestFollowers(String aUserID) throws BadAccessTokenException, NullPointerException {
+    protected List<InstagramUser> serviceRequestFollowersAsUsers(String aUserID) throws BadAccessTokenException, NullPointerException {
         {
             InstagramUser aUser;
             List<InstagramUser> result = new ArrayList<InstagramUser>();
@@ -718,9 +788,28 @@ public class InstagramService /*implements AbstractService*/ {
 //            //			JSONArray data = (JSONArray)map.get("data");
 //            }
 //        } while (pagination != null);
-            logger.debug("Save followers for " + aUser.getUsername());
+ //           logger.debug("Save followers for " + aUser.getUsername());
             //saveFollowsJson(allFollows, aUserID);
             //saveFollowersJson(allFollowers, aUserID);
+            for(JSONObject j : allFollowers) {
+                //logger.debug(j);
+                InstagramUserBriefly iub = gson.fromJson(j.toString(), InstagramUserBriefly.class);
+                InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
+                if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
+                    friend = this.serviceRequestUserBasicForUserID(iub.getId());
+                    if (friend == null) {
+                        logger.warn(iub + " is maybe a private/blocked User from whichever user is authenticated in this transaction. (Are you running analytics on someone else's account?");
+                        continue;
+                    }
+                }
+                result.add(friend);
+
+
+
+            }
+
+
+
             return result;
         }
     }
@@ -737,35 +826,51 @@ public class InstagramService /*implements AbstractService*/ {
                 // here's where we update a user if their local user basic is stale..
                 if (friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
                     friend = this.serviceRequestUserBasicForUserID(iub.getId());
+                    if(friend == null) {
+                        logger.debug("Private/Blocked User from whichever user is authenticated in this transaction. (Are you running analytics on someone else's account?");
+                        continue;
+                    }
                     logger.debug("serviceRequestUserBasicForUserID(" + iub.getId() + ")");
                 }
+                ///ugh.
                 InstagramFriend iuf = new InstagramFriend(friend);
-                iuf.setFollower_id(getThisUser().getId());
+                ///iuf.setFollower_id(getThisUser().getId());
+                iuf.setFollower_id(follower_id);
                 iuf.setFriend_id(iub.getId());
                 iuf.setFriend_username(iub.getUsername());
-                iuf.setFollower(this.getThisUser());
-
+                ///iuf.setFollower(this.getThisUser());
+                iuf.setFollower(this.getLocalUserBasicForUserID(follower_id));
                 InstagramFriend f = followsDAO.findFollowsByFriendIDForUserID(friend.getId(), follower_id);
                 if (f != null) {
                     f.setFriend(friend);
-                    f.setFollower(this.getThisUser());
+                    f.setFollower(/*this.getThisUser()*/this.getLocalUserBasicForUserID(follower_id));
                     new_friends.add(f);
                 } else {
                     new_friends.add(iuf);
                 }
             }
 
-            List<InstagramFriend> existing_friends = this.getFriendsFor(follower_id);
+            List<InstagramFriend> existing_friends = this.getLocalFriendsFor(follower_id);
 
             Collection<InstagramFriend> new_friends_to_save = CollectionUtils.subtract(new_friends, existing_friends);
             Collection<InstagramFriend> no_longer_friends = CollectionUtils.subtract(existing_friends, new_friends);
 
             for (InstagramFriend not_a_friend : no_longer_friends) {
-                followsDAO.delete(not_a_friend);
+                try {
+                    followsDAO.delete(not_a_friend);
+                } catch (Exception e) {
+                    logger.warn(e);
+                    continue;
+                }
             }
 
             for (InstagramFriend is_a_friend : new_friends_to_save) {
-                followsDAO.save(is_a_friend);
+                try {
+                    followsDAO.save(is_a_friend);
+                } catch(Exception e) {
+                    logger.warn(e);
+                    continue;
+                }
             }
 
             //		Iterator<JSONObject> iter = data.iterator();
@@ -854,8 +959,13 @@ public class InstagramService /*implements AbstractService*/ {
         return result;
     }
 
+//    public InstagramUser _getLocalUserBasicForUsername(String aUsername) {
+//        InstagramUser user = userDAO.findByExactUsername(aUsername);
+//        return user;
+//    }
 
-    protected static InstagramUser getLocalUserBasicForUsername(String aUsername) {
+
+    public static InstagramUser getLocalUserBasicForUsername(String aUsername) {
         InstagramUserDAO dao = new InstagramUserDAO();
         InstagramUser user = dao.findByExactUsername(aUsername);
         return user;

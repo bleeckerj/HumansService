@@ -35,8 +35,6 @@ public class MongoUtil {
 				mongo = new MongoClient(address, mco);
 				logger.info("New Mongo created with [" + host + "] and ["
 						+ port + "] and ["+mco.toString()+"]");
-			} catch (UnknownHostException e) {
-				logger.error(e.getMessage());
 			} catch(MongoException e) {
                 logger.error(e.getMessage());
 
@@ -59,8 +57,6 @@ public class MongoUtil {
                 mongo = new MongoClient(address, mco);
                 logger.info("New Mongo created with [" + _host + "] and ["
                         + _port + "] and ["+mco.toString()+"]");
-            } catch (UnknownHostException e) {
-                logger.error(e.getMessage());
             } catch(MongoException e) {
                 logger.error(e.getMessage());
 

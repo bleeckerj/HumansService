@@ -27,7 +27,7 @@ import org.apache.commons.configuration.ConfigurationException;
 // import log4j packages
 import org.apache.logging.log4j.*;
 import org.mongodb.morphia.logging.MorphiaLoggerFactory;
-import org.mongodb.morphia.logging.slf4j.SLF4JLogrImplFactory;
+import org.mongodb.morphia.logging.slf4j.SLF4JLoggerImplFactory;
 import org.quartz.*;
 import org.quartz.ee.servlet.QuartzInitializerListener;
 import org.quartz.impl.StdSchedulerFactory;
@@ -81,7 +81,7 @@ public class StartupServlet extends HttpServlet {
             System.out.println(this+" debugging.. constants="+config.getInitParameter("constants")+"\nfoo="+foo+"\nprops="+props);
             String constants = config.getInitParameter("constants");
             com.nearfuturelaboratory.util.Constants.load(foo+constants);
-            MorphiaLoggerFactory.registerLogger(SLF4JLogrImplFactory.class);
+            MorphiaLoggerFactory.registerLogger(SLF4JLoggerImplFactory.class);
         }
         catch(java.io.IOException ioe) {
             ioe.printStackTrace();

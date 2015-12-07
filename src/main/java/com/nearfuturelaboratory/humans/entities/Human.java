@@ -9,7 +9,7 @@ import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.service.TwitterService;
 import com.nearfuturelaboratory.humans.twitter.entities.TwitterUser;
 import org.bson.types.ObjectId;
-import org.jvnet.hk2.annotations.Optional;
+//import org.jvnet.hk2.annotations.Optional;
 import org.mongodb.morphia.annotations.*;
 
 import java.util.ArrayList;

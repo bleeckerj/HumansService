@@ -2,6 +2,7 @@ package com.nearfuturelaboratory.humans.dao;
 
 import java.util.List;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -17,7 +18,7 @@ public class FoursquareCheckinDAO extends BasicDAO<FoursquareCheckin, ObjectId> 
 		super(MongoUtil.getMongo(), new Morphia(), "foursquare");
 	}
 
-	protected FoursquareCheckinDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+	protected FoursquareCheckinDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 	}
 

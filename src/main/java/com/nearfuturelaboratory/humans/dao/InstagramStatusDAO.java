@@ -1,16 +1,20 @@
 package com.nearfuturelaboratory.humans.dao;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus;
 import com.nearfuturelaboratory.humans.service.InstagramService;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -30,7 +34,7 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
         super(MongoUtil.getMongo(), new Morphia(), dbName);
     }
 
-	public InstagramStatusDAO(Mongo mongo, Morphia morphia, String dbname) {
+	public InstagramStatusDAO(MongoClient mongo, Morphia morphia, String dbname) {
 		super(mongo, morphia, dbname);
 	}
 
@@ -52,6 +56,32 @@ public class InstagramStatusDAO extends BasicDAO<InstagramStatus, ObjectId> {
 		//Pattern regExp = Pattern.compile(aUserID + ".*", Pattern.CASE_INSENSITIVE);
 		return this.getDatastore().find(this.getEntityClass()).filter("user.id", aUserID).order("-created_time").asList();
 
+	}
+
+	public List<InstagramStatus> findStatusByExactUserIDToDaysAgo(String aUserID, int aDaysAgo) {
+		Calendar ago = Calendar.getInstance();
+		ago.add(Calendar.DAY_OF_MONTH, -1 * aDaysAgo);
+		//ago.getTimeInMillis();
+
+		Query<InstagramStatus> query = this.getDatastore().createQuery(InstagramStatus.class);
+		query.filter("user.id ==", aUserID);
+		query.filter("created_time >=", new Long(ago.getTimeInMillis()/1000L));
+		query.order("-created_time");
+		Iterable<InstagramStatus> result = query.fetch();
+		return query.asList();
+	}
+
+	public List<InstagramStatus> findStatusByExactUserIDToMonthsAgo(String aUserID, int aMonthsAgo) {
+		Calendar ago = Calendar.getInstance();
+		ago.add(Calendar.MONTH, -1 * aMonthsAgo);
+		//ago.getTimeInMillis();
+
+		Query<InstagramStatus> query = this.getDatastore().createQuery(InstagramStatus.class);
+		query.filter("user.id ==", aUserID);
+		query.filter("created_time >=", new Long(ago.getTimeInMillis()/1000L));
+		query.order("-created_time");
+		Iterable<InstagramStatus> result = query.fetch();
+		return query.asList();
 	}
 
 	public InstagramStatus findMostRecentStatusByExactUserID(String aUserID) {

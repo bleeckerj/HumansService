@@ -3,6 +3,7 @@ package com.nearfuturelaboratory.humans.dao;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -19,7 +20,7 @@ public class TwitterUserDAO extends BasicDAO<TwitterUser, ObjectId> {
 
 	}
 
-	protected TwitterUserDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+	protected TwitterUserDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 	}
 	/**

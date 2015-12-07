@@ -1,5 +1,6 @@
 package com.nearfuturelaboratory.humans.dao;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -14,7 +15,7 @@ public class FoursquareUserDAO extends BasicDAO<FoursquareUser, ObjectId> {
 		super(MongoUtil.getMongo(), new Morphia(), "foursquare");
 	}
 
-	protected FoursquareUserDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+	protected FoursquareUserDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 	}
 	/**

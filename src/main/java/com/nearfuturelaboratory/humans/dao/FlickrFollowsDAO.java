@@ -2,6 +2,7 @@ package com.nearfuturelaboratory.humans.dao;
 
 import java.util.List;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -16,7 +17,7 @@ public class FlickrFollowsDAO extends BasicDAO<FlickrFriend, ObjectId> {
 		this(MongoUtil.getMongo(), new Morphia(), "flickr");
 	}
 	
-	protected FlickrFollowsDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+	protected FlickrFollowsDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 		// TODO Auto-generated constructor stub
 	}

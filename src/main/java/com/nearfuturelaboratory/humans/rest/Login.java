@@ -91,7 +91,7 @@ public class Login {
     	String result;
     	String a = request.getParameter("min-m");
     	String b = request.getParameter("defcon");
-		HumansUserDAO dao = new HumansUserDAO();
+		HumansUserDAO dao = new HumansUserDAO("humans");
 		
 		logger.debug("username="+aUsername);
 		

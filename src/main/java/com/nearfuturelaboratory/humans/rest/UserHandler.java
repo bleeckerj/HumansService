@@ -192,6 +192,8 @@ public class UserHandler {
         } catch (Exception e) {
             logger.error(e);
             fail_response.addProperty("exception", e.getMessage());
+            //Response.Status.fromStatusCode(417);
+            //Response.Status.EXPECTATION_FAILED
             return Response.status(Response.Status.EXPECTATION_FAILED).entity(fail_response.toString()).build();
 
         }

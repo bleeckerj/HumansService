@@ -3,6 +3,7 @@ package com.nearfuturelaboratory.humans.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mongodb.MongoClient;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.bson.types.ObjectId;
@@ -21,7 +22,12 @@ public class InstagramFriendsDAO extends BasicDAO<InstagramFriend, ObjectId> {
 		super(MongoUtil.getMongo(), new Morphia(), "instagram");
 	}
 
-	public InstagramFriendsDAO(Mongo mongo, Morphia morphia, String dbname) {
+	public InstagramFriendsDAO(String dbName) {
+		super(MongoUtil.getMongo(), new Morphia(), dbName);
+	}
+
+
+	public InstagramFriendsDAO(MongoClient mongo, Morphia morphia, String dbname) {
 		super(mongo, morphia, dbname);
 	}
 	

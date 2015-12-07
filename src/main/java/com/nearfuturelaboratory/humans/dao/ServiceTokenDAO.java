@@ -2,6 +2,7 @@ package com.nearfuturelaboratory.humans.dao;
 
 import java.util.List;
 
+import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -18,7 +19,7 @@ public class ServiceTokenDAO extends BasicDAO<ServiceToken, ObjectId> {
 	}
 	
 	
-	protected ServiceTokenDAO(Mongo aMongo, Morphia aMorphia, String aDbName) {
+	protected ServiceTokenDAO(MongoClient aMongo, Morphia aMorphia, String aDbName) {
 		super(aMongo, aMorphia, aDbName);
 	}
 

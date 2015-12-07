@@ -1,6 +1,7 @@
 package com.nearfuturelaboratory.humans.dao;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.nearfuturelaboratory.humans.tumblr.entities.TumblrTextPost;
 import com.nearfuturelaboratory.humans.util.MongoUtil;
 import org.bson.types.ObjectId;
@@ -17,7 +18,7 @@ public class TumblrTextPostDAO extends BasicDAO<TumblrTextPost, ObjectId> {
     }
 
 
-    protected TumblrTextPostDAO(Mongo mongo, Morphia morphia, String dbName) {
+    protected TumblrTextPostDAO(MongoClient mongo, Morphia morphia, String dbName) {
         super(mongo, morphia, dbName);
     }
 }
