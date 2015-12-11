@@ -60,8 +60,8 @@ public class UserHandlerTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		RestAssured.baseURI  = "https://localhost";
-		RestAssured.port     = 8443;
+		RestAssured.baseURI  = "http://localhost";
+		RestAssured.port     = 8080;
 		RestAssured.basePath = "/rest";
 		RestAssured.keystore("/Users/julian/Documents/workspace/HumansService/src/main/resources/truststore.jks", "thisisit");
 //		String sessionId = get("/login?username=darthjulian&password=darthjulian").sessionId();
@@ -246,9 +246,9 @@ public class UserHandlerTest {
 	@Test
 	public void testCreateNewUser() {
 		JsonObject req = new JsonObject();
-		req.addProperty("username", "darthjulian");
-		req.addProperty("email", "test-user@gmail.com");
-		req.addProperty("password", "darthjulian");
+		req.addProperty("username", "omata.la");
+		req.addProperty("email", "julian@omata.la");
+		req.addProperty("password", "omata");
 
 		String str = req.toString();
 		
