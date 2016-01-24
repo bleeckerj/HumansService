@@ -21,6 +21,9 @@ import com.nearfuturelaboratory.util.Constants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.chrono.ISOChronology;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -44,6 +47,9 @@ public class InstagramService /*implements AbstractService*/ {
     protected static final String STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s";
     protected static final String LIKE_STATUS_BY_MEDIAID_URL = "https://api.instagram.com/v1/media/%s/likes";
     protected static final String USER_URL = "https://api.instagram.com/v1/users/%s";
+    protected static final String TAG_NAME = "https://api.instagram.com/v1/tags/%s";
+    protected static final String TAG_RECENT_MEDIA = "https://api.instagram.com/v1/tags/%s/media/recent";
+    protected static final String TAG_SEARCH = "https://api.instagram.com/v1/tags/search?q=%s";
 
     protected OAuthService service;
 
@@ -247,6 +253,15 @@ public class InstagramService /*implements AbstractService*/ {
     }
 
 
+    public Key<InstagramUser> saveUserBasic(InstagramUser aUser) {
+        try {
+            return userDAO.save(aUser);
+        } catch(Exception e) {
+            logger.error(e);
+            return null;
+        }
+    }
+
     protected Key<InstagramUser> saveUserBasicJson(JSONObject aUserJson) {
 try {
     com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUserJson.toString(),
@@ -417,7 +432,8 @@ try {
 
         //TODO Nasty..
         if (response.getCode() != 200) {
-            logger.warn(this.getThisUser().getUsername() + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
+            logger.warn(aUserID + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
+            logger.warn(response.getMessage());
             return new ArrayList<InstagramStatus>();
         }
 
@@ -428,9 +444,11 @@ try {
         JSONArray full_data = (JSONArray) status.get("data");
         //TODO Nasty..
         if (full_data.size() < 1) {
-            logger.warn("For " + this.getThisUser().getUsername() + " no data found for " + this.getThisUser().getUsername() + " / " + this.getThisUser().getId());
-            logger.warn("onBehalfOf " + this.getThisUser().getOnBehalfOf());
-            logger.warn("Perhaps " + this.getThisUser().getUsername() + " is not authorized somehow to see this users status??");
+            InstagramUser user = this.getLocalUserBasicForUserID(aUserID);
+            logger.warn("For "+user.getUsername()+" no data found");
+//            logger.warn("For " + this.getThisUser().getUsername() + " no data found for " + this.getThisUser().getUsername() + " / " + this.getThisUser().getId());
+//            logger.warn("onBehalfOf " + this.getThisUser().getOnBehalfOf());
+//            logger.warn("Perhaps " + this.getThisUser().getUsername() + " is not authorized somehow to see this users status??");
             return new ArrayList<InstagramStatus>();
         }
         JSONObject oldest = (JSONObject) full_data.get(full_data.size() - 1);
@@ -506,6 +524,88 @@ try {
     }
 
 
+
+    JsonElement serviceRequestTagsDataByTagName(String aTagName) {
+        String statusURL = String.format(TAG_NAME, aTagName);
+        OAuthRequest request = new OAuthRequest(Verb.GET, statusURL);
+        service.signRequest(accessToken, request);
+        Response response = request.send();
+        if(response.getCode() != 200) {
+            logger.warn(this.getThisUser().getUsername() + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
+        }
+        String s = response.getBody();
+        Gson gson = new Gson();
+        JsonElement element = gson.fromJson(s, JsonElement.class);
+        return element;
+    }
+
+    ArrayList<JSONObject> serviceRequestMediaRecentsByTag(String aTagName, int hours, int minutes) {
+        ArrayList<JSONObject> allMediaRecents = new ArrayList<JSONObject>();
+
+        String statusURL = String.format(TAG_RECENT_MEDIA, aTagName);
+        OAuthRequest request = new OAuthRequest(Verb.GET, statusURL);
+        service.signRequest(accessToken, request);
+        Response response = request.send();
+        if (response.getCode() != 200) {
+            logger.warn(this.getThisUser().getUsername() + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
+        }
+
+        String s = response.getBody();
+        Object obj = JSONValue.parse(s);
+        JSONObject map = (JSONObject) obj;
+
+        JSONObject pagination = (JSONObject) map.get("pagination");
+
+        if (pagination == null) {
+            logger.warn("No pagination for " + this + " " + this.getThisUser());
+        }
+
+        DateTime earliest = new DateTime()
+                .withChronology(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))))
+                .minusHours(hours)
+                .minusMinutes(minutes);
+                //.withSecondOfMinute(0);
+
+        long current_earliest = new DateTime()
+                .withChronology(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))))
+                .getMillis();// = allMediaRecents.get(allMediaRecents.size()-1);
+
+        while ((pagination != null) &&
+               current_earliest > earliest.getMillis()) {
+            List<JSONObject> f = JsonPath.read(map, "data");
+            if (f != null) {
+                allMediaRecents.addAll(f);
+                current_earliest = 1000*Long.parseLong((String)allMediaRecents.get(allMediaRecents.size()-1).get("created_time"));
+            }
+
+            String next_url = (String) pagination.get("next_url");
+            if (next_url != null) {
+                request = new OAuthRequest(Verb.GET, (String) next_url);
+                response = request.send();
+                s = response.getBody();
+                //TODO Error checking
+                if (s == null) {
+                    logger.error("Null body in the response " + response);
+                    break;
+                }
+                map = (JSONObject) JSONValue.parse(s);
+                if (map == null) {
+                    logger.error("No pagination in the get follows request " + response + " " + s);
+                    break;
+                }
+                pagination = (JSONObject) map.get("pagination");
+            } else {
+                break;
+
+            }
+        }
+        /*if(save) {
+            logger.debug("Save follows for " + aUser.getUsername());
+            saveFollowsJson(allFollows, aUserID*//*, aUser*//*);
+        }*/
+        return allMediaRecents;
+    }
+
     JsonElement serviceLikeStatusByMediaID(String aMediaID) {
         String statusURL = String.format(LIKE_STATUS_BY_MEDIAID_URL, aMediaID);
         OAuthRequest request = new OAuthRequest(Verb.POST, statusURL);
@@ -542,8 +642,8 @@ try {
                     statusDAO.save(istatus);
                 } catch (Exception e) {
                     logger.warn("Weird Instagram element. Not sure. Just skipping until more forensics on the snafu");
-                    logger.warn(istatus);
-                    logger.warn(e, e);
+                    logger.debug(i);
+                    logger.debug("", e);
                 }
             }
         } else {
@@ -929,6 +1029,33 @@ try {
 
     }
 
+    public boolean localServiceStatusIsNewStatus(String aUserID) {
+        boolean result = false;
+        com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = null;
+        try {
+
+            most_recent = this.getMostRecentStatusForUserID(aUserID);
+            if(most_recent == null) return false;
+            Date d = most_recent.getCreatedAt();
+
+            long then = d.getTime();
+            long now = new Date().getTime();
+
+            long diff = now - then;
+            if (diff < Constants.getLong("STATUS_NEWNESS_TIME")) {
+                result = true;
+            }
+        } catch (NullPointerException npe) {
+            logger.warn("", npe);
+            logger.warn("Probably no status at all for userid="+aUserID+" (" + most_recent + "), so no Farm Fresh Local Status Today");
+
+
+        } finally {
+            if (result == false) return false;
+        }
+        return result;
+
+    }
 
     public boolean localServiceStatusIsFresh() {
         return localServiceStatusIsFreshForUserID(this.getThisUser().getId());
@@ -951,7 +1078,8 @@ try {
             }
         } catch (NullPointerException npe) {
             logger.warn(npe);
-            logger.warn("Probably no status at all (" + most_recent + "), so no Farm Fresh Local Status Today");
+            logger.warn("Probably no status at all for userid="+aUserID+" (" + most_recent + "), so no Farm Fresh Local Status Today");
+
 
         } finally {
             if (result == false) return false;

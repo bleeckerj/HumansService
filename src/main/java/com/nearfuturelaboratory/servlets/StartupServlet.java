@@ -106,28 +106,50 @@ public class StartupServlet extends HttpServlet {
         String baz = System.getProperty("catalina.home");
         System.out.println("catalina.home is "+baz);
 
-        if(Constants.getBoolean("IS_REFRESH_SERVER", true)) {
-            logger.debug("This is a refresh server.");
-            try {
-                StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
-                        .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
+        try {
+            StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
+                    .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
+            Scheduler scheduler = stdSchedulerFactory.getScheduler();
+            JobKey jobKey = new JobKey("ScheduledStatusFetcher");
+            JobKey jobKey_2 = new JobKey("ScheduledFriendsPrefetcher");
 
-                Scheduler scheduler = stdSchedulerFactory.getScheduler();
-                JobKey jobKey = new JobKey("ScheduledStatusFetcher");
+            if (Constants.getBoolean("IS_REFRESH_SERVER", true)) {
+
+                logger.info("This is a refresh server.");
+
                 scheduler.triggerJob(jobKey);
 
 
-
-                JobKey jobKey_2 = new JobKey("ScheduledFriendsPrefetcher");
                 scheduler.triggerJob(jobKey_2);
 
 
-            } catch (SchedulerException e) {
-                logger.warn(e);
-            }
+            } else {
+                logger.info("This is not a refresh server.");
 
+                scheduler.deleteJob(jobKey);
+                scheduler.deleteJob(jobKey_2);
+            }
+        }catch(SchedulerException e) {
+            logger.warn(e);
         }
 
+        try {
+            StdSchedulerFactory stdSchedulerFactory = (StdSchedulerFactory) context
+                    .getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
+
+            Scheduler scheduler = stdSchedulerFactory.getScheduler();
+            JobKey scheduledInstagramAnalyticsJob = new JobKey("ScheduledInstagramAnalyticsJob");
+
+            if(Constants.getBoolean("IS_ANALYTICS_SERVER", true)) {
+                logger.info("This is an analytics server.");
+            } else {
+                logger.info("This is not an analytics server.");
+                scheduler.deleteJob(scheduledInstagramAnalyticsJob);
+            }
+
+        } catch (SchedulerException e) {
+            logger.warn(e);
+        }
         // look up another init parameter that tells whether to watch this
         // configuration file for changes.
         String watch = config.getInitParameter("watch");

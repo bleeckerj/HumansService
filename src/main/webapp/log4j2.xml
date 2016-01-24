@@ -16,15 +16,18 @@
       <PatternLayout pattern="%highlight{%d{ISO8601} %thread %-5p %c{1}.java:%line %M() - %m%n}"/>
         <Policies>
             <TimeBasedTriggeringPolicy />
-            <SizeBasedTriggeringPolicy size="20 MB"/>
+            <SizeBasedTriggeringPolicy size="70 MB"/>
         </Policies>
-        <!--<filter class="org.apache.log4j.varia.LevelMatchFilter">-->
-            <!--<param name="LevelToMatch" value="WARN" />-->
-            <!--<param name="AcceptOnMatch" value="true" />-->
-        <!--</filter>-->
-        <!--<filter class="org.apache.log4j.varia.DenyAllFilter" />-->
         <DefaultRolloverStrategy max="5"/>
     </RollingFile>
+      <RollingFile name="HUMANS-DEBUG" fileName="${sys:catalina.home}/logs/humans_debug.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_app-%d{MM-dd-yyyy}-%i.log">
+          <PatternLayout pattern="%highlight{%d{ISO8601} %thread %-5p %c{1}.java:%line %M() - %m%n}"/>
+          <Policies>
+              <TimeBasedTriggeringPolicy />
+              <SizeBasedTriggeringPolicy size="70 MB"/>
+          </Policies>
+          <DefaultRolloverStrategy max="5"/>
+      </RollingFile>
       <RollingFile name="HUMANS-REST-DEBUG" fileName="${sys:catalina.home}/logs/humans_rest_debug.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_rest-debug-%d{MM-dd-yyyy}-%i.log">
           <PatternLayout pattern="%highlight{%d{ISO8601} %thread %-5p %c{1}.java:%line %M() - %m%n}"/>
           <Policies>
@@ -88,6 +91,15 @@
           <DefaultRolloverStrategy max="5"/>
       </RollingFile>
 
+      <RollingFile name="RAW_OUT" fileName="${sys:catalina.home}/logs/humans_raw.log" filePattern="${sys:catalina.home}/logs/$${date:yyyy-MM}/$${date:dd}/humans_error-%d{MM-dd-yyyy}-%i.log">
+          <PatternLayout pattern="%m%n}"/>
+          <Policies>
+              <TimeBasedTriggeringPolicy />
+              <SizeBasedTriggeringPolicy size="20 MB"/>
+          </Policies>
+          <DefaultRolloverStrategy max="5"/>
+      </RollingFile>
+
 
       <Async name="ASYNC" includeLocation="true">
       <AppenderRef ref="HUMANS"/>
@@ -123,7 +135,7 @@
       <logger name="com.nearfuturelaboratory.humans.service.InstagramService" level="trace" additivity="false">
           <appender-ref ref="HUMANS" level="info"/>
           <appender-ref ref="QUARTZ" level="warn"/>
-
+          <appender-ref ref="HUMANS-DEBUG" level="debug"/>
       </logger>
 
       <logger name="com.nearfuturelaboratory.humans.service.FoursquareService" level="trace" additivity="false">
@@ -205,6 +217,36 @@
 
       </logger>
 
+      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledInstagramAnalyticsJob" level="trace" additivity="false">
+          <appender-ref ref="QUARTZ" level="info"/>
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="QUARTZ_QUIET" level="info"/>
+
+      </logger>
+
+      <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledInstagramUserBasicAnalyticsJob" level="trace" additivity="false">
+          <appender-ref ref="QUARTZ" level="debug"/>
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="QUARTZ_QUIET" level="info"/>
+
+      </logger>
+
+      <logger name="com.nearfuturelaboratory.humans.rest.InstagramAnalyticsEndpoint" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="HUMANS" level="debug"/>
+          <appender-ref ref="HUMANS-REST-DEBUG" level="debug" />
+      </logger>
+
+
+      <logger name="com.nearfuturelaboratory.humans.service.InstagramAnalyticsService" level="trace" additivity="false">
+          <appender-ref ref="HUMANS_ERROR" level="warn"/>
+          <appender-ref ref="HUMANS" level="info"/>
+          <appender-ref ref="QUARTZ_QUIET" level="info"/>
+          <appender-ref ref="QUARTZ" level="info"/>
+
+      </logger>
+
+
       <logger name="com.nearfuturelaboratory.humans.scheduler.ScheduledFriendsPrefetcher" level="trace" additivity="false">
           <appender-ref ref="HUMANS_ERROR" level="warn"/>
           <appender-ref ref="QUARTZ_QUIET" level="info"/>
@@ -225,7 +267,11 @@
           <appender-ref ref="QUARTZ" level="info"/>
           <appender-ref ref="HUMANS" level="debug"/>
       </logger>
-
+//      com.nearfuturelaboratory.humans.service.InstagramAnalyticsServiceTest
+      <logger name="com.nearfuturelaboratory.humans.service.InstagramAnalyticsServiceTest" level="trace" additivity="false">
+          <appender-ref ref="RAW" level="debug"/>
+          <appender-ref ref="HUMANS" level="debug"/>
+      </logger>
 
       <logger name="org.mongodb.morphia" level="trace" additivity="false">
           <appender-ref ref="HUMANS_DB" level="info"/>

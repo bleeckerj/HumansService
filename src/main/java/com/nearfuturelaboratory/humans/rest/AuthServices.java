@@ -327,7 +327,7 @@ public class AuthServices {
                 .apiKey(instagramAPIKey)
                 .apiSecret(instagramAPISecret)
                 .callback(instagramCallbackURL)
-                .scope("likes")
+                .scope("likes+comments+relationship")
                 .build();
 
 
