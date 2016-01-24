@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.jayway.jsonpath.JsonPath;
 import com.mongodb.DB;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramStatusDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramUserDAO;
@@ -59,6 +61,9 @@ public class InstagramService /*implements AbstractService*/ {
     protected InstagramUser user;
 
     protected DB db;
+    protected MongoDatabase database; // new
+    protected MongoClient client;
+
     protected InstagramStatusDAO statusDAO;
     protected InstagramUserDAO userDAO;
     protected InstagramFriendsDAO followsDAO;
@@ -70,8 +75,9 @@ public class InstagramService /*implements AbstractService*/ {
 
     public InstagramService() {
         //TODO Gross..
-        db = MongoUtil.getMongo().getDB("instagram");
-
+        client = MongoUtil.getMongo();
+        db = client.getDB("instagram");
+        database = client.getDatabase("instagram");
         statusDAO = new InstagramStatusDAO();
         statusDAO.ensureIndexes();
 
@@ -89,9 +95,9 @@ public class InstagramService /*implements AbstractService*/ {
     }
 
 
-    protected void setDBName(String dbName)
-    {
-        db = MongoUtil.getMongo().getDB(dbName);
+    protected void setDBName(String dbName) {
+        db = client.getDB(dbName);
+        database = client.getDatabase(dbName);
 
         statusDAO = new InstagramStatusDAO();
         statusDAO.ensureIndexes();
@@ -229,12 +235,11 @@ public class InstagramService /*implements AbstractService*/ {
             if (response.getCode() == 400 && response.getBody().contains("OAuthAccessTokenException")) {
                 logger.warn("Bad response for Instagram User ID " + aUserID + " via " + this.getThisUser() + " " + response.getBody(), e);
                 throw new BadAccessTokenException("Bad response for " + aUserID + " " + this.getThisUser() + " " + response.getBody());
-            } else
-            if(response.getCode() == 400 && response.getBody().contains("APINotAllowedError")) {
+            } else if (response.getCode() == 400 && response.getBody().contains("APINotAllowedError")) {
                 logger.warn("APINotAllowedError. You've either been blocked by a user or are running analytics against someone else's account.");
                 logger.warn(response.getBody());
             } else {
-               // logger.warn(e);
+                // logger.warn(e);
             }
             return null;
         }
@@ -256,22 +261,22 @@ public class InstagramService /*implements AbstractService*/ {
     public Key<InstagramUser> saveUserBasic(InstagramUser aUser) {
         try {
             return userDAO.save(aUser);
-        } catch(Exception e) {
+        } catch (Exception e) {
             logger.error(e);
             return null;
         }
     }
 
     protected Key<InstagramUser> saveUserBasicJson(JSONObject aUserJson) {
-try {
-    com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUserJson.toString(),
-            com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
+        try {
+            com.nearfuturelaboratory.humans.instagram.entities.InstagramUser iuser = gson.fromJson(aUserJson.toString(),
+                    com.nearfuturelaboratory.humans.instagram.entities.InstagramUser.class);
 
-        return userDAO.save(iuser);
-} catch(Exception e) {
-    logger.error(e);
-    return null;
-}
+            return userDAO.save(iuser);
+        } catch (Exception e) {
+            logger.error(e);
+            return null;
+        }
 
     }
 
@@ -429,7 +434,6 @@ try {
         request.addQuerystringParameter("count", "50");
         service.signRequest(accessToken, request);
         Response response = request.send();
-
         //TODO Nasty..
         if (response.getCode() != 200) {
             logger.warn(aUserID + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
@@ -445,7 +449,7 @@ try {
         //TODO Nasty..
         if (full_data.size() < 1) {
             InstagramUser user = this.getLocalUserBasicForUserID(aUserID);
-            logger.warn("For "+user.getUsername()+" no data found");
+            logger.warn("For " + user.getUsername() + " no data found");
 //            logger.warn("For " + this.getThisUser().getUsername() + " no data found for " + this.getThisUser().getUsername() + " / " + this.getThisUser().getId());
 //            logger.warn("onBehalfOf " + this.getThisUser().getOnBehalfOf());
 //            logger.warn("Perhaps " + this.getThisUser().getUsername() + " is not authorized somehow to see this users status??");
@@ -457,7 +461,7 @@ try {
         oldest_cal.setTimeInMillis(oldest_time);
         String next_url;
         JSONObject obj = JsonPath.read(status, "pagination");
-        if(obj.size() > 1) {
+        if (obj.size() > 1) {
             next_url = JsonPath.read(status, "pagination.next_url");
         } else {
             next_url = null;
@@ -481,7 +485,7 @@ try {
             oldest_time = Long.parseLong(oldest.get("created_time").toString());
             oldest_cal.setTimeInMillis(oldest_time * 1000);
             JSONObject p_obj = JsonPath.read(status, "pagination");
-            if(p_obj.size() > 1) {
+            if (p_obj.size() > 1) {
                 next_url = JsonPath.read(status, "pagination.next_url");
             } else {
                 next_url = null;
@@ -524,13 +528,12 @@ try {
     }
 
 
-
     JsonElement serviceRequestTagsDataByTagName(String aTagName) {
         String statusURL = String.format(TAG_NAME, aTagName);
         OAuthRequest request = new OAuthRequest(Verb.GET, statusURL);
         service.signRequest(accessToken, request);
         Response response = request.send();
-        if(response.getCode() != 200) {
+        if (response.getCode() != 200) {
             logger.warn(this.getThisUser().getUsername() + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
         }
         String s = response.getBody();
@@ -564,18 +567,18 @@ try {
                 .withChronology(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))))
                 .minusHours(hours)
                 .minusMinutes(minutes);
-                //.withSecondOfMinute(0);
+        //.withSecondOfMinute(0);
 
         long current_earliest = new DateTime()
                 .withChronology(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))))
                 .getMillis();// = allMediaRecents.get(allMediaRecents.size()-1);
 
         while ((pagination != null) &&
-               current_earliest > earliest.getMillis()) {
+                current_earliest > earliest.getMillis()) {
             List<JSONObject> f = JsonPath.read(map, "data");
             if (f != null) {
                 allMediaRecents.addAll(f);
-                current_earliest = 1000*Long.parseLong((String)allMediaRecents.get(allMediaRecents.size()-1).get("created_time"));
+                current_earliest = 1000 * Long.parseLong((String) allMediaRecents.get(allMediaRecents.size() - 1).get("created_time"));
             }
 
             String next_url = (String) pagination.get("next_url");
@@ -716,8 +719,7 @@ try {
 
     }
 
-    protected List<InstagramFriend> serviceRequestFriends(String aUserID) throws BadAccessTokenException, NullPointerException
-    {
+    protected List<InstagramFriend> serviceRequestFriends(String aUserID) throws BadAccessTokenException, NullPointerException {
         return serviceRequestFriends(aUserID, true);
     }
 
@@ -793,8 +795,8 @@ try {
 //            //			JSONArray data = (JSONArray)map.get("data");
 //            }
 //        } while (pagination != null);
-        if(save) {
-            logger.debug("Save follows for " + aUser.getUsername());
+        if (save) {
+            logger.debug("Save friends that "+aUser.getUsername()+ "follows");
             saveFollowsJson(allFollows, aUserID/*, aUser*/);
         }
 //        else {
@@ -820,7 +822,97 @@ try {
         }
     }
 
-    protected List<InstagramUser> serviceRequestFollowersAsUsers(String aUserID) throws BadAccessTokenException, NullPointerException {
+    protected List<InstagramUserBriefly> serviceRequestFollowersAsUsersBriefly(String aUserID) throws BadAccessTokenException, NullPointerException {
+        return serviceRequestFollowersAsUsersBriefly(aUserID, 0);
+    }
+
+
+    public List<InstagramUserBriefly> serviceRequestFollowersAsUsersBriefly(String aUserID, long throttle_millis) throws BadAccessTokenException, NullPointerException {
+        InstagramUser aUser;
+        List<InstagramUserBriefly> result = new ArrayList<>();
+
+        if (aUserID == null || aUserID.equalsIgnoreCase("self")) {
+            aUserID = user.getId();
+            // if the user basic isn't fresh for self, then request it and reset ourselves
+            if (this.localUserBasicIsFresh() == false) {
+                user = serviceRequestUserBasic();
+            }
+            //aUser = user;
+        } else {
+            if (this.localUserBasicIsFreshForUserID(aUserID) == false) {
+                this.serviceRequestUserBasicForUserID(aUserID);
+            }
+        }
+
+        aUser = this.getLocalUserBasicForUserID(aUserID);
+        int c = Integer.parseInt(aUser.getFollowedByCount());
+        String followedByURL = String.format(FOLLOWED_BY_URL, aUserID);
+        logger.info("Getting followers for " + aUser.getUsername() + " out of " + c);
+        OAuthRequest request = new OAuthRequest(Verb.GET, followedByURL);
+        service.signRequest(accessToken, request);
+        Response response = request.send();
+        String s = response.getBody();
+
+        if (response.getCode() != 200) {
+            logger.warn(aUserID + " / " + this.getThisUser().getId() + " response.getCode()= " + response.getCode());
+            logger.warn(response.getMessage());
+            //return new ArrayList<InstagramStatus>();
+        }
+
+        Object obj = JSONValue.parse(s);
+        JSONObject map = (JSONObject) obj;
+
+        JSONObject pagination = (JSONObject) map.get("pagination");
+        //JSONArray allFollows = new JSONArray();
+        List<JSONObject> allFollowers = new ArrayList<JSONObject>();
+        if (pagination == null) {
+            logger.warn("No pagination for " + this + " " + this.getThisUser());
+        }
+        while (pagination != null) {
+            List<JSONObject> f = JsonPath.read(map, "data");
+            if (f != null) {
+                allFollowers.addAll(f);
+
+                logger.debug("Now have " + allFollowers.size() + "/" + c + " (expected). Added " + f.size());
+            }
+            //allFollows.addAll(data);
+            //logger.debug("Adding "+data.size());
+            //logger.debug("All Follows now "+allFollows.size());
+            String next_url = (String) pagination.get("next_url");
+            if (next_url != null) {
+                request = new OAuthRequest(Verb.GET, (String) next_url);
+                response = request.send();
+                s = response.getBody();
+                //TODO Error checking
+                if (s == null) {
+                    logger.error("Null body in the response " + response);
+                    break;
+                }
+                map = (JSONObject) JSONValue.parse(s);
+                if (map == null) {
+                    logger.error("No pagination in the get follows ('followed by') request " + response + " " + s);
+                    break;
+                }
+                pagination = (JSONObject) map.get("pagination");
+            } else {
+                break;
+
+            }
+            try {
+                Thread.sleep(throttle_millis);
+            } catch (InterruptedException ie) {
+                logger.warn("Problem throttling for " + aUser.getUsername(), ie);
+            }
+        }
+        for (JSONObject j : allFollowers) {
+            InstagramUserBriefly iub = gson.fromJson(j.toString(), InstagramUserBriefly.class);
+            result.add(iub);
+        }
+        return result;
+    }
+
+
+    public List<InstagramUser> serviceRequestFollowersAsUsers(String aUserID) throws BadAccessTokenException, NullPointerException {
         {
             InstagramUser aUser;
             List<InstagramUser> result = new ArrayList<InstagramUser>();
@@ -888,14 +980,14 @@ try {
 //            //			JSONArray data = (JSONArray)map.get("data");
 //            }
 //        } while (pagination != null);
- //           logger.debug("Save followers for " + aUser.getUsername());
+            //           logger.debug("Save followers for " + aUser.getUsername());
             //saveFollowsJson(allFollows, aUserID);
             //saveFollowersJson(allFollowers, aUserID);
-            for(JSONObject j : allFollowers) {
+            for (JSONObject j : allFollowers) {
                 //logger.debug(j);
                 InstagramUserBriefly iub = gson.fromJson(j.toString(), InstagramUserBriefly.class);
                 InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
-                if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
+                if (friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
                     friend = this.serviceRequestUserBasicForUserID(iub.getId());
                     if (friend == null) {
                         logger.warn(iub + " is maybe a private/blocked User from whichever user is authenticated in this transaction. (Are you running analytics on someone else's account?");
@@ -905,9 +997,7 @@ try {
                 result.add(friend);
 
 
-
             }
-
 
 
             return result;
@@ -926,7 +1016,7 @@ try {
                 // here's where we update a user if their local user basic is stale..
                 if (friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
                     friend = this.serviceRequestUserBasicForUserID(iub.getId());
-                    if(friend == null) {
+                    if (friend == null) {
                         logger.debug("Private/Blocked User from whichever user is authenticated in this transaction. (Are you running analytics on someone else's account?");
                         continue;
                     }
@@ -967,7 +1057,7 @@ try {
             for (InstagramFriend is_a_friend : new_friends_to_save) {
                 try {
                     followsDAO.save(is_a_friend);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     logger.warn(e);
                     continue;
                 }
@@ -1032,22 +1122,33 @@ try {
     public boolean localServiceStatusIsNewStatus(String aUserID) {
         boolean result = false;
         com.nearfuturelaboratory.humans.instagram.entities.InstagramStatus most_recent = null;
+        DateTime now = new DateTime().withChronology(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
+        Date d;
         try {
 
             most_recent = this.getMostRecentStatusForUserID(aUserID);
-            if(most_recent == null) return false;
-            Date d = most_recent.getCreatedAt();
+            if (most_recent == null) return false;
+            d = most_recent.getCreatedAt();
 
             long then = d.getTime();
-            long now = new Date().getTime();
+            //long now = new Date().getTime();
 
-            long diff = now - then;
-            if (diff < Constants.getLong("STATUS_NEWNESS_TIME")) {
+            long diff = now.getMillis() - then;
+            if (diff > Constants.getLong("STATUS_NEWNESS_TIME")) {
+                // okay..but when was it last updated?
+                DateTime t = new DateTime(most_recent.getLastUpdated());
+                diff = now.getMillis() - t.getMillis();
+                if (diff < Constants.getLong("STATUS_STALE_TIME")) {
+                    result = true;
+
+                }
+                //result = true;
+            } else {
                 result = true;
             }
         } catch (NullPointerException npe) {
             logger.warn("", npe);
-            logger.warn("Probably no status at all for userid="+aUserID+" (" + most_recent + "), so no Farm Fresh Local Status Today");
+            logger.warn("Probably no status at all for userid=" + aUserID + " (" + most_recent + "), so no Farm Fresh Local Status Today");
 
 
         } finally {
@@ -1078,7 +1179,7 @@ try {
             }
         } catch (NullPointerException npe) {
             logger.warn(npe);
-            logger.warn("Probably no status at all for userid="+aUserID+" (" + most_recent + "), so no Farm Fresh Local Status Today");
+            logger.warn("Probably no status at all for userid=" + aUserID + " (" + most_recent + "), so no Farm Fresh Local Status Today");
 
 
         } finally {

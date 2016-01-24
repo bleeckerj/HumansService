@@ -139,12 +139,15 @@ public class StartupServlet extends HttpServlet {
 
             Scheduler scheduler = stdSchedulerFactory.getScheduler();
             JobKey scheduledInstagramAnalyticsJob = new JobKey("ScheduledInstagramAnalyticsJob");
+            JobKey scheduledInstagramUserBasicAnalyticsJob = new JobKey("ScheduledInstagramUserBasicAnalyticsJob");
 
             if(Constants.getBoolean("IS_ANALYTICS_SERVER", true)) {
                 logger.info("This is an analytics server.");
+
             } else {
                 logger.info("This is not an analytics server.");
                 scheduler.deleteJob(scheduledInstagramAnalyticsJob);
+                scheduler.deleteJob(scheduledInstagramUserBasicAnalyticsJob);
             }
 
         } catch (SchedulerException e) {

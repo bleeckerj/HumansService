@@ -14,7 +14,6 @@ import java.util.List;
  */
 @DisallowConcurrentExecution
 public class ScheduledInstagramUserBasicAnalyticsJob implements Job {
-
     final static Logger logger = LogManager.getLogger(ScheduledInstagramUserBasicAnalyticsJob.class);
 //    static int SEVEN_DAYS_BACK = 7;
 //    static int ONE_DAY_BACK = 1;
@@ -35,8 +34,6 @@ public class ScheduledInstagramUserBasicAnalyticsJob implements Job {
 
         try {
             List<String> listOfUserNames = instagram.gatherUsernamesForAnalytics();
-
-
             int count = 1;
             for (String userName : listOfUserNames) {
                 try {
@@ -45,18 +42,8 @@ public class ScheduledInstagramUserBasicAnalyticsJob implements Job {
                     count++;
 
                     InstagramUser user_from_db = InstagramAnalyticsService.getLocalUserBasicForUsername(userName);
-//                    DateTime latest = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
-//                    latest.withHourOfDay(0);
-//                    latest.withMinuteOfHour(0);
-//                    latest.withSecondOfMinute(0);
 
                     if (user_from_db != null) {
-
-//                        instagram.captureInstagramUserAnalytics(user_from_db, latest, Period.days(ONE_DAY_BACK));
-//
-//                        instagram.captureInstagramUserAnalytics(user_from_db, latest, Period.days(SEVEN_DAYS_BACK));
-//
-//                        instagram.captureInstagramUserAnalytics(user_from_db, latest, Period.months(MONTHS_BACK));
 
                         //if(instagram.localUserBasicIsFreshForUserID(user_from_db.getUserID())) {
                         InstagramUser user = instagram.serviceRequestUserBasicForUserID(user_from_db.getUserID());

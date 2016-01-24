@@ -5,22 +5,40 @@
   </Properties>
   <Appenders>
     <Console name="CONSOLE" target="SYSTEM_OUT">
-      <PatternLayout pattern="%highlight{%d{ISO8601} %-5p %c{1}.java:%line (%c{2}.java:%M:%line) - %m%n}"/>
+      <PatternLayout pattern="%highlight{%d{ISO8601} %-5p %c{1}.java:%line: %m%n}"/>
     </Console>
     <RollingFile name="RollingFile" fileName="/Users/julian/Documents/workspace/HumansService/logs/the_app.log"
-                 filePattern="humans_test_$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log">
+                 filePattern="the_app_$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log">
       <PatternLayout>
-        <Pattern>%highlight{%d{ISO8601} %-5p %c{1}.java:%line (%c{2}.java:%M()) - %m%n}</Pattern>
+        <Pattern>%highlight{%d{ISO8601} %-5p %c{1}.java:%line: %m%n}</Pattern>
       </PatternLayout>
       <Policies>
         <TimeBasedTriggeringPolicy />
-        <SizeBasedTriggeringPolicy size="10 MB"/>
+        <SizeBasedTriggeringPolicy size="90 MB"/>
         <DefaultRolloverStrategy max="2"/>
       </Policies>
     </RollingFile>
-    <File name="TEMP" fileName="/Users/julian/Documents/workspace/HumansService/logs/humans_test.log">
-      <PatternLayout pattern="%highlight{%d{ISO8601} %-5p %c{1}.java:%line  (%c{2}.java:%M) - %m%n}"/>
-    </File>
+    <RollingFile name="RollingFile" fileName="/Users/julian/Documents/workspace/HumansService/logs/app_raw.log"
+                 filePattern="app_raw_$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+        <SizeBasedTriggeringPolicy size="90 MB"/>
+        <DefaultRolloverStrategy max="2"/>
+      </Policies>
+    </RollingFile>
+    <RollingFile name="RollingFile" fileName="/Users/julian/Documents/workspace/HumansService/logs/humans_test.log"
+                 filePattern="humans_test_$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+        <DefaultRolloverStrategy max="2"/>
+      </Policies>
+    </RollingFile>
       <Async name="ASYNC" includeLocation="true">
       <AppenderRef ref="TEMP"/>
       <AppenderRef ref="CONSOLE"/>

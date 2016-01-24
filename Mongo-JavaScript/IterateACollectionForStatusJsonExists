@@ -1,0 +1,4 @@
+db.getCollection('rapha_10282731').find({
+    $query : {'snapshot-coverage-period' : 'P1D',
+        $where : 'this.analytics["status-json"].length > 0'
+    }, $orderby : {'snapshot-run-time-millis' : -1}})

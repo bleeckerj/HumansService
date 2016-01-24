@@ -1,0 +1,4 @@
+db.getCollection('jeredgruber_4373763').find({'snapshot-date' : '121815',
+    'snapshot-coverage-period' : 'P1D',
+    $where : 'this.analytics["status-json"].length > 0'
+})

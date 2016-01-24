@@ -4,16 +4,18 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.jayway.jsonpath.JsonPath;
 import com.mongodb.*;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
+import com.mongodb.client.*;
+import com.mongodb.client.result.DeleteResult;
+import com.nearfuturelaboratory.humans.exception.UsernameNotFoundException;
 import com.nearfuturelaboratory.humans.instagram.entities.InstagramFriend;
 import org.bson.Document;
 import com.mongodb.Block;
 import com.mongodb.util.JSON;
 import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Indexes.descending;
 import static com.mongodb.client.model.Sorts.ascending;
+import static com.mongodb.client.model.Sorts.orderBy;
+import static java.util.Arrays.asList;
 
 import com.nearfuturelaboratory.humans.dao.InstagramFriendsDAO;
 import com.nearfuturelaboratory.humans.dao.InstagramStatusDAO;
@@ -34,6 +36,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.mongodb.morphia.Morphia;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.model.OAuthRequest;
 import org.scribe.model.Response;
@@ -41,8 +44,6 @@ import org.scribe.model.Token;
 import org.scribe.model.Verb;
 //import org.w3c.dom.Document;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -59,7 +60,19 @@ import java.util.regex.Pattern;
 public class InstagramAnalyticsService extends InstagramService {
 
     private static final String USER_SEARCH_URL = "https://api.instagram.com/v1/users/search?q=%s&count=%s";
-    protected static final DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
+    //protected static final DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
+
+    public static String ONE_DAY = "P1D";
+    public static Period ONE_DAY_P = new Period().withDays(1);
+    public static String SEVEN_DAYS = "P7D";
+    public static String ONE_MONTH = "P1M";
+    public static String TWO_DAYS = "P2D";
+    public static String THREE_DAYS = "P3D";
+    public static Period THREE_DAY_P = new Period().withDays(3);
+    public static String FIVE_DAYS = "P5D";
+    public static String TEN_DAYS = "P10D";
+    public static String FIFTEEN_DAYS = "P15D";
+    public static DateTimeFormatter short_date_fmt = DateTimeFormat.forPattern("MMddyy");
 
 
 //    private OAuthService service;
@@ -69,6 +82,7 @@ public class InstagramAnalyticsService extends InstagramService {
 
     public InstagramAnalyticsService() {
         db = MongoUtil.getMongo().getDB("instagram-analytics");
+        database = MongoUtil.getMongo().getDatabase("instagram-analytics");
 
         statusDAO = new InstagramStatusDAO();
         statusDAO.ensureIndexes();
@@ -86,6 +100,27 @@ public class InstagramAnalyticsService extends InstagramService {
         super.setDBName("instagram-analytics");
     }
 
+    public void setDBClient(MongoClient _client) {
+        client = _client;
+        database = client.getDatabase("instagram-analytics");
+        db = client.getDB("instagram-analytics");
+
+        super.statusDAO = new InstagramStatusDAO(client, new Morphia(), "instagram");
+        super.statusDAO.ensureIndexes();
+
+        /*
+        userDAO = new InstagramUserDAO(client, new Morphia(), "instagram-analytics");
+        userDAO.ensureIndexes();
+
+        followsDAO = new InstagramFriendsDAO(client, new Morphia(), "instagram-analytics");
+        followsDAO.ensureIndexes();
+        */
+        gson = new Gson();
+        //super.client = _client;
+        //super.setDBName("instagram-analytics");
+    }
+
+
     //TODO Change this super ridiculous constructor. Should all be factory methods like above.
     public InstagramAnalyticsService(Token aAccessToken) {
         super(aAccessToken);
@@ -98,7 +133,9 @@ public class InstagramAnalyticsService extends InstagramService {
                 .scope("basic,likes")
                 .build();
         //		user = this.serviceRequestUserBasic();
-        db = MongoUtil.getMongo().getDB("instagram-analytics");
+        client = MongoUtil.getMongo();
+        db = client.getDB("instagram-analytics");
+        database = client.getDatabase("instagram-analytics");
 
         statusDAO = new InstagramStatusDAO();
         statusDAO.ensureIndexes();
@@ -110,7 +147,12 @@ public class InstagramAnalyticsService extends InstagramService {
         followsDAO.ensureIndexes();
     }
 
+    static InstagramAnalyticsService analyticsService = null;
+
     public static InstagramAnalyticsService createServiceOnBehalfOfUsername(String aUsername) throws BadAccessTokenException {
+        if(analyticsService != null) {
+            return analyticsService;
+        }
         InstagramAnalyticsService result;
         Token token;
         InstagramUser user = InstagramAnalyticsService.getLocalUserBasicForUsername(aUsername);
@@ -129,22 +171,24 @@ public class InstagramAnalyticsService extends InstagramService {
         }
 
         result.user = user;
+        analyticsService = result;
         return result;
     }
 
     public List<Document> getAllStatusForDateOrdered(DateTime date)
     {
-        DateTimeFormatter f = DateTimeFormat.forPattern("MMddyy");
+        //DateTimeFormatter f = DateTimeFormat.forPattern("MMddyy");
         //List<InstagramStatus> statusOrdered = new ArrayList<>();
         List<String> collectionNames = this.getListOfInstagramAnalyticsCollections();
         collectionNames.removeIf(s -> s.contains("_snapshot_counts") || s.equalsIgnoreCase("user") || s.contains("system.indexes"));
         //List<Document> docs = this.getListOfInstagramAnalyticsDocumentsByDayOfYear(collectionNames, 333);
-        List<Document> docs = getListOfInstagramAnalyticsDocumentsByDate(collectionNames, f.print(date));
+        List<Document> docs = getListOfInstagramAnalyticsDocumentsByDate(collectionNames, short_date_fmt.print(date), ONE_DAY_P);
         List<Document> result = new ArrayList<>();
         docs.forEach((Consumer<? super Document>) d -> {
             //logger.debug(d.get("analytics"));
             Document x = (Document)d.get("analytics");
-            ArrayList a = (ArrayList)x.get("status-json");
+            ArrayList<Document> a;
+            a = (ArrayList<Document>)x.get("status-json");
             result.addAll(a);
            // logger.debug(result.size());
         });
@@ -245,11 +289,11 @@ public class InstagramAnalyticsService extends InstagramService {
 
 //        DateTimeFormatter fmt_short = DateTimeFormat.forPattern("MMddYY-HHmm");
 //        JsonObject rootUserJson = new JsonObject();
-
+        DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
         JsonObject rootUserMeta = new JsonObject();
         rootUserMeta.addProperty("username", aUser.getUsername());
         rootUserMeta.addProperty("userid", aUser.getUserID());
-        rootUserMeta.addProperty("snapshot-date", DateTimeFormat.forPattern("MMddYY").print(snapshotDate));
+        rootUserMeta.addProperty("snapshot-date", short_date_fmt.print(snapshotDate));//DateTimeFormat.forPattern("MMddYY").print(snapshotDate));
         rootUserMeta.addProperty("snapshot-time", DateTimeFormat.forPattern("HHmm").print(snapshotDate));
         rootUserMeta.addProperty("snapshot-week-of-year", DateTimeFormat.forPattern("ww").print(snapshotDate));
         rootUserMeta.addProperty("snapshot-day-of-year", DateTimeFormat.forPattern("D").print(snapshotDate));
@@ -282,12 +326,7 @@ public class InstagramAnalyticsService extends InstagramService {
         List<InstagramStatus> status = this.serviceRequestStatusForUserIDToMonthsAgo(aUser.getUserID(), 3);
         //Object statusJson = (Object)JSON.serialize(status);
         JsonElement status_analytics = getInstagramUserStatusAnalyticsAsJson(status);
-//        JsonObject f = new JsonObject();
-//        f.add("status-analytics", status_analytics);
 
-       // e = gson.toJsonTree(status);
-        //f.add("status", e);
-//        f.getAsJsonObject();
         return status_analytics.getAsJsonObject();
     }
 
@@ -345,7 +384,7 @@ public class InstagramAnalyticsService extends InstagramService {
         }
         else {
             try {
-                List<InstagramUser> foo = this.serviceRequestFriendsAsUsers(aUser.getUserID());
+                List<InstagramUser> foo = this.serviceRequestFriendsAsUsers(aUser, 100);
                 return foo;
             } catch (BadAccessTokenException e) {
                 logger.warn(e);
@@ -358,11 +397,108 @@ public class InstagramAnalyticsService extends InstagramService {
     }
 
     /**
+     * Get a list of dates for posts we have for this username
+     * @param aUsername
+     * @return
+     */
+    public List<DateTime> getPostDatesFor(String aUsername) {
+        List<DateTime> result = new ArrayList<>();
+        List<String> uniques = new ArrayList<>();
+        List<String> urls = new ArrayList<>();
+        List<Document> docs = this.getListOfInstagramAnalyticsDocumentsByUsername(aUsername);
+        for(int i=0; i<docs.size(); i++) {
+            Integer size = JsonPath.read(docs.get(i).toJson(), "$.analytics.status-json.length()");
+            for(int j=0; j<size; j++) {
+                Integer f = JsonPath.read(docs.get(i).toJson(), "$.analytics.status-json["+j+"].created_time");
+                DateTime d = new DateTime().withMillis(f * 1000l);
+                String url = JsonPath.read(docs.get(i).toJson(), "$.analytics.status-json["+j+"].link");
+                String id = JsonPath.read(docs.get(i).toJson(), "$.analytics.status-json["+j+"].id");
+                if(uniques.contains(id) == false) {
+                    urls.add(url);
+                    uniques.add(id);
+                    result.add(d);
+                }
+            }
+        }
+
+        Collections.sort(result, new Comparator<DateTime>() {
+            public int compare(DateTime d1, DateTime d2) {
+                return d1.compareTo(d2);
+            }
+        });
+
+        return result;
+    }
+
+    public List<Document> getSortedAnalyticsFor(List<Document> docs, String aKeySuffix, String aDate, Period aPeriod) {
+        Collections.sort(docs,new Comparator<Document>() {
+            public int compare(Document d1, Document d2) {
+                Object f = JsonPath.read(d1.toJson(), "$.analytics.engagement-analytics-meta."+aKeySuffix);
+
+                Double n1 = JsonPath.read( d1.toJson(), "$.analytics.engagement-analytics-meta."+aKeySuffix);
+                Double n2 = JsonPath.read( d2.toJson(), "$.analytics.engagement-analytics-meta."+aKeySuffix);
+                //logger.debug(n1+" "+n2);
+                return n2.compareTo(n1);
+            }
+        });
+
+        return docs;
+    }
+
+    public JsonElement getRankingByEngagementAnalyticFor(List<Document> docs, String aUsername, String aKeySuffix, String aDate, Period aPeriod) {
+        int index = 0;
+
+        Collections.sort(docs,new Comparator<Document>() {
+            public int compare(Document d1, Document d2) {
+                Object f = JsonPath.read(d1.toJson(), "$.analytics.engagement-analytics-meta."+aKeySuffix);
+
+                Double n1 = JsonPath.read( d1.toJson(), "$.analytics.engagement-analytics-meta."+aKeySuffix);
+                Double n2 = JsonPath.read( d2.toJson(), "$.analytics.engagement-analytics-meta."+aKeySuffix);
+                //logger.debug(n1+" "+n2);
+                return n2.compareTo(n1);
+            }
+        });
+
+
+        for(int i = 0; i<docs.size(); i++) {
+            if (aUsername.equalsIgnoreCase(docs.get(i).getString("username"))) {
+                // mark the index
+                index = i;
+                break;
+            }
+        }
+
+        JsonObject result = new JsonObject();
+        result.addProperty("username", aUsername);
+        result.addProperty("rank", index);
+        result.addProperty("of", docs.size());
+        result.addProperty("by", aKeySuffix);
+        result.addProperty("date", aDate);
+        result.addProperty("period", aPeriod.toString());
+        return result;
+    }
+
+
+    public JsonElement getRankingByEngagementAnalyticFor(String aUsername, String aKeySuffix, String aDate, Period aPeriod) {
+
+        List<Document>docs = this.getListOfInstagramAnalyticsDocumentsByDate(
+                this.getListOfInstagramAnalyticsCollections(),
+                aDate,
+                aPeriod);
+
+        return this.getRankingByEngagementAnalyticFor(docs, aUsername, aKeySuffix, aDate, aPeriod);
+
+    }
+
+
+    /**
      *
      * @param aAnalytic is the last string (xxx) in the Json path under analytics.engagement-analygics-meta.xxxx
      * @return a list, sorted large to small of that analytic
      */
     protected List<Document> getSortedListByEngagementAnalytic(String aAnalytic) {
+
+        DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
         List<String> collectionNames = this.getListOfInstagramAnalyticsCollections();
         List<Document> docs = this.getListOfInstagramAnalyticsDocumentsByDayOfYear(collectionNames,
                                                                         Integer.parseInt(DateTimeFormat.forPattern("D").print(now)));
@@ -402,7 +538,7 @@ public class InstagramAnalyticsService extends InstagramService {
 
     }
 
-
+    // THROW A STATUS HERE AND WE GET AN ELEMENT WE CAN USE TO UPDATE IN THE DATABASE
     /**
      * With a bunch of status, crunch and create some analytics..
      *
@@ -591,14 +727,17 @@ public class InstagramAnalyticsService extends InstagramService {
         o.addProperty("period-posts-count", new Integer(aStatusList.size()).doubleValue());
         o.addProperty("earliest-in-period", String.format("%1$tb %1$te,%1$tY %1$tH %1$tM", first_cal));
         o.addProperty("latest-in-period",String.format("%1$tb %1$te,%1$tY %1$tH %1$tM", last_cal));
-        o.addProperty("period", period.toString());
+        o.addProperty("earliest-in-period-date", String.format("%1$tm%1$td%1$ty", first_cal));
+        o.addProperty("latest-in-period-date", String.format("%1$tm%1$td%1$ty", last_cal));
+
+        o.addProperty("period-between-earliest-latest", period.toString());
         o.addProperty("period-days", Float.parseFloat( String.format("%1$d",duration.getStandardDays()) ));
         float rate = (float)((float)aStatusList.size()/duration.getStandardDays());
         if(rate == Float.NaN || aStatusList.size() == 0) {
             rate = 0;
-            o.addProperty("posts-per-day", Double.parseDouble( String.format("%1$g", 0.0) ));
-            o.addProperty("days-per-post", Double.parseDouble( String.format("%1$g", 0.0) ));
-            o.addProperty("posts-per-week", Double.parseDouble( String.format("%1$g", 0.0) ));
+            o.addProperty("rate-posts-per-day", Double.parseDouble( String.format("%1$g", 0.0) ));
+            o.addProperty("rate-days-per-post", Double.parseDouble( String.format("%1$g", 0.0) ));
+            o.addProperty("rate-posts-per-week", Double.parseDouble( String.format("%1$g", 0.0) ));
 
 
             // likes average first
@@ -621,9 +760,9 @@ public class InstagramAnalyticsService extends InstagramService {
            // avg_tags = tags_count / aStatusList.size();
             o.addProperty("avg-tags", 0.0);
         } else {
-            o.addProperty("posts-per-day", Double.parseDouble( String.format("%1$g", rate) ));
-            o.addProperty("days-per-post", Double.parseDouble( String.format("%1$g", 1 / rate) ));
-            o.addProperty("posts-per-week", Double.parseDouble( String.format("%1$g", rate * 7) ));
+            o.addProperty("rate-posts-per-day", Double.parseDouble( String.format("%1$g", rate) ));
+            o.addProperty("rate-days-per-post", Double.parseDouble( String.format("%1$g", 1 / rate) ));
+            o.addProperty("rate-posts-per-week", Double.parseDouble( String.format("%1$g", rate * 7) ));
 
             // likes average first
             avg_likes = likes_count / aStatusList.size();
@@ -715,20 +854,73 @@ public class InstagramAnalyticsService extends InstagramService {
         return c;
     }
 
-    public List<Document> getListOfInstagramAnalyticsDocumentsByDate(List<String> aCollectionNames, String date) {
-        MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+    /**
+     *
+     * @param aUsername
+     * @return
+     */
+    protected List<Document> getListOfInstagramAnalyticsDocumentsByUsername(String aUsername) {
+        List<String> aCollectionNames = this.getListOfInstagramAnalyticsCollections();
+       // MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+
         List<Document> result = new ArrayList<Document>();
 
-        ArrayList<String> unique = new ArrayList<>();
+        //ArrayList<String> unique = new ArrayList<>();
         aCollectionNames.forEach((s) -> {
             // should add an additional clause for the Period (eg range from P1D, P7D, P1M)
-            FindIterable<Document> docs_i = db.getCollection(s).find(eq("snapshot-date", date));
+            FindIterable<Document> docs_i;// = db.getCollection(s).find(eq("snapshot-date", date));
+
+            docs_i = database.getCollection(s).find(
+                    new Document("username", aUsername).append("snapshot-coverage-period", ONE_DAY).append("$where", "this.analytics[\"status-json\"].length > 0"));
+
             docs_i.forEach((Block<Document>) document -> {
                 //TODO
                 // check that we don't include duplicates, and if there are duplicate docs with a username
                 // caused by multiple runs against Instagram, get the latest one
                 // And maybe flat that there are dupes so we can garden later, maybe..
+               // if( unique.contains((document.getString("username"))) == false) {
+
+                    result.add(document);
+                   // unique.add(document.getString("username"));
+                //}
+            });
+        });
+
+        return result;
+    }
+
+
+
+
+    public List<Document> getListOfInstagramAnalyticsDocumentsByDate(List<String> aCollectionNames, String date, Period period) {
+        //MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+        List<Document> result = new ArrayList<Document>();
+
+        ArrayList<String> unique = new ArrayList<>();
+        aCollectionNames.forEach((s) -> {
+            // should add an additional clause for the Period (eg range from P1D, P7D, P1M)
+            FindIterable<Document> docs_i;// = db.getCollection(s).find(eq("snapshot-date", date));
+            /*
+
+            Basicaly query for documents of this Period length, on a date, that actually have posts in them.
+
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("MM dd,yyyy");
+            */
+            docs_i = database.getCollection(s).find(
+                    new Document("period-coverage-end-date", date)
+                            .append("snapshot-coverage-period", period.toString())
+                            //.append("analytics.engagement-analytics-meta.period-posts-count", new Document("$gt", 0))
+                        )
+                    .sort(orderBy(descending("period-coverage-end-millis")));
+
+
+            docs_i.forEach((Block<Document>) document -> {
+                //TODO
+                // check that we don't include duplicates, and if there are duplicate docs with a username
+                // caused by multiple runs against Instagram, get the latest one
+                // And maybe flag that there are dupes so we can garden later, maybe..
                 if( unique.contains((document.getString("username"))) == false) {
+
                     result.add(document);
                     unique.add(document.getString("username"));
                 }
@@ -753,16 +945,16 @@ public class InstagramAnalyticsService extends InstagramService {
         }
 
 
-        return sourceList;
+        return result;
     }
 
     public List<Document> getListOfInstagramAnalyticsDocumentsByDayOfYear(List<String> aCollectionNames, int dayOfYear) {
-        MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+        //MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
         List<Document> result = new ArrayList<Document>();
 
         ArrayList<String> unique = new ArrayList<>();
         aCollectionNames.forEach((s) -> {
-           FindIterable<Document> docs_i = db.getCollection(s).find(eq("snapshot-day-of-year", String.valueOf(dayOfYear)));
+           FindIterable<Document> docs_i = database.getCollection(s).find(eq("snapshot-day-of-year", String.valueOf(dayOfYear)));
             docs_i.forEach((Block<Document>) document -> {
                 if( unique.contains((document.getString("username"))) == false) {
                     result.add(document);
@@ -778,37 +970,149 @@ public class InstagramAnalyticsService extends InstagramService {
 
 
 
-    public List<String> getListOfInstagramAnalyticsCollections() {
-        MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
-        MongoIterable<String> collections = db.listCollectionNames();
-//        logger.debug(collections);
+    public ArrayList<Document> getSortedListOfUserCounts(String aUsername, DateTime date, int limit) throws UsernameNotFoundException {
+        InstagramUser user = localUserSearch(aUsername);
+        if(user == null) {
+            throw new UsernameNotFoundException("No such user "+aUsername);
+        }
+        String coll_name = InstagramAnalyticsService.encodeKey(user.getUsername())+"_"+user.getUserID()+"_snapshot-counts";
+        //FindIterable<Document> docs_i = db.getCollection(coll_name).find(eq("snapshot-day-of-year", DateTimeFormat.forPattern("D").print(yesterday)));
+        FindIterable<Document> docs_i = database.getCollection(coll_name).find(
+                new Document("snapshot-date", short_date_fmt.print(date))
+        ).sort(orderBy(descending("snapshot-time-millis"))).limit(limit);
+        ArrayList<Document> result = new ArrayList();
+        docs_i.forEach((Block<Document>) document -> {
+            if(document != null) {
+                result.add(document);
+            }
+        });
+        return result;
+            //.sort(orderBy(descending("period-coverage-end-millis")));
+    }
 
-//        db.getCollection("restaurants").find().forEach((Block<Document>) document -> {
-//            System.out.println(document);
-//        });
+    public List<Document> getListOfEndemicCyclistsInstagramAnalytics() {
+        List<Document> d_1 = new ArrayList<>();
+        ArrayList<String> n_1 = getListOfEndemicCyclistsInstagramAnalyticsUsernames();
+
+        n_1.forEach((Consumer<String>) name -> {
+            List<Document> docs = this.getListOfInstagramAnalyticsDocumentsByUsername(name);
+            if(docs != null) {
+                docs.forEach((Consumer<Document>) doc -> {
+                    d_1.add(doc);
+                });
+            }
+        });
+
+        ArrayList<String> n_2 = getListOfEndemicCylingInstagramAnalyticsUsernames();
+        n_2.forEach((Consumer<String>) name -> {
+            List<Document> docs = this.getListOfInstagramAnalyticsDocumentsByUsername(name);
+            if(docs != null) {
+                docs.forEach((Consumer<Document>) doc -> {
+                    d_1.add(doc);
+                });
+            }
+        });
+
+        return d_1;
+    }
 
 
-//        collections.forEach((Block<String>) s -> {
-//                    logger.debug(s);
-//                });
+
+    public List<String> getListOfEndemicAnalyticsCollectionNames() {
+        List<String> collectionNames = new ArrayList<>();
+        ArrayList a_1 = getListOfEndemicCyclistsInstagramAnalyticsUsernames();
+        a_1.addAll(getListOfEndemicCylingInstagramAnalyticsUsernames());
+
+        a_1.forEach((Consumer<String>) name -> {
+            InstagramUser aUser = this.localUserSearch(name);
+            if(aUser != null) {
+                String cName = aUser.getUsername().toLowerCase() + "_" + aUser.getUserID();
+                collectionNames.add(cName);
+            }
+        });
+        return collectionNames;
+    }
+
+    public List<Document> getEndemicAnalyticsCollectionsByDate(DateTime aDate, Period period) {
+       List<String> collectionNames = this.getListOfEndemicAnalyticsCollectionNames();
+        String str_date = this.short_date_fmt.print(aDate);
+
+        List<Document> docs = getListOfInstagramAnalyticsDocumentsByDate(collectionNames,str_date, period );
+        return docs;
+    }
+
+
+    public ArrayList<String> getListOfEndemicCyclistsInstagramAnalyticsUsernames() {
+        //MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+        MongoDatabase endemics = MongoUtil.getMongo().getDatabase("instagram-analytics-grabbag");
+        // look in the extra-follows-cycling collection
+        MongoCollection<Document> collection = endemics.getCollection("extra-follows-cyclists");
+
+        ArrayList<ArrayList> l = new ArrayList<>();
+        ArrayList<String> usernames = new ArrayList<>();
+        ArrayList<InstagramUser> users = new ArrayList<>();
+
+        MongoIterable iterator = collection.find();
+        MongoCursor<Document> cursor = iterator.iterator();
+        while(cursor.hasNext()) {
+            l = (ArrayList)cursor.next().get("cyclists-endemic");
+        }
+
+
+        l.forEach((Consumer<ArrayList>) list -> {
+            list.forEach((Consumer<String>) name -> {
+                usernames.add(name.toLowerCase());
+            });
+        });
+
+
+
+
+
 //
-//        collections = db.listCollectionNames();
+        return usernames;
+    }
+
+
+    public ArrayList<String> getListOfEndemicCylingInstagramAnalyticsUsernames() {
+        //MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+        MongoDatabase endemics = MongoUtil.getMongo().getDatabase("instagram-analytics-grabbag");
+        // look in the extra-follows-cycling collection
+        MongoCollection<Document> collection = endemics.getCollection("extra-follows-cycling");
+
+        ArrayList<ArrayList> l = new ArrayList<>();
+        ArrayList<String> usernames = new ArrayList<>();
+        ArrayList<InstagramUser> users = new ArrayList<>();
+
+        MongoIterable iterator = collection.find();
+        MongoCursor<Document> cursor = iterator.iterator();
+        while(cursor.hasNext()) {
+            l = (ArrayList)cursor.next().get("cycling-endemic");
+        }
+
+
+        l.forEach((Consumer<ArrayList>) list -> {
+            list.forEach((Consumer<String>) name -> {
+                usernames.add(name.toLowerCase());
+            });
+        });
+
+//
+        return usernames;
+    }
+
+
+
+    public List<String> getListOfInstagramAnalyticsCollections() {
+        //MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+        MongoIterable<String> collections = database.listCollectionNames();
+
         ArrayList<String> collectionNames = new ArrayList<String>();
 
 
         collections.forEach((Block<String>) s -> {
             collectionNames.add(s);
-            /*
-            db.getCollection(s).find().forEach((Block<Document>) document ->
-            {
-                logger.debug(document);
-                //Document counts = document.get("counts", Document.class).get("")
-               // logger.debug(counts);
-                Document engagement = (Document)document.get("status");
-                logger.debug(engagement);
-            }
-            );
-            */
+
         });
 
         collectionNames.remove("user");
@@ -819,28 +1123,32 @@ public class InstagramAnalyticsService extends InstagramService {
 
 
     protected void saveRootUserFriends(InstagramUser aUser) throws Exception {
-        DB foo = MongoUtil.getMongo().getDB("instagram-analytics");
-        DBCollection rootUser = foo.getCollection("root_users");
+        DB foo = client.getDB("instagram-analytics-friends");
+        //MongoCollection<Document> rootUser = database.getCollection("root_users");
+        DBCollection rootUser;// = db.getCollection("root_users");
 
         //rootUser.drop();
         DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
         DateTimeFormatter fmt_short = DateTimeFormat.forPattern("MMddYY");
 
-        Set s = foo.getCollectionNames();
-        logger.debug(s);
+        //Set s = db.getCollectionNames();
+        //logger.debug(s);
 
-        rootUser = rootUser.getCollection(aUser.getUsername() + "_" +aUser.getUserID()+"_" + fmt_short.print(now)+"_friends");
+        rootUser = foo.getCollection(aUser.getUsername() +"_" + fmt_short.print(now)+"_friends");
         rootUser.drop();
 
-        List<InstagramUser> users = this.serviceUserSearch("darthjulian");
-        InstagramUser user = null;
-        List<InstagramUser> friends = null;
-        if (users.size() > 0) {
-            user = users.get(0);
-            friends = this.serviceRequestFriendsAsUsers(user.getUserID());
-//            logger.debug(friends);
-            this.getInstagramUsersForTopOfListAnalyticsJson(friends);
-        }
+//        List<InstagramUser> users = this.serviceUserSearch("darthjulian");
+//        InstagramUser user = null;
+//        List<InstagramUser> friends = null;
+//        if (users.size() > 0) {
+//            user = users.get(0);
+//            friends = this.serviceRequestFriendsAsUsers(user.getUserID());
+////            logger.debug(friends);
+//            this.getInstagramUsersForTopOfListAnalyticsJson(friends);
+//        }
+
+        InstagramUser user = InstagramAnalyticsService.staticGetLocalUserBasicForUsername(aUser.getUsername());
+        List<InstagramUser> friends = this.getInstagramUserFriendsAsList(user);
 
         Gson gson = new Gson();
         JsonElement element = gson.toJsonTree(friends, new TypeToken<List<InstagramUser>>() {}.getType());
@@ -852,44 +1160,69 @@ public class InstagramAnalyticsService extends InstagramService {
         rootUser.save(obj);
     }
 
+    public void deleteManyInstagramUserAnalytics(InstagramUser aUser, DateTime date, Period period) {
+
+        //MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+
+
+        MongoCollection rootUser = database.getCollection(encodeKey(aUser.getUsername()) + /*"_" + fmt_short.print(now)+*/"_" + aUser.getUserID());
+        DateTimeFormatter fmt_short = DateTimeFormat.forPattern("MMddYY");
+
+        rootUser.deleteMany(new Document().
+                append("username", aUser.getUsername()).
+                append("snapshot-date", fmt_short.print(date)).
+                append("snapshot-coverage-period", period.toString()));
+
+    }
+
     /**
      * This will capture back analytics for a user with the latest status at latest, going BACKWARDS an amount
      * specified by period. We always assume a midnight boundary, so this normalizes to the beginning of the earliest day.
      *
      * @param aUser
-     * @param latest
+     * @param latestDateTime
      * @param period
      */
-    public void captureInstagramUserAnalytics(InstagramUser aUser, DateTime latest, Period period) {
+    public void captureInstagramUserAnalytics(InstagramUser aUser, DateTime latestDateTime, Period period) {
         long timeToRun = System.currentTimeMillis();
-        MongoDatabase foo = MongoUtil.getMongo().getDatabase("instagram-analytics");
-
+        //MongoDatabase foo = MongoUtil.getMongo().getDatabase("instagram-analytics");
         //DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
         DateTimeFormatter fmt_short = DateTimeFormat.forPattern("MMddYY");
-
-        MongoCollection rootUser;
-        rootUser = foo.getCollection(encodeKey(aUser.getUsername()) + /*"_" + fmt_short.print(now)+*/"_" + aUser.getUserID());
+        MongoCollection rootUser = database.getCollection(encodeKey(aUser.getUsername()) + "_" + aUser.getUserID());
+       // DBCollection collection = db.getCollection(encodeKey(aUser.getUsername()) + /*"_" + fmt_short.print(now)+*/"_" + aUser.getUserID());
 
         JsonObject rootUserJson = new JsonObject();
 
-        Date earliestDate = latest.minus(period).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).toDate();
+        Date earliestDate = latestDateTime.minus(period).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).toDate();
         //DateTime earliest = latest.minus(period).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
         DateTime earliestDateTime = new DateTime(earliestDate);
 
-        Date latestDate = latest.toDate();
+        Date latestDate = latestDateTime.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).withMillisOfSecond(999).toDate();
+        Duration duration = new Duration(earliestDateTime, latestDateTime);
 
-        rootUserJson = getRootUserMeta(aUser, latest);
-        //Period cover = new Period(earliest, latest);
-//        Calendar early = Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"));
-//        //early.add(Calendar.DAY_OF_YEAR, -1*aTrailingDays);
-//        early.set(Calendar.HOUR_OF_DAY, 0);
-//        DateTime earlier = new DateTime(early).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);
-        //Date earliestDate = new Date(earliest.getMillis());
+
+        rootUserJson = getRootUserMeta(aUser, latestDateTime);
+
         rootUserJson.addProperty("snapshot-coverage-period", period.toString());
+        rootUserJson.addProperty("snapshot-coverage-duration-days", (double)duration.getStandardDays());
+        rootUserJson.addProperty("snapshot-coverage-duration-hours", (double)duration.getStandardHours());
+        rootUserJson.addProperty("snapshot-coverage-duration-millis", (double)duration.getMillis());
+        rootUserJson.addProperty("period-coverage-start-date", fmt_short.print(earliestDateTime));
+        rootUserJson.addProperty("period-coverage-end-date", fmt_short.print(latestDateTime));
+        rootUserJson.addProperty("period-coverage-start-millis", (double) earliestDateTime.getMillis());
+        rootUserJson.addProperty("period-coverage-end-millis", (double) latestDateTime.getMillis());
+        rootUserJson.addProperty("period-coverage-start-day-of-year", (double) earliestDateTime.getDayOfYear());
+        rootUserJson.addProperty("period-coverage-end-day-of-year", (double) latestDateTime.getDayOfYear());
+        rootUserJson.addProperty("period-coverage-start-month", (double) earliestDateTime.getMonthOfYear());
+        rootUserJson.addProperty("period-coverage-end-month", (double) latestDateTime.getMonthOfYear());
+        rootUserJson.addProperty("period-coverage-start-week", (double) earliestDateTime.getWeekOfWeekyear());
+        rootUserJson.addProperty("period-coverage-end-week", (double) latestDateTime.getWeekOfWeekyear());
+        rootUserJson.addProperty("period-coverage-start-year", (double) earliestDateTime.getYear());
+        rootUserJson.addProperty("period-coverage-end-year", (double) latestDateTime.getYear());
 
         int trailingMonths = Months.monthsBetween(
-                latest,
-                latest.minus(period)).getMonths();
+                latestDateTime,
+                latestDateTime.minus(period)).getMonths();
 
         if(trailingMonths < 1) trailingMonths = 1;
 
@@ -899,18 +1232,37 @@ public class InstagramAnalyticsService extends InstagramService {
         List<InstagramStatus> status = new ArrayList<InstagramStatus>();
         if (this.localServiceStatusIsNewStatus(aUser.getUserID())) {
             status = this.getLocalStatusByExactUserIDToMonthsAgo(aUser.getUserID(),trailingMonths);
-            if(status == null || status.size() < 1) {
-                status = this.serviceRequestStatusForUserIDToMonthsAgo(aUser.getUserID(), trailingMonths);
+            if(status == null) {
+                logger.info("Null status all together. This'll punt.");
+                status = new ArrayList<>();
+            }
+            if(status.size() < 1) {
+                logger.info("Woops.  "+aUser.getUsername()+" status is stale all together. Maybe they're media lazy or media dead?");
+                // something wrong here. the status is probably stuck or the account is just completely stale all together
+                //status = this.serviceRequestStatusForUserIDToMonthsAgo(aUser.getUserID(), trailingMonths);
+            } else {
+                logger.info("==== NOT REQUESTING UNSTALE STATUS ====");
             }
         } else {
+            logger.info("Making service request. "+aUser.getUsername()+" status is stale.");
             status = this.serviceRequestStatusForUserIDToMonthsAgo(aUser.getUserID(), trailingMonths);
         }
+
+        //TODO HERE IS WHERE WE CAN UPDATE THE ANALYTICS ENTRIES FOR NEW LIKES
+        //TODO IT IS THE CASE (I THINK..) THAT THE DB GETS UPDATED IN THE STATUS COLLECTION
+        //TODO WHEN THE QUERIES FOR serviceRequestStatusForUserIDToMonthsAgo IS EXECUTED
+        //TODO THE JsonElement RETURNED VIA getInstagramUserStatusAnalyticsAsJson CAN BE USED
+        //TODO TO UPDATE ANY EXISTING ANALYTICS
+        // here update status in the db to update likes and so forth..
+
 
         status.removeIf(s -> s.getCreatedDate().before(earliestDate));
         status.removeIf(s-> s.getCreatedDate().after(latestDate));
         //status.removeIf(s -> s.getCreatedDate().before(earlier.getMillis());
-        logger.debug("Status size from "+fmt_short.print(latest)+" — "+fmt_short.print(earliestDateTime)+" "+period+" for "+aUser.getUsername()+" is "+status.size());
+        logger.debug("Status size from "+fmt_short.print(latestDateTime)+" — "+fmt_short.print(earliestDateTime)+" "+period+" for "+aUser.getUsername()+"_"+aUser.getUserID()+" is "+status.size());
 
+
+        rootUserJson.addProperty("posts-count-in-coverage-period", new Double(status.size()));
         /*
          * Now get the analytics..
          */
@@ -944,7 +1296,21 @@ public class InstagramAnalyticsService extends InstagramService {
         Document doc = Document.parse(rootUserJson.toString());
 
 
-        rootUser.insertOne(doc);
+        /* delete what may already be there in the database covering this coverage period */
+        String endDate = fmt_short.print(latestDateTime);
+        DeleteResult result = rootUser.deleteMany(new Document("username", aUser.getUsername())
+                .append("period-coverage-end-date", endDate)
+                .append("snapshot-coverage-period", period.toString()));
+
+        logger.debug(result);
+
+        try {
+            rootUser.insertOne(doc);
+            logger.info("added "+period.toString()+" "+endDate+" for "+aUser.getUsername()+" with size "+status.size());
+        } catch(Exception ex) {
+            logger.warn("", ex);
+        }
+
 
     }
 
@@ -954,25 +1320,23 @@ public class InstagramAnalyticsService extends InstagramService {
      * @param aUser
      * @param aTrailingDays
      */
+    @Deprecated
     public void captureInstagramUserAnalytics(InstagramUser aUser, int aTrailingDays) {
-        MongoDatabase foo = MongoUtil.getMongo().getDatabase("instagram-analytics");
+
+
+        MongoDatabase foo = client.getDatabase("instagram-analytics");
 
         DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
-        //DateTimeFormatter fmt_short = DateTimeFormat.forPattern("MMddYY");
 
         MongoCollection rootUser;
         rootUser = foo.getCollection(encodeKey(aUser.getUsername()) + /*"_" + fmt_short.print(now)+*/"_" + aUser.getUserID());
 
         JsonObject rootUserJson = new JsonObject();
 
-
         rootUserJson = getRootUserMeta(aUser, now);
+
         Period cover = new Period(0, 0, 0, aTrailingDays, 0, 0, 0, 0);
-        Calendar early = Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"));
-        //early.add(Calendar.DAY_OF_YEAR, -1*aTrailingDays);
-        early.set(Calendar.HOUR_OF_DAY, 0);
-        DateTime earlier = new DateTime(early).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);
-        Date earliestDate = new Date(earlier.getMillis());
+        DateTime earlier = now.minus(cover).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);// new DateTime(early).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);
 
         rootUserJson.addProperty("snapshot-coverage-period", cover.toString());
 
@@ -995,8 +1359,7 @@ public class InstagramAnalyticsService extends InstagramService {
             status = this.serviceRequestStatusForUserIDToMonthsAgo(aUser.getUserID(), trailingMonths);
         }
 
-        status.removeIf(s -> s.getCreatedDate().before(earliestDate));
-        //status.removeIf(s -> s.getCreatedDate().before(earlier.getMillis());
+        status.removeIf(s -> s.getCreatedDate().before(earlier.toDate()));
         logger.debug("Status size for "+aUser.getUsername()+" is "+status.size());
 
         /*
@@ -1004,7 +1367,6 @@ public class InstagramAnalyticsService extends InstagramService {
          */
         JsonElement e = this.getInstagramUserStatusAnalyticsAsJson(status);
         rootUserJson.add("analytics", e);
-        //rootUserArrayJson.add(this.getInstagramUserStatusAnalyticsAsJson(status));
 
         /*************
         List<InstagramUser> friends = this.getInstagramUserFriendsAsList(aUser);
@@ -1030,16 +1392,20 @@ public class InstagramAnalyticsService extends InstagramService {
 
 
         rootUser.insertOne(doc);
+
     }
 
 
-    /**
-     * @param aUserID
-     */
-    protected List<InstagramUser> serviceRequestFriendsAsUsers(String aUserID) throws BadAccessTokenException, NullPointerException {
-        InstagramUser aUser;
-        List<InstagramUser> result = new ArrayList<InstagramUser>();
 
+
+
+    /**
+     * @param aUserID should be an InstagramUser??
+     *
+     */
+    protected List<InstagramUser> serviceRequestFriendsAsUsers(InstagramUser aUser, long throttle_millis) throws BadAccessTokenException, NullPointerException {
+        List<InstagramUser> result = new ArrayList<InstagramUser>();
+        String aUserID = aUser.getUserID();
         if (aUserID == null || aUserID.equalsIgnoreCase("self")) {
             aUserID = user.getId();
             // if the user basic isn't fresh for self, then request it and reset ourselves
@@ -1047,7 +1413,7 @@ public class InstagramAnalyticsService extends InstagramService {
                 user = serviceRequestUserBasic();
             }
             //aUser = user;
-        } else {
+        } /*else {
             if (this.localUserBasicIsFreshForUserID(aUserID) == false) {
                 // freshen this user
                 InstagramUser tmpUser = this.serviceRequestUserBasicForUserID(aUserID);
@@ -1057,7 +1423,7 @@ public class InstagramAnalyticsService extends InstagramService {
                 //saveUserBasicForAnalytics(tmpUser);
             }
         }
-
+        */
         //aUser = this.getLocalUserBasicForUserID(aUserID);
 
         String followsURL = String.format(FOLLOWS_URL, aUserID);
@@ -1080,9 +1446,7 @@ public class InstagramAnalyticsService extends InstagramService {
             if (f != null) {
                 allFollows.addAll(f);
             }
-            //allFollows.addAll(data);
-            //logger.debug("Adding "+data.size());
-            //logger.debug("All Follows now "+allFollows.size());
+
             String next_url = (String) pagination.get("next_url");
             if (next_url != null) {
                 request = new OAuthRequest(Verb.GET, (String) next_url);
@@ -1103,15 +1467,14 @@ public class InstagramAnalyticsService extends InstagramService {
                 break;
 
             }
+            try {
+                Thread.sleep(throttle_millis);
+            } catch (InterruptedException ie) {
+                logger.warn("Problem throttling for " + aUser.getUsername(), ie);
+            }
         }
-//        do {
-//            //			JSONArray data = (JSONArray)map.get("data");
-//            }
-//        } while (pagination != null);
-           // logger.debug("allFollows.size()="+allFollows.size());
-            //int i=0;
+
             for(JSONObject j : allFollows) {
-                //logger.debug(j);
                 InstagramUserBriefly iub = gson.fromJson(j.toString(), InstagramUserBriefly.class);
                 InstagramUser friend = this.getLocalUserBasicForUserID(iub.getId());
                 if(friend == null || this.localUserBasicIsFreshForUserID(iub.getId()) == false) {
@@ -1120,15 +1483,18 @@ public class InstagramAnalyticsService extends InstagramService {
                         logger.warn(iub + " is maybe a private/blocked User from whichever user is authenticated in this transaction. (Are you running analytics on someone else's account?");
                         continue;
                     }
+                    try {
+                        Thread.sleep(throttle_millis);
+                    } catch (InterruptedException ie) {
+                        logger.warn("Problem throttling for " + friend.getUsername(), ie);
+                    }
                 }
                 result.add(friend);
-                //i++;
-                //logger.debug("allFollows.size()="+allFollows.size()+" i="+i+" result.size()="+result.size());
+
 
 
             }
 
-//        return followsDAO.findFollowsByExactUserID(aUserID);
         return result;
     }
 
@@ -1143,7 +1509,7 @@ public class InstagramAnalyticsService extends InstagramService {
         String json = gson.toJson(aUser, t);
         Document doc = Document.parse(json);
 
-        MongoDatabase foo = MongoUtil.getMongo().getDatabase("instagram-analytics");
+        MongoDatabase foo = client.getDatabase("instagram-analytics");
 
         DateTime now = new DateTime(ISOChronology.getInstance(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))));
         DateTimeFormatter fmt_short = DateTimeFormat.forPattern("MMddYY");
@@ -1169,6 +1535,11 @@ public class InstagramAnalyticsService extends InstagramService {
         service.signRequest(accessToken, request);
         Response response = request.send();
         // TODO Error check..
+        if (response.getCode() == 400 && response.getHeaders().containsValue("HTTP/1.1 400 BAD REQUEST")) {
+            logger.warn("Bad response for Instagram User ID " + aUserID + " via " + this.getThisUser() + " " + response.getBody());
+            return null;
+            //throw new BadAccessTokenException("Bad response for " + aUserID + " " + this.getThisUser() + " " + response.getBody());
+        }
         String s = response.getBody();
         Object obj = JSONValue.parse(s);
         try {
@@ -1189,34 +1560,117 @@ public class InstagramAnalyticsService extends InstagramService {
             if(response.getCode() == 400 && response.getBody().contains("APINotAllowedError")) {
                 logger.warn("APINotAllowedError. You've either been blocked by a user or are running analytics against someone else's account.");
                 logger.warn(response.getBody());
-            } else {
+            } /*else {
                 // logger.warn(e);
-            }
+            }*/
             return null;
         }
 
 
     }
 
+/*
+ "snapshot-coverage-period" : 1,
+        "snapshot-coverage-duration-days" : 1,
+        "snapshot-date" : 1,
+        "snapshot-run-time" : 1,
+        "snapshot-coverage-period" : 1,
+        "posts-count-in-coverage-period" : 1,
+        "snapshot-coverage-period" : 1,
+        "snapshot-run-time-millis" : 1,
+        "analytics.engagement-analytics-meta.avg-likes" : 1,
+        "analytics.engagement-analytics-meta.avg-comments" : 1
+
+ */
+
+    public ArrayList<Document> gatherAggregatePeriodDataForPeriod(InstagramUser aUser, DateTime coveragePeriodEndDate, String aPeriod) {
+        AggregateIterable<Document> iterable;
+
+        String collection_name = aUser.getUsername()+"_"+aUser.getUserID();
+        String str_date = short_date_fmt.print(coveragePeriodEndDate);
+        iterable = database.getCollection(collection_name).aggregate(asList(
+                new Document("$match", (
+                        new Document("snapshot-coverage-period", new Document("$in",
+                                asList(aPeriod))))
+                        .append("period-coverage-end-date", str_date)
+                ),
+                new Document("$sort", new Document("snapshot-time-millis", 1)),
+                new Document("$project", new Document("analytics.status-json", 1)
+                        .append("snapshot-run-date", 1)
+
+                )
+
+                ));
+
+        ArrayList<Document> result = new ArrayList();
+
+        iterable.forEach(new Block<Document>() {
+            @Override
+            public void apply(Document document) {
+                Gson gson = new Gson();
+                result.add(document);
+            }
+        });
+        return result;
+    }
+
+
+    public ArrayList<Document> gatherAggregatePeriodData(InstagramUser aUser, DateTime coveragePeriodEndDate) {
+        AggregateIterable<Document> iterable;
+
+        String collection_name = aUser.getUsername()+"_"+aUser.getUserID();
+        String str_date = short_date_fmt.print(coveragePeriodEndDate);
+        iterable = database.getCollection(collection_name).aggregate(asList(
+                new Document("$match", (
+                        new Document("snapshot-coverage-period", new Document("$in",
+                        asList("P1M","P15D","P10D","P7D","P5D","P3D","P2D","P1D"))))
+                        .append("period-coverage-end-date", str_date)
+                ),
+                new Document("$sort", new Document("snapshot-coverage-duration-days", 1)),
+                new Document("$project", new Document("snapshot-coverage-period", 1)
+                        .append("snapshot-coverage-duration-days", 1)
+                        .append("snapshot-date", 1)
+                        .append("snapshot-run-time", 1)
+                        .append("period-coverage-end-date", 1)
+                        .append("period-coverage-start-date", 1)
+                        .append("period-coverage-end-millis", 1)
+                        .append("posts-count-in-coverage-period", 1)
+                        .append("snapshot-run-time-millis", 1)
+                        .append("analytics.engagement-analytics-meta.max-likes", 1)
+                        .append("analytics.engagement-analytics-meta.max-comments", 1)
+                        .append("analytics.engagement-analytics-meta.avg-likes", 1)
+                        .append("analytics.engagement-analytics-meta.avg-comments", 1)
+        )));
+
+        ArrayList<Document> result = new ArrayList();
+
+        iterable.forEach(new Block<Document>() {
+            @Override
+            public void apply(Document document) {
+                Gson gson = new Gson();
+                result.add(document);
+            }
+        });
+        return result;
+    }
+
+    /**
+     *
+     */
+//    public ArrayList<Document> getSortedListOfAggregatePeriodData() {
+//
+//    }
+
+    /**
+     * Gets all the usernames for users we want to run analytics upon.
+     *
+     * @return
+     * @throws IOException
+     */
     public ArrayList<String> gatherUsernamesForAnalytics() throws IOException {
         ArrayList<String> listOfUserNames = new ArrayList<String>();
-//        String listOfInstagramAccountsFilePath = Constants.getString("LIST_OF_INSTAGRAM_ACCOUNTS_FILE_PATH");
-//        try {
-//            BufferedReader reader = new BufferedReader(new FileReader(listOfInstagramAccountsFilePath));
-//            // BufferedWriter writer = new BufferedWriter(new FileWriter("/Users/julian/Documents/workspace/HumansService/Omata-ListOfInstagramAccounts-Output.txt"));
-//            for (String s = reader.readLine(); s != null && s.length() > 0; s = reader.readLine()) {
-//                if (listOfUserNames.contains(s) == true) {
-//                    continue;
-//                }
-//                listOfUserNames.add(s);
-//            }
-//        } catch(IOException ioe) {
-//            logger.warn(ioe);
-//        }
-
-
         MongoCollection rootCollection;
-        MongoDatabase db = MongoUtil.getMongo().getDatabase("instagram-analytics");
+        MongoDatabase db = client.getDatabase("instagram-analytics");
         //rootUser = foo.getCollection(encodeKey(aUser.getUsername()) + /*"_" + fmt_short.print(now)+*/"_" + aUser.getUserID());
         rootCollection = db.getCollection("base_analytics_users");
         FindIterable f = rootCollection.find();
@@ -1231,6 +1685,20 @@ public class InstagramAnalyticsService extends InstagramService {
             String a_follow = instagramUser.getUsername();
             if (listOfUserNames.contains(a_follow) == false) {
                 logger.info("Adding ["+a_follow+"] via "+me.getUsername()+" to list..("+listOfUserNames.size()+")");
+
+                listOfUserNames.add(a_follow);
+            }
+        });
+
+        // now save this list?
+
+        // Find the people @darthjulian follows to be sure
+        InstagramUser darthjulian = InstagramAnalyticsService.staticGetLocalUserBasicForUsername("darthjulian");
+        follows = this.getInstagramUserFriendsAsList(darthjulian);
+        follows.forEach((instagramUser) -> {
+            String a_follow = instagramUser.getUsername();
+            if (listOfUserNames.contains(a_follow) == false) {
+                logger.info("Adding ["+a_follow+"] via "+darthjulian.getUsername()+" to list..("+listOfUserNames.size()+")");
 
                 listOfUserNames.add(a_follow);
             }
@@ -1296,6 +1764,29 @@ public class InstagramAnalyticsService extends InstagramService {
             }
         });
 
+
+        // now go into the collections in instagram-analytics-grabbag
+        // extra-follows-cycling
+        // extra-follows-cyclists
+        // and add those accounts
+        getListOfEndemicCyclistsInstagramAnalyticsUsernames().forEach((username) -> {
+            if (!listOfUserNames.contains(username)) {
+                logger.info("Adding ["+username+"] via getListOfEndemicCyclistsInstagramAnalyticsUsernames to list..("+listOfUserNames.size()+")");
+
+                listOfUserNames.add(username);
+            }
+        });
+
+        getListOfEndemicCylingInstagramAnalyticsUsernames().forEach((username) -> {
+            if (!listOfUserNames.contains(username)) {
+                logger.info("Adding ["+username+"] via getListOfEndemicCylingInstagramAnalyticsUsernames to list..("+listOfUserNames.size()+")");
+
+                listOfUserNames.add(username);
+            }
+        });
+
+
+
         return listOfUserNames;
     }
 
@@ -1303,7 +1794,7 @@ public class InstagramAnalyticsService extends InstagramService {
     public static InstagramUser getLocalUserBasicForUsername(String aUsername) {
         InstagramUserDAO dao = new InstagramUserDAO("instagram-analytics");
 
-        InstagramUser user = dao.findByExactUsername(aUsername);
+        InstagramUser user = dao.findByExactUsernameCaseInsensitive(aUsername);
         return user;
     }
 

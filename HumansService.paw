@@ -5,12 +5,12 @@
     <databaseInfo>
         <version>134481920</version>
         <UUID>F73C2AA7-2594-434C-9820-67B117218B35</UUID>
-        <nextObjectID>217</nextObjectID>
+        <nextObjectID>233</nextObjectID>
         <metadata>
             <plist version="1.0">
                 <dict>
                     <key>NSPersistenceFrameworkVersion</key>
-                    <integer>640</integer>
+                    <integer>641</integer>
                     <key>NSStoreModelVersionHashes</key>
                     <dict>
                         <key>LMCookieJar</key>
@@ -70,11 +70,11 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">2</attribute>
+        <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">GettyUpdate Friends for Human Duplicate</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z168 z150"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z150 z168"></relationship>
     </object>
     <object type="LMREQUEST" id="z103">
         <attribute name="uuid" type="string">B4B1D72A-CCAB-4D65-92F7-D41A55EE649F</attribute>
@@ -87,7 +87,7 @@
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="body" type="string">["{\\"username\\" : \\"frank\\"}"]</attribute>
-        <attribute name="order" type="int64">7</attribute>
+        <attribute name="order" type="int64">8</attribute>
         <attribute name="name" type="string">Username Exists</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -107,7 +107,7 @@
         <attribute name="name" type="string">GettyUpdate Friends for Human</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z154 z165"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z165 z154"></relationship>
     </object>
     <object type="LMREQUEST" id="z105">
         <attribute name="uuid" type="string">E841CE7A-48DA-4AA4-9DB3-D8F8BB8BC18A</attribute>
@@ -119,11 +119,11 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">6</attribute>
+        <attribute name="order" type="int64">7</attribute>
         <attribute name="name" type="string">Get Human By Id</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z143 z172"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z172 z143"></relationship>
     </object>
     <object type="LMREQUEST" id="z106">
         <attribute name="uuid" type="string">774C4780-FA2D-416A-A85A-5FE2C87B4D42</attribute>
@@ -139,7 +139,7 @@
         <attribute name="name" type="string">Get Status For Human By Id</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z159 z177"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z177 z159"></relationship>
     </object>
     <object type="LMREQUEST" id="z107">
         <attribute name="uuid" type="string">2815C0DB-F4CB-4C70-A1EC-1EAB29B1BEBF</attribute>
@@ -155,7 +155,7 @@
         <attribute name="name" type="string">Get Status Count For Human By Id Duplicate</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z197 z167"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z167 z197"></relationship>
     </object>
     <object type="LMREQUEST" id="z108">
         <attribute name="uuid" type="string">FD600B87-358C-4908-A2A7-361A63525458</attribute>
@@ -168,7 +168,7 @@
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="body" type="string">["{\\n  \\"username\\": \\"foofa\\",\\n  \\"password\\": \\"barbaz\\",\\n\\"email\\": \\"dens@teendrama.com\\"\\n}"]</attribute>
-        <attribute name="order" type="int64">10</attribute>
+        <attribute name="order" type="int64">11</attribute>
         <attribute name="name" type="string">Create New User</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -233,11 +233,11 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">9</attribute>
+        <attribute name="order" type="int64">10</attribute>
         <attribute name="name" type="string">User Remove Human</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z176 z186"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z186 z176"></relationship>
     </object>
     <object type="LMREQUEST" id="z113">
         <attribute name="uuid" type="string">B8FA1C8D-1A80-4E39-A98F-FC01990F21CA</attribute>
@@ -254,7 +254,7 @@
         <attribute name="name" type="string">User Add Human</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z169 z206"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z206 z169"></relationship>
     </object>
     <object type="LMREQUEST" id="z114">
         <attribute name="uuid" type="string">7A5C9ED8-6926-4365-938A-BD53BB40AA29</attribute>
@@ -287,7 +287,7 @@
         <attribute name="name" type="string">Get User Details</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z191 z194"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z194 z191"></relationship>
     </object>
     <object type="LMREQUEST" id="z116">
         <attribute name="uuid" type="string">024A8B4E-9C71-4487-B6F4-EA4601EBAA27</attribute>
@@ -303,7 +303,7 @@
         <attribute name="name" type="string">User Get Service Access Token</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z205 z199"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z199 z205"></relationship>
     </object>
     <object type="LMREQUEST" id="z117">
         <attribute name="uuid" type="string">DAB0EE87-AD4F-4104-8C93-0E37DA83A9F1</attribute>
@@ -381,7 +381,7 @@
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="body" type="string">["{\\n  \\"name\\": \\"Test2\\",\\n  \\"serviceUsers\\": [\\n    {\\n      \\"imageURL\\": \\"http:\\/\\/farm1.staticflickr.com\\/4\\/buddyicons\\/94858220@N00.jpg\\",\\n      \\"onBehalfOf\\": {\\n        \\"serviceName\\": \\"flickr\\",\\n        \\"serviceUserID\\": \\"66854529@N00\\",\\n        \\"serviceUsername\\": \\"JulianBleecker\\"\\n      },\\n      \\"service\\": \\"flickr\\",\\n      \\"serviceUserID\\": \\"94858220@N00\\",\\n      \\"username\\": \\"Rhys' Eyes\\"\\n    },\\n    {\\n      \\"imageURL\\": \\"http:\\/\\/pbs.twimg.com\\/profile_images\\/57166721\\/2273953063_f6c1259d0a_b_normal.jpg\\",\\n      \\"onBehalfOf\\": {\\n        \\"serviceName\\": \\"twitter\\",\\n        \\"serviceUserID\\": \\"185383\\",\\n        \\"serviceUsername\\": \\"darthjulian\\"\\n      },\\n      \\"service\\": \\"twitter\\",\\n      \\"serviceUserID\\": \\"14715186\\",\\n      \\"username\\": \\"rhysys\\"\\n    },\\n    {\\n      \\"imageURL\\": \\"http:\\/\\/farm3.staticflickr.com\\/2841\\/buddyicons\\/91902047@N02.jpg\\",\\n      \\"onBehalfOf\\": {\\n        \\"serviceName\\": \\"flickr\\",\\n        \\"serviceUserID\\": \\"66854529@N00\\",\\n        \\"serviceUsername\\": \\"JulianBleecker\\"\\n      },\\n      \\"service\\": \\"flickr\\",\\n      \\"serviceUserID\\": \\"91902047@N02\\",\\n      \\"username\\": \\"Mike Dawn \u2600 Ella\\"\\n    }\\n  ]\\n}"]</attribute>
-        <attribute name="order" type="int64">8</attribute>
+        <attribute name="order" type="int64">9</attribute>
         <attribute name="name" type="string">User Add Human</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -413,7 +413,7 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">11</attribute>
+        <attribute name="order" type="int64">12</attribute>
         <attribute name="name" type="string">User Get Service Access Token</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -429,7 +429,7 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">5</attribute>
+        <attribute name="order" type="int64">6</attribute>
         <attribute name="name" type="string">Get User Details</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -465,7 +465,7 @@
         <attribute name="name" type="string">GettyUpdate Human Status</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z170 z142"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z142 z170"></relationship>
     </object>
     <object type="LMREQUEST" id="z127">
         <attribute name="body" type="string">[{"data":{},"identifier":"com.luckymarmot.FileContentDynamicValue"}]</attribute>
@@ -478,11 +478,11 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">4</attribute>
+        <attribute name="order" type="int64">5</attribute>
         <attribute name="name" type="string">Get User Humans Details</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z182 z179"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z179 z182"></relationship>
     </object>
     <object type="LMREQUEST" id="z128">
         <attribute name="uuid" type="string">6B671908-1EA1-49F1-9C2A-3F84BF4B71E6</attribute>
@@ -510,7 +510,7 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">GET</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">3</attribute>
+        <attribute name="order" type="int64">4</attribute>
         <attribute name="name" type="string">Get Friends</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -527,11 +527,11 @@
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="body" type="string"></attribute>
-        <attribute name="order" type="int64">12</attribute>
+        <attribute name="order" type="int64">13</attribute>
         <attribute name="name" type="string">Add Service user</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z189 z203"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z203 z189"></relationship>
     </object>
     <object type="LMREQUEST" id="z131">
         <attribute name="uuid" type="string">AFA78120-47F7-43E1-9C89-0386ABDA0C27</attribute>
@@ -579,7 +579,7 @@
         <attribute name="name" type="string">Get Status Count For Users Humans</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z180 z183"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z183 z180"></relationship>
     </object>
     <object type="LMREQUEST" id="z134">
         <attribute name="uuid" type="string">40F4A696-ABAB-4171-A6ED-ED42224110C4</attribute>
@@ -595,7 +595,7 @@
         <attribute name="name" type="string">Get Status Count For Human By Id After</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z214"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z192 z174"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z174 z192"></relationship>
     </object>
     <object type="LMREQUEST" id="z135">
         <attribute name="uuid" type="string">F6249238-B534-4382-8B8B-CC3B3316E8D0</attribute>
@@ -1333,7 +1333,7 @@
         <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z121"></relationship>
     </object>
     <object type="LMKEYVALUE" id="z209">
-        <attribute name="value" type="string">[{"name":"com.luckymarmot.Paw.DynamicValue","data":"62706C6973743030D40102030405061C1D582476657273696F6E58246F626A65637473592461726368697665725424746F7012000186A0A607081112131455246E756C6CD4090A0B0C0D0E0F1058757365726E616D655870617373776F726457636861727365745624636C61737380038004800280055875732D61736369695B64617274686A756C69616E5B64617274686A756C69616ED2151617185A24636C6173736E616D655824636C61737365735F10174C4D42617369634175746844796E616D696356616C7565A3191A1B5F10174C4D42617369634175746844796E616D696356616C75655E4C4D44796E616D696356616C7565584E534F626A6563745F100F4E534B657965644172636869766572D11E1F54726F6F74800100080011001A0023002D00320037003E0044004D0056005F0067006E0070007200740076007F008B0097009C00A700B000CA00CE00E800F7010001120115011A000000000000020100000000000000200000000000000000000000000000011C"}]</attribute>
+        <attribute name="value" type="string">[{"data":{"charset":"us-ascii","username":["omata.la"],"password":["omata"]},"identifier":"com.luckymarmot.BasicAuthDynamicValue"}]</attribute>
         <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Authorization</attribute>
         <attribute name="enabled" type="bool">1</attribute>
@@ -1351,40 +1351,40 @@
     </object>
     <object type="LMREQUESTGROUP" id="z211">
         <attribute name="uuid" type="string">9499B2D2-51DE-4F43-A369-56491451EEBA</attribute>
-        <attribute name="order" type="int64">2</attribute>
+        <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Getty Updates</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z125 z131 z117 z217"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z217 z131 z125 z117"></relationship>
         <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
     </object>
     <object type="LMREQUESTGROUP" id="z212">
         <attribute name="uuid" type="string">E4B360DE-3F02-46BD-ACF4-0C37CF00CBDE</attribute>
-        <attribute name="order" type="int64">1</attribute>
+        <attribute name="order" type="int64">2</attribute>
         <attribute name="name" type="string">Get Status Stuff</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z128 z119 z109 z122"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z119 z109 z128 z122"></relationship>
         <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
     </object>
     <object type="LMREQUESTGROUP" id="z213">
         <attribute name="uuid" type="string">3B188FBE-1EF7-4CAE-895D-2C41F7E51294</attribute>
-        <attribute name="order" type="int64">0</attribute>
+        <attribute name="order" type="int64">1</attribute>
         <attribute name="name" type="string">Localhost</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z127 z129 z121 z103 z124 z114 z212 z123 z105 z130 z108 z112 z211"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z127 z105 z220 z112 z212 z108 z129 z124 z121 z103 z130 z211 z114 z123"></relationship>
         <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
     </object>
     <object type="LMREQUESTGROUP" id="z214">
         <attribute name="uuid" type="string">9576733C-DB7B-4C99-9175-6C9F1A13E0FF</attribute>
-        <attribute name="order" type="int64">1</attribute>
+        <attribute name="order" type="int64">2</attribute>
         <attribute name="name" type="string">EC2</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z136 z110 z104 z107 z111 z135 z126 z113 z118 z116 z120 z134 z106 z132 z133 z115"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z135 z115 z134 z111 z133 z120 z132 z116 z107 z118 z113 z104 z110 z106 z126 z136"></relationship>
         <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
@@ -1418,5 +1418,176 @@
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z211"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z216"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z218">
+        <attribute name="uuid" type="string">E2C55481-F096-46A3-81EC-CE141C39B898</attribute>
+        <attribute name="url" type="string">http://localhost:8080/rest/analytics/top/10/by/avg-likes/date/121315/user/jkottke</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">GET</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string">Top By Key Date and User</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z220"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z219"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z219">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z218"></relationship>
+    </object>
+    <object type="LMREQUESTGROUP" id="z220">
+        <attribute name="uuid" type="string">05484F58-FCBB-4C7A-AA9E-53649F724BF1</attribute>
+        <attribute name="order" type="int64">1</attribute>
+        <attribute name="name" type="string">Analytics Stuff</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z213"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z226 z218 z232 z221 z224"></relationship>
+        <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
+        <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z221">
+        <attribute name="uuid" type="string">A8924A24-2266-4A50-A0EF-093ECA2A38B0</attribute>
+        <attribute name="url" type="string">http://localhost:8080/rest/analytics/get/feed-for-day/121215</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">GET</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="order" type="int64">1</attribute>
+        <attribute name="name" type="string">Feed For Day</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z220"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z222"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z222">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z221"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z223">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z224"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z224">
+        <attribute name="uuid" type="string">5FCB90B7-C38C-4F10-A487-98487FCF2146</attribute>
+        <attribute name="url" type="string">http://localhost:8080/rest/analytics/top/25-30/by/avg-likes/date/122015</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">GET</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="order" type="int64">2</attribute>
+        <attribute name="name" type="string">Top Range By Key By Date</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z220"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z223"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z225">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z226"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z226">
+        <attribute name="body" type="string">[{"data":{"json":"{}"},"identifier":"com.luckymarmot.JSONDynamicValue"}]</attribute>
+        <attribute name="uuid" type="string">CC3F3253-A3DF-4569-8C9E-78A18B7BF1F4</attribute>
+        <attribute name="url" type="string">http://localhost:8080/rest/analytics/get/user/jkottke</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">GET</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="order" type="int64">3</attribute>
+        <attribute name="name" type="string">Analytics By User</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z220"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z225"></relationship>
+    </object>
+    <object type="LMREQUESTGROUP" id="z229">
+        <attribute name="uuid" type="string">5E687E85-7452-43C4-8882-008C3F51710C</attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string">EC2 - Analytics - DB</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z230"></relationship>
+        <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
+        <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z230">
+        <attribute name="uuid" type="string">CEF2F6A1-B802-493B-998C-7690FF5B798F</attribute>
+        <attribute name="url" type="string">http://ec2-52-9-72-8.us-west-1.compute.amazonaws.com:8080/rest/analytics/top/10/by/avg-likes/date/122815/user/omata_la/period/P7D</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">GET</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string">Top By Key By Date</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z229"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z231"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z231">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z230"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z232">
+        <attribute name="uuid" type="string">CEAEB220-0CAC-4559-8607-F09B596A86AB</attribute>
+        <attribute name="url" type="string">http://localhost:8080/rest/analytics/top/5/by/avg-likes/date/121715/user/omata_la</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">GET</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="order" type="int64">4</attribute>
+        <attribute name="name" type="string">Analytics Around User</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z220"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z233"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z233">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z232"></relationship>
     </object>
 </database>

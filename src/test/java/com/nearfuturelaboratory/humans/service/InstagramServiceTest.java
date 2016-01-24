@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.google.gson.JsonElement;
+import com.nearfuturelaboratory.humans.instagram.entities.InstagramUser;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 //import org.apache.log4j.PropertyConfigurator;
@@ -150,4 +151,11 @@ public class InstagramServiceTest {
 		List<InstagramFriend> list = instagram.getLocalFriendsFor("696578");
 		logger.debug("");
 	}
+
+	@Test
+	public void test_getLocalUserBasicForUsername() {
+		InstagramUser user = instagram.getLocalUserBasicForUsername("foobarbaz");
+		logger.debug(user);
+	}
+
 }

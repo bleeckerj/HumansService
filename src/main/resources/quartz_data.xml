@@ -19,7 +19,14 @@
             <name>ScheduledInstagramAnalyticsJob</name>
             <job-class>com.nearfuturelaboratory.humans.scheduler.ScheduledInstagramAnalyticsJob</job-class>
         </job>
-
+        <job>
+            <name>ScheduledInstagramUserBasicAnalyticsJob</name>
+            <job-class>com.nearfuturelaboratory.humans.scheduler.ScheduledInstagramUserBasicAnalyticsJob</job-class>
+        </job>
+        <job>
+            <name>ScheduledFollowersFetcherJob</name>
+            <job-class>com.nearfuturelaboratory.humans.scheduler.ScheduledFollowersFetcherJob</job-class>
+        </job>
 
         <trigger>
             <cron>
@@ -40,15 +47,31 @@
         </trigger>
 
         <trigger>
-            <cron>
+            <cron><!-- has to be run after midnight -->
                 <name>ScheduledInstagramAnalyticsJob</name>
                 <job-name>ScheduledInstagramAnalyticsJob</job-name>
-                <cron-expression>0 11 23 1/1 * ? *</cron-expression>
+                <cron-expression>0 30 2 1/1 * ? *</cron-expression>
             </cron>
 
         </trigger>
 
+        <trigger>
+            <cron><!-- has to be run close to midnight -->
+                <name>ScheduledInstagramUserBasicAnalyticsJob</name>
+                <job-name>ScheduledInstagramUserBasicAnalyticsJob</job-name>
+                <cron-expression>0 1 0 1/1 * ? *</cron-expression>
+            </cron>
 
+        </trigger>
+
+        <trigger>
+            <cron><!-- has to be run sometime nothing else is really going on -->
+                <name>ScheduledFollowersFetcherJob</name>
+                <job-name>ScheduledFollowersFetcherJob</job-name>
+                <cron-expression>0 0 8 1/1 * ? *</cron-expression>
+            </cron>
+
+        </trigger>
     </schedule>
 
 </job-scheduling-data>
